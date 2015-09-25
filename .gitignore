@@ -34,3 +34,30 @@ xmlrpc.php
 /profiles
 /scripts
 /themes
+
+.project
+.settings
+.classpath
+.sass-cache/
+.idea/
+
+# OS generated files
+*/.DS_Store
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
