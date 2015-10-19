@@ -1,0 +1,6 @@
+name = Acro CRM Leads
+description = Manage incoming leads.
+package = Acro CRM
+core = 7.x
+
+dependencies[] = acrocrm

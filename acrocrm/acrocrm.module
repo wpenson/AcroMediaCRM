@@ -1,0 +1,182 @@
+<?php
+/**
+* @file
+* Defines basic functionality common to all parts of Acro CRM.
+*/
+
+/**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param path
+ *   Which path of the site we're using to display help
+ * @param arg
+ *   Array that holds the current path as returned from arg() function
+ */
+function acrocrm_help($path, $arg) {
+    switch ($path) {
+        case "admin/help#acrocrm":
+            return '<p>' . t("Establishes basic functionality for all parts of Acro CRM") . '</p>';
+            break;
+    }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function acrocrm_menu() {
+    $items = array();
+
+    // Menu items that are basically just menu blocks.
+    $items['acrocrm'] = array(
+        'title' => 'CRM Dashboard',
+        'description' => 'Acro CRM Dashboard',
+        'weight' => -8,
+        'page callback' => 'acrocrm_landing_page',
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm.admin.inc',
+    );
+    $items['admin/structure/acrocrm'] = array(
+        'title' => 'Acro CRM',
+        'description' => 'Administer Acro CRM items, such as team members, contacts, etc.',
+        'page callback' => 'system_admin_menu_block_page',
+        'access arguments' => array('administer acrocrm'),
+        'file' => 'system.admin.inc',
+        'file path' => drupal_get_path('module', 'system'),
+    );
+    $items['admin/config/acrocrm'] = array(
+        'title' => 'Acro CRM',
+        'description' => 'Settings for Acro modules.',
+        'position' => 'right',
+        'weight' => -10,
+        'page callback' => 'system_admin_menu_block_page',
+        'access arguments' => array('administer site configuration'),
+        'file' => 'system.admin.inc',
+        'file path' => drupal_get_path('module', 'system'),
+    );
+    $items['admin/config/acrocrm/crm'] = array(
+        'title' => 'Acro CRM settings',
+        'description' => 'Configure Acro CRM.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('acrocrm_settings'),
+        'access arguments' => array('administer acrocrm'),
+        'file' => 'includes/acrocrm.admin.inc',
+    );
+
+    return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function acrocrm_theme() {
+    return array(
+        'acrocrm_property_field' => array(
+            'variables' => array(
+                'label_hidden' => FALSE,
+                'title_attributes' => NULL,
+                'label' => '',
+                'content_attributes' => NULL,
+                'items' => array(),
+                'item_attributes' => array(0 => ''),
+                'classes' => '',
+                'attributes' => '',
+            ),
+        ),
+        'acrocrm_home' => array('items' => NULL),
+    );
+}
+
+
+/**
+ * Implements hook_admin_menu_output_build().
+ *
+ * Add Acro CRM to the admin menu.
+ */
+function acrocrm_admin_menu_output_build(&$content) {
+    // Load menu builder functions.
+    module_load_include('inc', 'admin_menu');
+    // Because it isn't assigned an explicit menu, the 'acrocrm' menu item is
+    // added to the 'navigation' menu by default. However, in case it has been
+    // moved to a different menu, query to find the menu name.
+    if ($menu_name = db_query("SELECT menu_name FROM {menu_links} WHERE router_path = 'acrocrm'")->fetchField()) {
+        $items = admin_menu_links_menu(admin_menu_tree($menu_name));
+        if (isset($items['acrocrm'])) {
+            // Peg position to that of the admin/people menu item.
+            if (isset($content['menu']['admin/people'])) {
+                $items['acrocrm']['#weight'] = $content['menu']['admin/people']['#weight'];
+            }
+            // Change title from "CRM Dashboard". No need for t() here because it's a
+            // product name.
+            $items['acrocrm']['#title'] = 'Acro CRM';
+            $content['menu']['acrocrm'] = $items['acrocrm'];
+        }
+    }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function acrocrm_admin_paths() {
+    // Set Acro CRM admin paths based on configuration.
+    if (variable_get('acrocrm_admin_path', FALSE)) {
+        $paths = array(
+            'acrocrm' => TRUE,
+            'acrocrm/*' => TRUE,
+        );
+        return $paths;
+    }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function acrocrm_permission() {
+    return array(
+        'administer acrocrm' => array(
+            'title' => t('Administer Acro CRM'),
+            'description' => t('Perform administration tasks for my Acro CRM.'),
+        ),
+        'access acrocrm' => array(
+            'title' => t('Access Acro CRM'),
+            'description' => t('Access Acro CRM.'),
+        ),
+    );
+}
+
+/**
+ * Theme handler for Acro CRM landing page.
+ *
+ * @param array $variables
+ *   Variables to theme.
+ *
+ * @return array
+ *   Render array.
+ */
+function theme_acrocrm_home($variables) {
+    $items = $variables['items'];
+    $list = array();
+    $path = drupal_get_path('module', 'acrocrm');
+    foreach ($items as $item) {
+        $list[] = l($item['title'], $item['path']) .
+            '<div>' . $item['description'] . '</div>';
+    }
+    $render = array(
+        'logo' => array(
+            '#theme' => 'image',
+            '#path' => $path . '/misc/smiley_face.png',
+            '#alt' => t('Smile :)'),
+            '#attributes' => array('id' => 'smiley-face'),
+        ),
+        'links' => array(
+            '#theme' => 'item_list',
+            '#items' => $list,
+        ),
+        '#attached' => array(
+            'css' => array($path . '/misc/acrocrm.css'),
+        )
+    );
+
+    return $render;
+}

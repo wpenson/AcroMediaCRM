@@ -1,0 +1,8 @@
+name = Acro CRM
+description = Defines basic functionality common to all parts of the Acro CRM.
+core = 7.x
+package = Acro CRM
+
+files[] = includes/acrocrm.admin.inc
+
+configure = admin/config/acrocrm
