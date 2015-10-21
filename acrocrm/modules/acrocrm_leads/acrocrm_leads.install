@@ -1,0 +1,48 @@
+<?php
+
+function acrocrm_leads_schema() {
+  $schema['leads'] = array(
+    'description' => t('The table for leads'),
+    'fields' => array(
+      'lead_id' => array(
+        'description' => 'The primary identifier for a lead.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'name' => array(
+        'description' => 'The primary name field for the lead.',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE
+      ),
+      'firstname' => array(
+        'description' => 'The first name field for the lead.',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => FALSE
+      ),
+      'email' => array(
+        'description' => 'The email for the lead.',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => FALSE
+      ),
+      'phone' => array(
+        'description' => 'The phone number for the lead.',
+        'type' => 'varchar',
+        'length' => 15,
+        'not null' => FALSE
+      ),
+      'comments' => array(
+        'description' => 'The comment submitted by the lead form.',
+        'type' => 'varchar',
+        'length' => 1000,
+        'not null' => FALSE
+      ),
+    ),
+    'primary key' => array('lead_id'),
+  );
+
+  return $schema;
+}

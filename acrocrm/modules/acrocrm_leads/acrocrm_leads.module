@@ -1,0 +1,144 @@
+<?php
+/**
+ * @file
+ * Leads module for AcroCRM
+ */
+
+/**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param $path
+ *  Path of the site to display help
+ * @param $arg
+ *  Array that holds the current path returned by the arg() function.
+ * @return string
+ *  Ant HTML string
+ */
+function acrocrm_leads_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#acrocrm_leads":
+      return '<p>' . t("Leads module for AcroCRM") . '</p>';
+      break;
+  }
+}
+
+/**
+ * Implements hook_menu
+ */
+function acrocrm_leads_menu() {
+  $items = array();
+
+  $items['admin/config/acrocrm/acrocrm_leads'] = array(
+    'title' => 'AcroCRM Leads Contact form',
+    'description' => 'Configuration for the AcroCRM Leads Contact form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acrocrm_leads_contact_form_settings_form'),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/acrocrm_leads.forms.inc',
+    'type' => MENU_NORMAL_ITEM
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function acrocrm_leads_block_info() {
+  $blocks['acrocrm_leads_contact'] = array(
+    // Name that will appear in the block lists.
+    'info' => t('AcroCRM Leads Contact form'),
+    'file' => 'includes/acrocrm_leads.forms.inc',
+    // Default setting
+    'cache' => DRUPAL_CACHE_PER_ROLE
+  );
+  return $blocks;
+}
+
+function acrocrm_leads_block_view($delta = '') {
+  switch ($delta) {
+    case 'acrocrm_leads_contact':
+      $block['subject'] = t('Contact form');
+      $form = drupal_get_form('acrocrm_leads_contact_form');
+      $block['content'] = drupal_render($form);
+      return $block;
+  }
+}
+
+/**************************************************************
+ * Contact form for block. I can't seem to figure out how to
+ * put it in another file...
+/**************************************************************
+
+/**
+ * Form callback: website visitor contact.
+ */
+function acrocrm_leads_contact_form($form, &$form_state) {
+  $nameFieldType = variable_get('name_field', 'name');
+
+  $form['contact_firstname'] = array(
+    '#type' => 'textfield',
+    '#title' => 'First Name',
+    '#size' => 50,
+    '#maxlength' => 50,
+    '#required' => FALSE,
+    '#access' => $nameFieldType == 'name' ? FALSE : TRUE
+  );
+
+
+  $form['contact_name'] = array(
+    '#type' => 'textfield',
+    '#title' => $nameFieldType == 'name' ? 'Name' : 'Last Name',
+    '#size' => 50,
+    '#maxlength' => 50,
+    '#required' => TRUE
+  );
+
+
+  $form['contact_email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email'),
+    '#size' => 50,
+    '#maxlength' => 50,
+    '#required' => TRUE
+  );
+
+  $form['contact_phone'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Phone Number'),
+    '#size' => 32,
+    '#maxlength' => 15,
+    '#required' => FALSE
+  );
+
+  $form['contact_comments'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Comments'),
+    '#maxlength' => 1000,
+    '#required' => TRUE
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit callback for acrocrm_leads_contact_form().
+ */
+function acrocrm_leads_contact_form_submit($form, $form_state) {
+  db_insert('leads')
+    ->fields(array(
+               'name' => $form_state['values']['contact_name'],
+               'firstname' => $form_state['values']['contact_firstname'],
+               'email' => $form_state['values']['contact_email'],
+               'phone' => $form_state['values']['contact_phone'],
+               'comments' => $form_state['values']['contact_comments']))
+    ->execute();
+  drupal_set_message(t('Your comment has been sent successfully.'));
+}
