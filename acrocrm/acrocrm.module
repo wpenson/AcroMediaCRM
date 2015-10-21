@@ -142,6 +142,10 @@ function acrocrm_permission() {
             'title' => t('Access Acro CRM'),
             'description' => t('Access Acro CRM.'),
         ),
+        'sales rep' => array(
+            'title' => t('Sales Representative'),
+            'description' => t('A person who is part of the sales division.'),
+        ),
     );
 }
 
@@ -162,6 +166,17 @@ function theme_acrocrm_home($variables) {
         $list[] = l($item['title'], $item['path']) .
             '<div>' . $item['description'] . '</div>';
     }
+
+    /* Create list of users who are sales representatives. */
+    $users = entity_load('user');
+    $sales_reps = array();
+
+    foreach($users as $user) {
+        if (user_access('sales rep', $user)) {
+            $sales_reps[] = $user->name . ', ' . $user->mail;
+        }
+    }
+
     $render = array(
         'logo' => array(
             '#theme' => 'image',
@@ -173,9 +188,20 @@ function theme_acrocrm_home($variables) {
             '#theme' => 'item_list',
             '#items' => $list,
         ),
+        'sales_rep_list' => array(
+            '#theme' => 'item_list',
+            '#title' => t('Sales Representatives (Don\'t know where to put this so it can go here for now)'),
+            '#items' => $sales_reps,
+            '#cache' => array(
+                'keys' => array('acrocrm_sales_rep', 'sales_rep_list'),
+                'bin' => 'cache',
+                'expire' => time() + 30,
+                'granularity' => DRUPAL_CACHE_PER_PAGE,
+            ),
+        ),
         '#attached' => array(
             'css' => array($path . '/misc/acrocrm.css'),
-        )
+        ),
     );
 
     return $render;
