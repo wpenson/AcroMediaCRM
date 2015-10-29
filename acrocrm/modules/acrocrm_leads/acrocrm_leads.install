@@ -44,5 +44,33 @@ function acrocrm_leads_schema() {
     'primary key' => array('lead_id'),
   );
 
+  $schema['assigned_leads'] = array(
+    'description' => t('Stores the leads that are assigned to a user.'),
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The user to which the leads are associated.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'lead_id' => array(
+        'description' => 'The leads that are associated with the user.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      )
+    ),
+    'primary key' => array('uid', 'lead_id'),
+    'foreign keys' => array(
+      'users' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid')
+      ),
+      'leads' => array(
+        'table' => 'leads',
+        'columns' => array('lead_id' => 'lead_id')
+      )
+    )
+  );
   return $schema;
 }

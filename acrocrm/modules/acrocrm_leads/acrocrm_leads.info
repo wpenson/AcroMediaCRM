@@ -6,5 +6,6 @@ core = 7.x
 dependencies[] = acrocrm
 
 files[] = includes/acrocrm_leads.forms.inc
+files[] = includes/acrocrm_leads.pages.inc
 
 configure = admin/config/acrocrm/acrocrm_leads

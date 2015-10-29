@@ -10,12 +10,12 @@
  */
 function acrocrm_landing_page() {
   $items = array(
-      'settings' => array(
-          'path' => 'admin/config/acrocrm',
-          'title' => t('Settings'),
-          'description' => t('Acro CRM configuration and settings.'),
-          'permission' => 'administer acrocrm',
-      ),
+    'settings' => array(
+      'path' => 'admin/config/acrocrm',
+      'title' => t('Settings'),
+      'description' => t('Acro CRM configuration and settings.'),
+      'permission' => 'administer acrocrm',
+    ),
   );
 
   foreach ($items as $key => $item) {
