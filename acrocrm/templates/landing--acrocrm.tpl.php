@@ -5,7 +5,7 @@
       <a class="navbar-brand" href="index.html">SB Admin v2.0</a>
     </div>
     <!-- /.navbar-header -->
-
+    <h1>Sidebar</h1>
     <div class="navbar-default sidebar" role="navigation">
       <div class="sidebar-nav navbar-collapse">
         <?php if ($page['sidebar_first']): ?>
@@ -21,6 +21,7 @@
     <!-- /.navbar-static-side -->
   </nav>
   <div id="page-wrapper">
+    <h1>Content</h1>
     <?php print render($page['content']); ?>
   </div>
   <!-- /#page-wrapper -->
