@@ -40,6 +40,12 @@ function acrocrm_leads_schema() {
         'length' => 1000,
         'not null' => FALSE
       ),
+      'priority' => array(
+        'description' => 'The priority of a lead.',
+        'type' => 'varchar',
+        'length' => 8,
+        'not null' => FALSE
+      ),
     ),
     'primary key' => array('lead_id'),
   );

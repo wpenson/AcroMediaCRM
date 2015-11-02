@@ -10,7 +10,6 @@
  * @see form_test_menu()
  */
 function acrocrm_leads_contact_form_settings_form($form, &$form_state) {
-
   $form['name_field'] = array(
     '#type' => 'radios',
     '#title' => t('Name field type'),
