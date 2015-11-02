@@ -178,3 +178,20 @@ function acrocrm_leads_contact_form_submit($form, $form_state) {
     ->execute();
   drupal_set_message(t('Your comment has been sent successfully.'));
 }
+
+/**
+ * Implements validation from the Form API.
+ *
+ * @param $form
+ *   A structured array containing the elements and properties of the form.
+ * @param $form_state
+ *   An array that stores information about the form's current state
+ *   during processing.
+ */
+function acrocrm_leads_contact_form_validate($form, &$form_state) {
+  $email = $form_state['values']['contact_email'];
+  $email_pattern = '/^[^@]*@[^@]*/';
+  if ($email != '' && !preg_match($email_pattern, $email)) {
+    form_set_error('contact_email', t('You must enter a valid email address.'));
+  }
+}
