@@ -2,7 +2,7 @@
   <!-- Navigation -->
   <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
     <div class="navbar-header">
-      <a class="navbar-brand" href="index.html">SB Admin v2.0</a>
+      <a class="navbar-brand" href="index.html">Acro CRM Dashboard</a>
     </div>
     <!-- /.navbar-header -->
     <div class="navbar-default sidebar" role="navigation">

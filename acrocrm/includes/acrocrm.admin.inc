@@ -15,13 +15,9 @@ function acrocrm_landing_page() {
 
   $page['content']['logo'] = array(
     '#theme' => 'image',
-    '#path' => $path . '/misc/smiley_face.png',
+    '#path' => $path . '/templates/assets/images/smiley_face.png',
     '#alt' => t('Smile :)'),
     '#attributes' => array('id' => 'smiley-face'),
-  );
-
-  $page['#attached'] = array(
-    'css' => array($path . '/misc/acrocrm.css'),
   );
 
   /* Create list of users who are sales representatives. */

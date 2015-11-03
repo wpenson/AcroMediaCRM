@@ -103,50 +103,63 @@ function acrocrm_theme()
  * @param $variables
  */
 function acrocrm_page(&$variables) {
-  $page = $variables['page'];
+    $page = $variables['page'];
+    $module_path = drupal_get_path('module', 'acrocrm');
+    $css_path = $module_path . '/templates/assets/css/';
+    $js_path = $module_path . '/templates/assets/js/';
 
-  //drupal_add_js(drupal_get_path('module', 'acrocrm') . '/misc/test.js');
-  $module_path = drupal_get_path('module', 'acrocrm');
-  drupal_add_css($module_path . '/misc/acrocrm.css');
-  $css = drupal_add_css('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css', 'external');
+    // exclude backend pages to avoid core js not working anymore
+    // you could also just use a backend theme to avoid this
+    //if (arg(0) != 'admin' || !(arg(1) == 'add' && arg(2) == 'edit') || arg(0) != 'panels' || arg(0) != 'ctools') {
+//        $scripts = drupal_add_js();
+//        $new_jquery = array($js_path . 'jquery-2.1.4.min.js' => $scripts['core']['misc/jquery.js']);
+//        $scripts['core'] = array_merge($new_jquery, $scripts['core']);
+//        unset($scripts['core']['misc/jquery.js']);
+//        $variables['scripts'] = drupal_get_js('header', $scripts);
+    //}
 
-  $css['https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css']['weight'] = 10;
-  krumo($css);
-  drupal_add_js('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js', 'external');
-  drupal_add_css($module_path . '/misc/sb-admin-2.css');
-  drupal_add_js($module_path . '/misc/sb-admin-2.js');
-  //drupal_add_js(drupal_get_path('module', 'acrocrm') . '/misc/browser_detect.js');
+    drupal_add_css($css_path . 'acrocrm_reset.css', array('group' => 200));
+    drupal_add_css($css_path . 'bootstrap.min.css', array('group' => 200));
+    drupal_add_css($css_path . 'metismenu.min.css', array('group' => 200));
+    drupal_add_css($css_path . 'timeline.css', array('group' => 200));
+    drupal_add_css($css_path . 'sb-admin-2.css', array('group' => 200));
+    drupal_add_css($css_path . 'acrocrm.css', array('group' => 200));
 
-  // Add items to sidebar
-  $items = array(
+    drupal_add_js($js_path . 'bootstrap.min.js');
+    drupal_add_js($js_path . 'sb-admin-2.js');
+    drupal_add_js($js_path . 'metismenu.min.js');
+
+
+    // Add items to sidebar
+    $items = array(
       'settings' => array(
           'path' => 'admin/config/acrocrm',
           'title' => t('Settings'),
           //'description' => t('Acro CRM configuration and settings.'),
           'permission' => 'administer acrocrm',
       ),
-  );
+    );
 
-  foreach ($items as $key => $item) {
+    foreach ($items as $key => $item) {
     if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
       unset($items[$key]);
     }
-  }
+    }
 
-  //$list = array();
-  $markup = '';
-  foreach ($items as $item) {
+    //$list = array();
+    $markup = '';
+    foreach ($items as $item) {
     //$list[] = l($item['title'], $item['path']) .
     $markup .= '<li><a href="' . $item['path'] . '"><i class="fa fa-fw"></i>' . $item['title'] . '</a></li>';
     //$markup .= '';
-  }
+    }
 
-  $page['sidebar_first']['links'] = array(
+    $page['sidebar_first']['links'] = array(
       '#type' => 'markup',
       '#markup' => $markup,
-  );
+    );
 
-  $variables['page'] = $page;
+    $variables['page'] = $page;
 }
 
 //function acrocrm_js_alter(&$javascript) {
