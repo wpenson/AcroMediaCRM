@@ -4,21 +4,6 @@
  * Defines basic functionality common to all parts of Acro CRM.
  */
 
-
-function acrocrm_init() {
-  //javascript['misc/jquery.js']['data'] = drupal_get_path('module', 'acrocrm') . '/templates/assets/js/jquery-2.1.4.min.js';
-  $options = array(
-      'type' => 'file',
-      'group' => CSS_THEME,
-      'weight' => 0,
-      'every_page' => FALSE,
-      'media' => 'all',
-      'preprocess' => TRUE,
-  );
-  drupal_add_css(drupal_get_path('module', 'acrocrm'). '/templates/assets/css/bootstrap.css', $options);
-}
-
-
 /**
  * Implements hook_help().
  *
@@ -99,66 +84,21 @@ function acrocrm_theme() {
         'attributes' => '',
       ),
     ),
-    'acrocrm_home' => array('items' => NULL),
+    'page__acrocrm' => array(
+      'preprocess functions' => array('acrocrm_page'),
+    ),
+    'acrocrm_home' => array(
+      'base hook' => 'page__acrocrm',
+      'variables' => array('page' => NULL),
+      'path' => drupal_get_path('module', 'acrocrm') . '/templates',
+      'template' => 'landing--acrocrm',
+    ),
   );
 }
 
-/**
- * Theme handler for Acro CRM landing page.
- *
- * @param array $variables
- *   Variables to theme.
- *
- * @return array
- *   Render array.
- */
-function theme_acrocrm_home($variables) {
-  $items = $variables['items'];
-  $list = array();
-  $path = drupal_get_path('module', 'acrocrm');
-  foreach ($items as $item) {
-    $list[] = l($item['title'], $item['path']) .
-      '<div>' . $item['description'] . '</div>';
-  }
-
-  /* Create list of users who are sales representatives. */
-  $users = entity_load('user');
-  $sales_reps = array();
-
-  foreach ($users as $user) {
-    if (user_access('sales rep', $user)) {
-      $sales_reps[] = $user->name . ', ' . $user->mail;
-    }
-  }
-
-  $render = array(
-    'logo' => array(
-      '#theme' => 'image',
-      '#path' => $path . '/misc/smiley_face.png',
-      '#alt' => t('Smile :)'),
-      '#attributes' => array('id' => 'smiley-face'),
-    ),
-    'links' => array(
-      '#theme' => 'item_list',
-      '#items' => $list,
-    ),
-    'sales_rep_list' => array(
-      '#theme' => 'item_list',
-      '#title' => t('Sales Representatives (Don\'t know where to put this so it can go here for now)'),
-      '#items' => $sales_reps,
-      '#cache' => array(
-        'keys' => array('acrocrm_sales_rep', 'sales_rep_list'),
-        'bin' => 'cache',
-        'expire' => time() + 30,
-        'granularity' => DRUPAL_CACHE_PER_PAGE,
-      ),
-    ),
-    '#attached' => array(
-      'css' => array($path . '/misc/acrocrm.css'),
-    ),
-  );
-
-  return $render;
+function acrocrm_page(&$variables) {
+  drupal_add_js(drupal_get_path('module', 'acrocrm') . '/misc/test.js');
+  drupal_add_css(drupal_get_path('module', 'acrocrm') . '/misc/acrocrm.css');
 }
 
 /**
@@ -219,35 +159,4 @@ function acrocrm_permission() {
       'description' => t('A person who is part of the sales division.'),
     ),
   );
-}
-
-/**
- * Implements hook_theme_registry_alter().
- */
-function acrocrm_theme_registry_alter(&$theme_registry) {
-// Defined path to the current module.
-  $module_path = drupal_get_path('module', 'acrocrm');
-
-// Find all .tpl.php files in this module's folder recursively.
-  $template_file_objects = drupal_find_theme_templates($theme_registry, '.tpl.php', $module_path);
-
-// Iterate through all found template file objects.
-  foreach ($template_file_objects as $key => $template_file_object) {
-    // If the template has not already been overridden by a theme.
-    if (!isset($theme_registry[$key]['theme path']) || !preg_match('#/themes/#', $theme_registry[$key]['theme path'])) {
-      // Alter the theme path and template elements.
-      $theme_registry[$key]['theme path'] = $module_path;
-      $theme_registry[$key] = array_merge($theme_registry[$key], $template_file_object);
-      $theme_registry[$key]['type'] = 'module';
-    }
-  }
-}
-
-function acrocrm_js_alter(&$javascript) {
-  // Swap out jQuery to use an updated version of the library.
-  $javascript['misc/jquery.js']['data'] = drupal_get_path('module', 'acrocrm') . '/templates/assets/js/jquery-2.1.4.min.js';
-}
-
-function acrocrm_preprocess_html(&$variables) {
-  //drupal_add_css(drupal_get_path('module', 'acrocrm'). '/templates/assets/css/bootstrap.css');
 }

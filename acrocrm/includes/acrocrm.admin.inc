@@ -24,7 +24,52 @@ function acrocrm_landing_page() {
     }
   }
 
-  return theme('acrocrm_home', array('items' => $items));
+  $list = array();
+  $path = drupal_get_path('module', 'acrocrm');
+  foreach ($items as $item) {
+    $list[] = l($item['title'], $item['path']) .
+        '<div>' . $item['description'] . '</div>';
+  }
+
+  $page['sidebar_first']['links'] = array(
+      '#theme' => 'item_list',
+      '#items' => $list,
+  );
+
+  $page['content']['logo'] = array(
+    '#theme' => 'image',
+    '#path' => $path . '/misc/smiley_face.png',
+    '#alt' => t('Smile :)'),
+    '#attributes' => array('id' => 'smiley-face'),
+  );
+
+  $page['#attached'] = array(
+    'css' => array($path . '/misc/acrocrm.css'),
+  );
+
+  /* Create list of users who are sales representatives. */
+  $users = entity_load('user');
+  $sales_reps = array();
+
+  foreach ($users as $user) {
+    if (user_access('sales rep', $user)) {
+      $sales_reps[] = $user->name . ', ' . $user->mail;
+    }
+  }
+
+  $page['content']['sales_reps'] = array(
+      '#theme' => 'item_list',
+      '#title' => t('Sales Representatives (Don\'t know where to put this so it can go here for now)'),
+      '#items' => $sales_reps,
+      '#cache' => array(
+          'keys' => array('acrocrm_sales_rep', 'sales_rep_list'),
+          'bin' => 'cache',
+          'expire' => time() + 30,
+          'granularity' => DRUPAL_CACHE_PER_PAGE,
+      ),
+  );
+
+  return theme('acrocrm_home', array('page' => $page));
 }
 
 /**
