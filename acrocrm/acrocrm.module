@@ -108,27 +108,23 @@ function acrocrm_page(&$variables) {
     $css_path = $module_path . '/templates/assets/css/';
     $js_path = $module_path . '/templates/assets/js/';
 
-    // exclude backend pages to avoid core js not working anymore
-    // you could also just use a backend theme to avoid this
-    //if (arg(0) != 'admin' || !(arg(1) == 'add' && arg(2) == 'edit') || arg(0) != 'panels' || arg(0) != 'ctools') {
-//        $scripts = drupal_add_js();
-//        $new_jquery = array($js_path . 'jquery-2.1.4.min.js' => $scripts['core']['misc/jquery.js']);
-//        $scripts['core'] = array_merge($new_jquery, $scripts['core']);
-//        unset($scripts['core']['misc/jquery.js']);
-//        $variables['scripts'] = drupal_get_js('header', $scripts);
-    //}
+    // css for header
+    drupal_add_css($css_path . 'acrocrm_reset.css', array('group' => CSS_THEME));
+    drupal_add_css($css_path . 'bootstrap.min.css', array('group' => CSS_THEME));
+    drupal_add_css($css_path . 'metismenu.min.css', array('group' => CSS_THEME));
+    drupal_add_css($css_path . 'timeline.css', array('group' => CSS_THEME));
+    drupal_add_css($css_path . 'sb-admin-2.css', array('group' => CSS_THEME));
+    drupal_add_css($css_path . 'acrocrm.css', array('group' => CSS_THEME));
 
-    drupal_add_css($css_path . 'acrocrm_reset.css', array('group' => 200));
-    drupal_add_css($css_path . 'bootstrap.min.css', array('group' => 200));
-    drupal_add_css($css_path . 'metismenu.min.css', array('group' => 200));
-    drupal_add_css($css_path . 'timeline.css', array('group' => 200));
-    drupal_add_css($css_path . 'sb-admin-2.css', array('group' => 200));
-    drupal_add_css($css_path . 'acrocrm.css', array('group' => 200));
+    // js for header
+    drupal_add_js('var $ = jQuery;', 'inline', array('group' => JS_THEME));
+    drupal_add_js($js_path . 'bootstrap.min.js', array('group' => JS_THEME));
+    drupal_add_js($js_path . 'sb-admin-2.js', array('group' => JS_THEME));
+    drupal_add_js($js_path . 'metismenu.min.js', array('group' => JS_THEME));
 
-    drupal_add_js($js_path . 'bootstrap.min.js');
-    drupal_add_js($js_path . 'sb-admin-2.js');
-    drupal_add_js($js_path . 'metismenu.min.js');
-
+    // js for footer
+    drupal_add_js('http://code.jquery.com/ui/1.11.4/jquery-ui.js', 'external', array('scope' => 'footer'));
+    drupal_add_js($js_path . 'acrocrm.js', array('scope' => 'footer'));
 
     // Add items to sidebar
     $items = array(

@@ -8,3 +8,24 @@ h1, h2, h3 {
     width: 300px;
     height: 300px;
 }
+
+/* --- UI SORT -- */
+
+#draggable h3 {
+    color: #3f903f;
+}
+
+ul#sortable {
+    list-style-type: none
+}
+
+#sortable li {
+    margin: 5px;
+    padding: 5px;
+    width: 150px;
+    border: 1px solid;
+}
+
+#sortable .ui-sort-highlight {
+    background-color: #c1e2b3;
+}

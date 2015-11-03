@@ -21,6 +21,7 @@
   </nav>
   <div id="page-wrapper">
     <?php print render($page['content']); ?>
+
   </div>
   <!-- /#page-wrapper -->
 </div>
