@@ -70,36 +70,89 @@ function acrocrm_menu() {
 /**
  * Implements hook_theme().
  */
-function acrocrm_theme() {
+function acrocrm_theme()
+{
   return array(
-    'acrocrm_property_field' => array(
-      'variables' => array(
-        'label_hidden' => FALSE,
-        'title_attributes' => NULL,
-        'label' => '',
-        'content_attributes' => NULL,
-        'items' => array(),
-        'item_attributes' => array(0 => ''),
-        'classes' => '',
-        'attributes' => '',
+      'acrocrm_property_field' => array(
+          'variables' => array(
+              'label_hidden' => FALSE,
+              'title_attributes' => NULL,
+              'label' => '',
+              'content_attributes' => NULL,
+              'items' => array(),
+              'item_attributes' => array(0 => ''),
+              'classes' => '',
+              'attributes' => '',
+          ),
       ),
-    ),
-    'page__acrocrm' => array(
-      'preprocess functions' => array('acrocrm_page'),
-    ),
-    'acrocrm_home' => array(
-      'base hook' => 'page__acrocrm',
-      'variables' => array('page' => NULL),
-      'path' => drupal_get_path('module', 'acrocrm') . '/templates',
-      'template' => 'landing--acrocrm',
-    ),
+      'page__acrocrm' => array(
+          'variables' => array('page' => NULL),
+          'preprocess functions' => array('acrocrm_page'),
+      ),
+      'acrocrm_home' => array(
+          'base hook' => 'page__acrocrm',
+          'path' => drupal_get_path('module', 'acrocrm') . '/templates',
+          'template' => 'landing--acrocrm',
+      ),
   );
 }
 
+/**
+ * These are things that will appear on every page.
+ *
+ * @param $variables
+ */
 function acrocrm_page(&$variables) {
-  drupal_add_js(drupal_get_path('module', 'acrocrm') . '/misc/test.js');
-  drupal_add_css(drupal_get_path('module', 'acrocrm') . '/misc/acrocrm.css');
+  $page = $variables['page'];
+
+  //drupal_add_js(drupal_get_path('module', 'acrocrm') . '/misc/test.js');
+  $module_path = drupal_get_path('module', 'acrocrm');
+  drupal_add_css($module_path . '/misc/acrocrm.css');
+  $css = drupal_add_css('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css', 'external');
+
+  $css['https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css']['weight'] = 10;
+  krumo($css);
+  drupal_add_js('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js', 'external');
+  drupal_add_css($module_path . '/misc/sb-admin-2.css');
+  drupal_add_js($module_path . '/misc/sb-admin-2.js');
+  //drupal_add_js(drupal_get_path('module', 'acrocrm') . '/misc/browser_detect.js');
+
+  // Add items to sidebar
+  $items = array(
+      'settings' => array(
+          'path' => 'admin/config/acrocrm',
+          'title' => t('Settings'),
+          //'description' => t('Acro CRM configuration and settings.'),
+          'permission' => 'administer acrocrm',
+      ),
+  );
+
+  foreach ($items as $key => $item) {
+    if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
+      unset($items[$key]);
+    }
+  }
+
+  //$list = array();
+  $markup = '';
+  foreach ($items as $item) {
+    //$list[] = l($item['title'], $item['path']) .
+    $markup .= '<li><a href="' . $item['path'] . '"><i class="fa fa-fw"></i>' . $item['title'] . '</a></li>';
+    //$markup .= '';
+  }
+
+  $page['sidebar_first']['links'] = array(
+      '#type' => 'markup',
+      '#markup' => $markup,
+  );
+
+  $variables['page'] = $page;
 }
+
+//function acrocrm_js_alter(&$javascript) {
+//  // Swap out jQuery to use an updated version of the library.
+//  $javascript['misc/jquery.js']['data'] = drupal_get_path('module', 'acrocrm') . '/misc/jquery-2.1.4.min.js';
+//}
 
 /**
  * Implements hook_admin_menu_output_build().

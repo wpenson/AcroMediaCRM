@@ -3,4 +3,7 @@ description = Defines basic functionality common to all parts of the Acro CRM.
 core = 7.x
 package = Acro CRM
 
+files[] = includes/acrocrm.admin.inc
+css[] = misc/acrocrm.css
+
 configure = admin/config/acrocrm

@@ -9,32 +9,9 @@
  * Wrapper for system_admin_menu_block_page().
  */
 function acrocrm_landing_page() {
-  $items = array(
-    'settings' => array(
-      'path' => 'admin/config/acrocrm',
-      'title' => t('Settings'),
-      'description' => t('Acro CRM configuration and settings.'),
-      'permission' => 'administer acrocrm',
-    ),
-  );
-
-  foreach ($items as $key => $item) {
-    if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
-      unset($items[$key]);
-    }
-  }
-
-  $list = array();
   $path = drupal_get_path('module', 'acrocrm');
-  foreach ($items as $item) {
-    $list[] = l($item['title'], $item['path']) .
-        '<div>' . $item['description'] . '</div>';
-  }
 
-  $page['sidebar_first']['links'] = array(
-      '#theme' => 'item_list',
-      '#items' => $list,
-  );
+
 
   $page['content']['logo'] = array(
     '#theme' => 'image',
