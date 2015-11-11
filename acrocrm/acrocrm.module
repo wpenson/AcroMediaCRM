@@ -67,11 +67,11 @@ function acrocrm_menu() {
   return $items;
 }
 
+//TODO - as we talked about, you can probably slim this down or even drop it entirely.
 /**
  * Implements hook_theme().
  */
-function acrocrm_theme()
-{
+function acrocrm_theme() {
   return array(
       'acrocrm_property_field' => array(
           'variables' => array(
@@ -137,9 +137,9 @@ function acrocrm_page(&$variables) {
     );
 
     foreach ($items as $key => $item) {
-    if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
-      unset($items[$key]);
-    }
+      if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
+        unset($items[$key]);
+      }
     }
 
     //$list = array();
@@ -163,6 +163,9 @@ function acrocrm_page(&$variables) {
 //  $javascript['misc/jquery.js']['data'] = drupal_get_path('module', 'acrocrm') . '/misc/jquery-2.1.4.min.js';
 //}
 
+
+//TODO - you don't need to do this, having menu items under /admin/ is usually sufficient to have it get pulled into the menu
+//this hook comes from a contrib module so it adds an unnecessary dependency
 /**
  * Implements hook_admin_menu_output_build().
  *
@@ -175,7 +178,7 @@ function acrocrm_admin_menu_output_build(&$content) {
   // added to the 'navigation' menu by default. However, in case it has been
   // moved to a different menu, query to find the menu name.
   if ($menu_name = db_query("SELECT menu_name FROM {menu_links} WHERE router_path = 'acrocrm'")->fetchField()) {
-    $items = admin_menu_links_menu(admin_menu_tree($menu_name));
+    $items = admin_menu_links_menu(admin_menu_tree($menu_name));menu_output_build
     if (isset($items['acrocrm'])) {
       // Peg position to that of the admin/people menu item.
       if (isset($content['menu']['admin/people'])) {
@@ -189,6 +192,7 @@ function acrocrm_admin_menu_output_build(&$content) {
   }
 }
 
+//TODO - if you just specify your stuff under admin/* then you don't need to do this
 /**
  * Implements hook_admin_paths().
  */
@@ -203,6 +207,7 @@ function acrocrm_admin_paths() {
   }
 }
 
+//TODO - Drupal standard would be to put this up near the menu hook
 /**
  * Implements hook_permission().
  */
