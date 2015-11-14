@@ -93,27 +93,27 @@ function acrocrm_permission() {
  */
 function acrocrm_theme() {
   return array(
-      'acrocrm_property_field' => array(
-          'variables' => array(
-              'label_hidden' => FALSE,
-              'title_attributes' => NULL,
-              'label' => '',
-              'content_attributes' => NULL,
-              'items' => array(),
-              'item_attributes' => array(0 => ''),
-              'classes' => '',
-              'attributes' => '',
-          ),
+    'acrocrm_property_field' => array(
+      'variables' => array(
+        'label_hidden' => FALSE,
+        'title_attributes' => NULL,
+        'label' => '',
+        'content_attributes' => NULL,
+        'items' => array(),
+        'item_attributes' => array(0 => ''),
+        'classes' => '',
+        'attributes' => '',
       ),
-      'page__acrocrm' => array(
-          'variables' => array('page' => NULL),
-          'preprocess functions' => array('acrocrm_page'),
-      ),
-      'acrocrm_home' => array(
-          'base hook' => 'page__acrocrm',
-          'path' => drupal_get_path('module', 'acrocrm') . '/templates',
-          'template' => 'landing--acrocrm',
-      ),
+    ),
+    'page__acrocrm' => array(
+      'variables' => array('page' => NULL),
+      'preprocess functions' => array('acrocrm_page'),
+    ),
+    'acrocrm_home' => array(
+      'base hook' => 'page__acrocrm',
+      'path' => drupal_get_path('module', 'acrocrm') . '/templates',
+      'template' => 'main--acrocrm',
+    ),
   );
 }
 
@@ -123,59 +123,86 @@ function acrocrm_theme() {
  * @param $variables
  */
 function acrocrm_page(&$variables) {
-    $page = $variables['page'];
-    $module_path = drupal_get_path('module', 'acrocrm');
-    $css_path = $module_path . '/templates/assets/css/';
-    $js_path = $module_path . '/templates/assets/js/';
+  $page = $variables['page'];
+  $module_path = drupal_get_path('module', 'acrocrm');
+  $css_path = $module_path . '/templates/assets/css/';
+  $js_path = $module_path . '/templates/assets/js/';
 
-    // css for header
-    drupal_add_css($css_path . 'acrocrm_reset.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'bootstrap.min.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'metismenu.min.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'timeline.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'sb-admin-2.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'acrocrm.css', array('group' => CSS_THEME));
+  // css for header
+  drupal_add_css($css_path . 'acrocrm_reset.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'bootstrap.min.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'metismenu.min.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'timeline.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'sb-admin-2.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'acrocrm.css', array('group' => CSS_THEME));
 
-    // js for header
-    drupal_add_js('var $ = jQuery;', 'inline', array('group' => JS_THEME));
-    drupal_add_js($js_path . 'bootstrap.min.js', array('group' => JS_THEME));
-    drupal_add_js($js_path . 'sb-admin-2.js', array('group' => JS_THEME));
-    drupal_add_js($js_path . 'metismenu.min.js', array('group' => JS_THEME));
+  // js for header
+  drupal_add_js('var $ = jQuery;', 'inline', array('group' => JS_THEME));
+  drupal_add_js($js_path . 'bootstrap.min.js', array('group' => JS_THEME));
+  drupal_add_js($js_path . 'sb-admin-2.js', array('group' => JS_THEME));
+  drupal_add_js($js_path . 'metismenu.min.js', array('group' => JS_THEME));
 
-    // js for footer
-    drupal_add_js('http://code.jquery.com/ui/1.11.4/jquery-ui.js', 'external', array('scope' => 'footer'));
-    drupal_add_js($js_path . 'acrocrm.js', array('scope' => 'footer'));
+  // js for footer
+  drupal_add_js('http://code.jquery.com/ui/1.11.4/jquery-ui.js', 'external', array('scope' => 'footer'));
+  drupal_add_js($js_path . 'acrocrm.js', array('scope' => 'footer'));
 
-    // Add items to sidebar
-    $items = array(
-      'settings' => array(
-          'path' => 'admin/config/acrocrm',
-          'title' => t('Settings'),
-          //'description' => t('Acro CRM configuration and settings.'),
-          'permission' => 'administer acrocrm',
+  // Add items to sidebar
+  if (module_exists('acrocrm_leads')) {
+    $items['leads'] = array(
+      'path' => '#',
+      'title' => t('Leads'),
+      'permission' => 'administer acrocrm',
+      'child_pages' => array(
+        'overview' => array(
+          'path' => '?q=acrocrm_leads/overview',
+          'title' => t('Overview'),
+          'permission' => 'administer acrocrm',),
+        'new_lead' => array(
+          'path' => '?q=acrocrm_leads/new_lead',
+          'title' => t('New Lead'),
+          'permission' => 'administer acrocrm',),
       ),
     );
+  }
+  $items['settings'] = array(
+    'path' => 'admin/config/acrocrm',
+    'title' => t('Settings'),
+    //'description' => t('Acro CRM configuration and settings.'),
+    'permission' => 'administer acrocrm',
+  );
 
-    foreach ($items as $key => $item) {
-      if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
-        unset($items[$key]);
+
+  foreach ($items as $key => $item) {
+    if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
+      unset($items[$key]);
+    }
+  }
+
+  $markup = '';
+  foreach ($items as $item) {
+    $markup .= '<li><a href="' . $item['path'] . '"><i class="fa fa-fw"></i>' . $item['title'];
+    if (array_key_exists('child_pages', $item)) {
+      $markup .= '<span class="fa arrow"></span></a>'
+        . '<ul class="nav nav-second-level">';
+      foreach ($item['child_pages'] as $child_item) {
+        $markup .= '<li>'
+          . '<a href = "' . $child_item['path'] . '" >' . $child_item['title'] . '</a >'
+          . '</li >';
       }
+      $markup .= '</ul>';
+    } else {
+      $markup .= '</a>';
     }
 
-    //$list = array();
-    $markup = '';
-    foreach ($items as $item) {
-    //$list[] = l($item['title'], $item['path']) .
-    $markup .= '<li><a href="' . $item['path'] . '"><i class="fa fa-fw"></i>' . $item['title'] . '</a></li>';
-    //$markup .= '';
-    }
+    $markup .= '</li>';
+  }
 
-    $page['sidebar_first']['links'] = array(
-      '#type' => 'markup',
-      '#markup' => $markup,
-    );
+  $page['sidebar_first']['links'] = array(
+    '#type' => 'markup',
+    '#markup' => $markup,
+  );
 
-    $variables['page'] = $page;
+  $variables['page'] = $page;
 }
 
 //function acrocrm_js_alter(&$javascript) {

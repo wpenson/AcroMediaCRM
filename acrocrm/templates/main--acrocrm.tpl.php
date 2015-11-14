@@ -2,7 +2,7 @@
   <!-- Navigation -->
   <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
     <div class="navbar-header">
-      <a class="navbar-brand" href="index.html">Acro CRM Dashboard</a>
+      <a class="navbar-brand" href="?q=acrocrm">Acro CRM</a>
     </div>
     <!-- /.navbar-header -->
     <div class="navbar-default sidebar" role="navigation">
@@ -20,8 +20,10 @@
     <!-- /.navbar-static-side -->
   </nav>
   <div id="page-wrapper">
+    <?php if ($messages): ?>
+      <div id="console" class="clearfix"><?php print $messages; ?></div>
+    <?php endif; ?>
     <?php print render($page['content']); ?>
-
   </div>
   <!-- /#page-wrapper -->
 </div>

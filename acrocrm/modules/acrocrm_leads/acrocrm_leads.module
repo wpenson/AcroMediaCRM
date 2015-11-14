@@ -59,24 +59,22 @@ function acrocrm_leads_menu() {
   return $items;
 }
 
-
 function acrocrm_leads_theme() {
   return array(
     'page__acrocrm_leads' => array(
-      'preprocess functions' => array('acrocrm_leads_page')
+      'variables' => array('page' => NULL),
+      'preprocess functions' => array('acrocrm_leads_page'),
     ),
     'acrocrm_leads_home' => array(
       'base hook' => 'page__acrocrm_leads',
-      'variables' => array('page' => NULL),
       'path' => drupal_get_path('module', 'acrocrm') . '/templates',
-      'template' => 'landing--acrocrm',
-    )
+      'template' => 'main--acrocrm',
+    ),
   );
 }
 
 function acrocrm_leads_page(&$variables) {
-  drupal_add_js(drupal_get_path('module', 'acrocrm') . '/misc/test.js');
-  drupal_add_css(drupal_get_path('module', 'acrocrm') . '/misc/acrocrm.css');
+  acrocrm_page($variables);
 }
 
 /**
