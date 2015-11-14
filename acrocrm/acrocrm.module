@@ -67,7 +67,27 @@ function acrocrm_menu() {
   return $items;
 }
 
-//TODO - as we talked about, you can probably slim this down or even drop it entirely.
+/**
+ * Implements hook_permission().
+ */
+function acrocrm_permission() {
+  return array(
+    'administer acrocrm' => array(
+      'title' => t('Administer Acro CRM'),
+      'description' => t('Perform administration tasks for my Acro CRM.'),
+    ),
+    'access acrocrm' => array(
+      'title' => t('Access Acro CRM'),
+      'description' => t('Access Acro CRM.'),
+    ),
+    'sales rep' => array(
+      'title' => t('Sales Representative'),
+      'description' => t('A person who is part of the sales division.'),
+    ),
+  );
+}
+
+// TODO: as we talked about, you can probably slim this down or even drop it entirely.
 /**
  * Implements hook_theme().
  */
@@ -178,7 +198,7 @@ function acrocrm_admin_menu_output_build(&$content) {
   // added to the 'navigation' menu by default. However, in case it has been
   // moved to a different menu, query to find the menu name.
   if ($menu_name = db_query("SELECT menu_name FROM {menu_links} WHERE router_path = 'acrocrm'")->fetchField()) {
-    $items = admin_menu_links_menu(admin_menu_tree($menu_name));menu_output_build
+    $items = admin_menu_links_menu(admin_menu_tree($menu_name));//menu_output_build
     if (isset($items['acrocrm'])) {
       // Peg position to that of the admin/people menu item.
       if (isset($content['menu']['admin/people'])) {
@@ -205,25 +225,4 @@ function acrocrm_admin_paths() {
     );
     return $paths;
   }
-}
-
-//TODO - Drupal standard would be to put this up near the menu hook
-/**
- * Implements hook_permission().
- */
-function acrocrm_permission() {
-  return array(
-    'administer acrocrm' => array(
-      'title' => t('Administer Acro CRM'),
-      'description' => t('Perform administration tasks for my Acro CRM.'),
-    ),
-    'access acrocrm' => array(
-      'title' => t('Access Acro CRM'),
-      'description' => t('Access Acro CRM.'),
-    ),
-    'sales rep' => array(
-      'title' => t('Sales Representative'),
-      'description' => t('A person who is part of the sales division.'),
-    ),
-  );
 }

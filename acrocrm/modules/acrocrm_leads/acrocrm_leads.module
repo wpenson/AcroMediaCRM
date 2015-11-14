@@ -113,7 +113,7 @@ function acrocrm_leads_block_view($delta = '') {
  */
 function acrocrm_leads_contact_form($form, &$form_state) {
   //TODO - Drupal naming convention is always to use _ aka $name_field_type
-  $nameFieldType = variable_get('name_field', 'name');
+  $name_field_type = variable_get('name_field', 'name');
 
   $form['contact_firstname'] = array(
     '#type' => 'textfield',
@@ -121,12 +121,12 @@ function acrocrm_leads_contact_form($form, &$form_state) {
     '#size' => 50,
     '#maxlength' => 50,
     '#required' => FALSE,
-    '#access' => $nameFieldType == 'name' ? FALSE : TRUE
+    '#access' => $name_field_type == 'name' ? FALSE : TRUE
   );
 
   $form['contact_name'] = array(
     '#type' => 'textfield',
-    '#title' => $nameFieldType == 'name' ? 'Name' : 'Last Name',
+    '#title' => $name_field_type == 'name' ? 'Name' : 'Last Name',
     '#size' => 50,
     '#maxlength' => 50,
     '#required' => TRUE
