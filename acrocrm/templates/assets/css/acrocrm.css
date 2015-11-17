@@ -9,23 +9,31 @@ h1, h2, h3 {
     height: 300px;
 }
 
-/* --- UI SORT -- */
 
-#draggable h3 {
-    color: #3f903f;
+/* --- Leads overview page --- */
+
+.page-acrocrm-leads-overview #page-wrapper {
+    padding-left:10px;
+    padding-top:10px;
 }
 
-ul#sortable {
-    list-style-type: none
+#leads-list .input-group {
+    padding: 10px;
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+    display: block;
 }
 
-#sortable li {
-    margin: 5px;
-    padding: 5px;
-    width: 150px;
-    border: 1px solid;
+#leads-list .input-group input.form-control {
+    max-width: 80%;
 }
 
-#sortable .ui-sort-highlight {
-    background-color: #c1e2b3;
+#leads-list .list-group-item {
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+}
+
+#leads-list #set-priority {
+    display: inline;
 }

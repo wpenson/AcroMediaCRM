@@ -168,7 +168,6 @@ function acrocrm_page(&$variables) {
   $items['settings'] = array(
     'path' => 'admin/config/acrocrm',
     'title' => t('Settings'),
-    //'description' => t('Acro CRM configuration and settings.'),
     'permission' => 'administer acrocrm',
   );
 
@@ -205,11 +204,6 @@ function acrocrm_page(&$variables) {
 
   $variables['page'] = $page;
 }
-
-//function acrocrm_js_alter(&$javascript) {
-//  // Swap out jQuery to use an updated version of the library.
-//  $javascript['misc/jquery.js']['data'] = drupal_get_path('module', 'acrocrm') . '/misc/jquery-2.1.4.min.js';
-//}
 
 
 //TODO - you don't need to do this, having menu items under /admin/ is usually sufficient to have it get pulled into the menu

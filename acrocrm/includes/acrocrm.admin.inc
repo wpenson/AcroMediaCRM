@@ -40,25 +40,6 @@ function acrocrm_landing_page() {
       ),
     );
 
-    $page['content']['drag_drop'] = array(
-        '#attributes' => array('id' => 'draggable', 'class' => 'draggable-header'),
-        '#markup' => '<div id="draggable"><h3>DRAG ME</h3></div>'
-    );
-
-    $page['content']['drag_sort'] = array(
-        '#attributes' => array('id' => 'sortable'),
-        '#markup' => '<ul>
-                        <li id="draggable_sortable" class="ui-sort ui-sort-highlight">Drag me down</li>
-                      </ul>
-                      <ul id="sortable">
-                        <li class="ui-sort">Item 1</li>
-                        <li class="ui-sort">Item 2</li>
-                        <li class="ui-sort">Item 3</li>
-                        <li class="ui-sort">Item 4</li>
-                        <li class="ui-sort">Item 5</li>
-                      </ul>'
-    );
-
 
   return theme('acrocrm_home', array('page' => $page));
 }
