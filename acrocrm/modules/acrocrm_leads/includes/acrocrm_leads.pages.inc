@@ -92,7 +92,7 @@ function acrocrm_leads_generate_leads_html($leads) {
         $leads_list .=  '</a>';
     }
 
-    $leads_div = '<div id="leads-list" class="list-group col-xs-6 col-lg-4">' . $search_div . $leads_list . '</div>';
+    $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_list . '</div>';
 
     return $leads_div;
 }
