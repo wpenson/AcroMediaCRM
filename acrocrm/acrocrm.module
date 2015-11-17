@@ -134,6 +134,7 @@ function acrocrm_page(&$variables) {
   drupal_add_css($css_path . 'metismenu.min.css', array('group' => CSS_THEME));
   drupal_add_css($css_path . 'timeline.css', array('group' => CSS_THEME));
   drupal_add_css($css_path . 'sb-admin-2.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'font-awesome.min.css', array('group' => CSS_THEME));
   drupal_add_css($css_path . 'acrocrm.css', array('group' => CSS_THEME));
 
   // js for header
@@ -154,11 +155,11 @@ function acrocrm_page(&$variables) {
       'permission' => 'administer acrocrm',
       'child_pages' => array(
         'overview' => array(
-          'path' => '?q=acrocrm_leads/overview',
+          'path' => '/acrocrm_leads/overview',
           'title' => t('Overview'),
           'permission' => 'administer acrocrm',),
         'new_lead' => array(
-          'path' => '?q=acrocrm_leads/new_lead',
+          'path' => '/acrocrm_leads/new_lead',
           'title' => t('New Lead'),
           'permission' => 'administer acrocrm',),
       ),
