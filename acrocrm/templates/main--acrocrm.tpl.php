@@ -20,9 +20,6 @@
     <!-- /.navbar-static-side -->
   </nav>
   <div id="page-wrapper">
-    <?php if ($messages): ?>
-      <div id="console" class="clearfix"><?php print $messages; ?></div>
-    <?php endif; ?>
     <?php print render($page['content']); ?>
   </div>
   <!-- /#page-wrapper -->

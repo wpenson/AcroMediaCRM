@@ -117,12 +117,31 @@ function acrocrm_leads_get_sales_reps() {
 }
 
 function acrocrm_leads_new_lead_page() {
+  $page['content']['header'] = array(
+    '#markup' => '<div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">New Lead</h1>
+                    </div>
+                  </div>'
+  );
+
+  // Need to initialize a placeholder so this displays before the form.
+  $page['content']['messages']['#markup'] = '';
   $page['content']['new_lead_form'] = drupal_get_form('acrocrm_leads_new_lead_form');
+
+  // The messages appear after the form has been loaded.
+  $page['content']['messages']['#markup'] = acrocrm_get_message_markup();
 
   return theme('acrocrm_leads_home', array('page' => $page));
 }
 
 function acrocrm_leads_new_lead_form($form, &$form_state) {
+  $form['#prefix'] = '<div class="row">
+                        <div class="col-lg-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Create a New Lead</div>
+                                <div class="panel-body">';
+
   $form['priority'] = array(
     '#type' => 'select',
     '#title' => t('Priority'),
@@ -134,6 +153,8 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#required' => FALSE,
     '#empty_value' => '',
     '#description' => t('The priority of the lead.'),
+    '#prefix' => '<div class="row"><div class="col-lg-4">',
+    '#suffix' => '</div>',
   );
 
   /* Create list of users who are sales representatives. */
@@ -153,6 +174,8 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#required' => FALSE,
     '#empty_value' => '',
     '#description' => t('The sales rep which the lead should be assigned to.'),
+    '#prefix' => '<div class="col-lg-4">',
+    '#suffix' => '</div></div>',
   );
 
   $form['firstname'] = array(
@@ -161,6 +184,7 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#size' => 50,
     '#maxlength' => 50,
     '#required' => FALSE,
+    '#prefix' => '<div class="row"><div class="col-lg-12">',
   );
 
 
@@ -199,7 +223,10 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
+    '#suffix' => '</div></div>',
   );
+
+  $form['#suffix'] = '</div></div></div></div></div>';
 
   return $form;
 }
@@ -227,7 +254,7 @@ function acrocrm_leads_new_lead_form_submit($form, $form_state) {
       ->execute();
   }
 
-  drupal_set_message(t('The lead has been created successfully.'));
+  drupal_set_message(t('The new lead has been created successfully.'));
 }
 
 /**
