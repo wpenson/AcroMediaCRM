@@ -137,7 +137,7 @@ function acrocrm_leads_new_lead_page() {
 
 function acrocrm_leads_new_lead_form($form, &$form_state) {
   $form['#prefix'] = '<div class="row">
-                        <div class="col-lg-12">
+                        <div class="col-lg-10 col-md-12">
                             <div class="panel panel-default">
                                 <div class="panel-heading">Create a New Lead</div>
                                 <div class="panel-body">';
@@ -153,8 +153,11 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#required' => FALSE,
     '#empty_value' => '',
     '#description' => t('The priority of the lead.'),
-    '#prefix' => '<div class="row"><div class="col-lg-4">',
-    '#suffix' => '</div>',
+    '#prefix' => '<div class="row"><div class="col-lg-6 col-md-6"><div class="form-group">',
+    '#suffix' => '</div></div>',
+    '#attributes' => array(
+      'class' => array('form-control'),
+    ),
   );
 
   /* Create list of users who are sales representatives. */
@@ -174,8 +177,11 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#required' => FALSE,
     '#empty_value' => '',
     '#description' => t('The sales rep which the lead should be assigned to.'),
-    '#prefix' => '<div class="col-lg-4">',
-    '#suffix' => '</div></div>',
+    '#prefix' => '<div class="col-lg-6 col-md-6"><div class="form-group">',
+    '#suffix' => '</div></div></div>',
+    '#attributes' => array(
+      'class' => array('form-control'),
+    ),
   );
 
   $form['firstname'] = array(
@@ -184,7 +190,11 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#size' => 50,
     '#maxlength' => 50,
     '#required' => FALSE,
-    '#prefix' => '<div class="row"><div class="col-lg-12">',
+    '#prefix' => '<div class="row"><div class="col-lg-6"><div class="form-group">',
+    '#suffix' => '</div></div>',
+    '#attributes' => array(
+      'class' => array('form-control'),
+    ),
   );
 
 
@@ -193,7 +203,12 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#title' => t('Last Name'),
     '#size' => 50,
     '#maxlength' => 50,
-    '#required' => TRUE
+    '#required' => TRUE,
+    '#prefix' => '<div class="col-lg-6"><div class="form-group">',
+    '#suffix' => '</div></div></div>',
+    '#attributes' => array(
+      'class' => array('form-control'),
+    ),
   );
 
 
@@ -202,7 +217,12 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#title' => t('Email'),
     '#size' => 50,
     '#maxlength' => 50,
-    '#required' => TRUE
+    '#required' => TRUE,
+    '#prefix' => '<div class="row"><div class="col-lg-6"><div class="form-group">',
+    '#suffix' => '</div></div>',
+    '#attributes' => array(
+      'class' => array('form-control'),
+    ),
   );
 
   $form['phone'] = array(
@@ -210,20 +230,33 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#title' => t('Phone Number'),
     '#size' => 32,
     '#maxlength' => 15,
-    '#required' => FALSE
+    '#required' => FALSE,
+    '#prefix' => '<div class="col-lg-6"><div class="form-group">',
+    '#suffix' => '</div></div></div>',
+    '#attributes' => array(
+      'class' => array('form-control'),
+    ),
   );
 
   $form['comments'] = array(
     '#type' => 'textarea',
     '#title' => t('Comments'),
     '#maxlength' => 1000,
-    '#required' => TRUE
+    '#required' => TRUE,
+    '#prefix' => '<div class="row"><div class="col-lg-12"><div class="form-group">',
+    '#suffix' => '</div></div></div>',
+    '#attributes' => array(
+      'class' => array('form-control'),
+    ),
   );
 
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
     '#suffix' => '</div></div>',
+    '#attributes' => array(
+      'class' => array('btn', 'btn-primary'),
+    ),
   );
 
   $form['#suffix'] = '</div></div></div></div></div>';

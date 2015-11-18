@@ -251,7 +251,7 @@ function acrocrm_admin_paths() {
 
 function acrocrm_get_message_markup() {
   $messages = drupal_get_messages();
-  $markup = '<div class="row"><div class="col-lg-12">';
+  $markup = '<div class="row"><div class="col-lg-10 col-md-12">';
   if ($messages['error']) {
     $markup .= '<div class="alert alert-danger">';
     foreach ($messages['error'] as $message) {
