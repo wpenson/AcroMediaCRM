@@ -155,11 +155,11 @@ function acrocrm_page(&$variables) {
       'permission' => 'administer acrocrm',
       'child_pages' => array(
         'overview' => array(
-          'path' => '/acrocrm_leads/overview',
+          'path' => base_path() . 'acrocrm_leads/overview',
           'title' => t('Overview'),
           'permission' => 'administer acrocrm',),
         'new_lead' => array(
-          'path' => '/acrocrm_leads/new_lead',
+          'path' => base_path() . 'acrocrm_leads/new_lead',
           'title' => t('New Lead'),
           'permission' => 'administer acrocrm',),
       ),
@@ -242,7 +242,7 @@ function acrocrm_admin_paths() {
   // Set Acro CRM admin paths based on configuration.
   if (variable_get('acrocrm_admin_path', FALSE)) {
     $paths = array(
-      'acrocrm' => TRUE,
+      'acrocrm*' => TRUE,
       'acrocrm/*' => TRUE,
     );
     return $paths;

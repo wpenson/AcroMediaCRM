@@ -151,6 +151,7 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
       'low' => t('Low'),
     ),
     '#required' => FALSE,
+    '#weight' => 0,
     '#empty_value' => '',
     '#description' => t('The priority of the lead.'),
     '#prefix' => '<div class="row"><div class="col-lg-6 col-md-6"><div class="form-group">',
@@ -175,6 +176,7 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#title' => t('Assign to'),
     '#options' => $sales_reps,
     '#required' => FALSE,
+    '#weight' => 1,
     '#empty_value' => '',
     '#description' => t('The sales rep which the lead should be assigned to.'),
     '#prefix' => '<div class="col-lg-6 col-md-6"><div class="form-group">',
@@ -190,6 +192,7 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#size' => 50,
     '#maxlength' => 50,
     '#required' => FALSE,
+    '#weight' => 2,
     '#prefix' => '<div class="row"><div class="col-lg-6"><div class="form-group">',
     '#suffix' => '</div></div>',
     '#attributes' => array(
@@ -204,6 +207,7 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#size' => 50,
     '#maxlength' => 50,
     '#required' => TRUE,
+    '#weight' => 3,
     '#prefix' => '<div class="col-lg-6"><div class="form-group">',
     '#suffix' => '</div></div></div>',
     '#attributes' => array(
@@ -218,6 +222,7 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#size' => 50,
     '#maxlength' => 50,
     '#required' => TRUE,
+    '#weight' => 4,
     '#prefix' => '<div class="row"><div class="col-lg-6"><div class="form-group">',
     '#suffix' => '</div></div>',
     '#attributes' => array(
@@ -231,6 +236,7 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#size' => 32,
     '#maxlength' => 15,
     '#required' => FALSE,
+    '#weight' => 5,
     '#prefix' => '<div class="col-lg-6"><div class="form-group">',
     '#suffix' => '</div></div></div>',
     '#attributes' => array(
@@ -243,6 +249,7 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
     '#title' => t('Comments'),
     '#maxlength' => 1000,
     '#required' => TRUE,
+    '#weight' => 6,
     '#prefix' => '<div class="row"><div class="col-lg-12"><div class="form-group">',
     '#suffix' => '</div></div></div>',
     '#attributes' => array(
@@ -253,7 +260,9 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
-    '#suffix' => '</div></div>',
+    '#prefix' => '<div class="row"><div class="col-lg-12"><div class="form-group">',
+    '#suffix' => '</div></div></div>',
+    '#weight' => 7,
     '#attributes' => array(
       'class' => array('btn', 'btn-primary'),
     ),
