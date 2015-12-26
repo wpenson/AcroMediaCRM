@@ -46,8 +46,35 @@ function acrocrm_leads_schema() {
         'length' => 8,
         'not null' => FALSE
       ),
+      'status' => array(
+        'description' => 'The status of a lead',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => 'UNAPPROVED'
+      ),
     ),
     'primary key' => array('lead_id'),
+    'foreign keys' => array(
+      'lead_status' => array(
+        'table' => 'lead_status',
+        'columns' => array('status' => 'status'),
+      ),
+    ),
+  );
+
+  $schema['lead_status'] = array(
+    'description' => t('Contains the possible lead statuses.'),
+    'fields' => array(
+      'status' => array(
+        'description' => 'The status of a lead.',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => 'UNAPPROVED',
+      ),
+    ),
+    'primary key' => array('status')
   );
 
   $schema['assigned_leads'] = array(
@@ -79,4 +106,22 @@ function acrocrm_leads_schema() {
     )
   );
   return $schema;
+}
+
+function acrocrm_leads_install() {
+  db_insert('lead_status')
+    ->fields(array('status' => 'UNAPPROVED'))
+    ->execute();
+
+  db_insert('lead_status')
+    ->fields(array('status' => 'APPROVED'))
+    ->execute();
+
+  db_insert('lead_status')
+    ->fields(array('status' => 'DELETED'))
+    ->execute();
+
+  db_insert('lead_status')
+    ->fields(array('status' => 'CONVERTED'))
+    ->execute();
 }
