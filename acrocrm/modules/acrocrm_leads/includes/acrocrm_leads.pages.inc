@@ -284,7 +284,8 @@ function acrocrm_leads_new_lead_form_submit($form, $form_state) {
                'email' => $form_state['values']['email'],
                'phone' => $form_state['values']['phone'],
                'comments' => $form_state['values']['comments'],
-               'priority' => $form_state['values']['priority']))
+               'priority' => $form_state['values']['priority'],
+               'status' => 'APPROVED'))
     ->execute();
 
   if ($form_state['values']['assign'] != '') {
