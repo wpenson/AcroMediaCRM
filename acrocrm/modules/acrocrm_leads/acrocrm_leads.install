@@ -53,12 +53,39 @@ function acrocrm_leads_schema() {
         'not null' => TRUE,
         'default' => 'UNAPPROVED'
       ),
+      'created_time' => array(
+        'description' => 'The time the lead was created.',
+        'type' => 'datetime',
+        'mysql_type' => 'datetime',
+      ),
+      'created_by' => array(
+        'description' => 'The user that created the lead.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+      'modified_time' => array(
+        'description' => 'The time the lead was last modified.',
+        'mysql_type' => 'timestamp',
+        'not null' => TRUE,
+      ),
+      'modified_by' => array(
+        'description' => 'The user that last modified the lead.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
     ),
     'primary key' => array('lead_id'),
     'foreign keys' => array(
       'lead_status' => array(
         'table' => 'lead_status',
         'columns' => array('status' => 'status'),
+      ),
+      'users' => array(
+        'table' => 'users',
+        'columns' => array(
+          'modified_by' => 'uid',
+          'created_by' => 'uid',
+        ),
       ),
     ),
   );
