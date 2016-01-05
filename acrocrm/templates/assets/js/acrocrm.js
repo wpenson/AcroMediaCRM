@@ -1,6 +1,6 @@
 // --- DRAGGABLE UI --- //
 
-<<<<<<< HEAD
+
 // --- DRAGGABLE UI --- //
 $( ".lead-sortable, .lead-list" ).sortable({
     connectWith: ".drag-list",
@@ -24,10 +24,7 @@ $( ".lead-sortable, .lead-list" ).sortable({
 
 //function myModule_ajax_load() {
 //    jQuery("#ajax-target").load("/acrocrm_leads/assign_lead?" + lead_id);
-=======
-$( ".lead-draggable" ).draggable({
-    snap: ".lead-rep-overview"
-});
+
 
 // --- Leads Edit Modal --- //
 //Drupal.behaviors.acrocrm_leads = {
@@ -45,7 +42,6 @@ $( ".lead-draggable" ).draggable({
         function test_submit() {alert('test'); return false;
         }
 
-$()
 $("#acrocrm-leads-single-lead-form").submit(function(e) {
     console.log("test");
     alert("test2");
@@ -81,5 +77,4 @@ $("#acrocrm-leads-single-lead-form").submit(function(e) {
 //            $(this).modal({show:true});
 //        })
 //    }
->>>>>>> acf5eae6c2a7a992532d57bc01d47653717b1fc4
 //}
