@@ -68,20 +68,22 @@ function acrocrm_leads_menu() {
 }
 
 function acrocrm_leads_ajax_get_ajax() {
-//  // The function will receive the array of arguments after the "get/ajax" prefix
-//  $path = implode('/', func_get_args());
-//  $render_string = menu_execute_active_handler($path, FALSE);
-//  return $render_string;
-  //return $_GET['lead_id'];
+  // The function will receive the array of arguments after the "get/ajax" prefix
+  $path = implode('/', func_get_args());
+  $render_string = menu_execute_active_handler($path, FALSE);
+  return $render_string;
 }
 
 function acrocrm_leads_ajax_callback($page_callback_result) {
   // Only render content
-  $content = drupal_render($page_callback_result);
+  $url = implode('/', func_get_args());
 
   // Add CSS ans JS files, add some markup
   $html = '<p>hi</p>';
-  print $content . $html;
+  foreach ($url as $u) {
+    $html .= $u;
+  }
+  print $html;
 }
 
 function acrocrm_leads_theme() {
