@@ -39,11 +39,20 @@ function acrocrm_leads_menu() {
   );
 
   $items['acrocrm_leads/new_lead'] = array(
-    'title' => 'AcroCRM New Lead',
-    'description' => 'AcroCRM New Lead Page',
-    'page callback' => 'acrocrm_leads_new_lead_page',
-    'access arguments' => array('access acrocrm'),
-    'file' => 'includes/acrocrm_leads.pages.inc',
+      'title' => 'AcroCRM New Lead',
+      'description' => 'AcroCRM New Lead Page',
+      'page callback' => 'acrocrm_leads_new_lead_page',
+      'access arguments' => array('access acrocrm'),
+      'file' => 'includes/acrocrm_leads.pages.inc',
+  );
+
+  $items['acrocrm_leads/edit_lead'] = array(
+      'page arguments' => array(2),
+      'access callback' => TRUE,
+      'page callback' => 'acrocrm_leads_edit_lead_ajax',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access acrocrm'),
+      'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
   $items['admin/config/acrocrm/acrocrm_leads'] = array(
@@ -75,6 +84,10 @@ function acrocrm_leads_theme() {
 
 function acrocrm_leads_page(&$variables) {
   acrocrm_page($variables);
+
+//  $module_path = drupal_get_path('module', 'acrocrm');
+//  $css_path = $module_path . '/templates/assets/css/';
+//  $js_path = $module_path . '/templates/assets/js/';
 }
 
 /**
@@ -100,6 +113,14 @@ function acrocrm_leads_block_view($delta = '') {
       return $block;
   }
 }
+
+//function acrocrm_leads_form_acrocrm_leads_single_lead_form_alter(&$form, &$form_state, $form_id) {
+//  $form['#submit'][] = 'acrocrm_leads_single_lead_edit_form_submit';
+//}
+//
+//function acrocrm_leads_single_lead_edit_form_submit(&$form, &$form_state) {
+//  $form_state['redirect'] = 'home';
+//}
 
 /**************************************************************
  * Contact form for block. I can't seem to figure out how to

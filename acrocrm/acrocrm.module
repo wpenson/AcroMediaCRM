@@ -166,7 +166,7 @@ function acrocrm_page(&$variables) {
     );
   }
   $items['settings'] = array(
-    'path' => '../admin/config/acrocrm',
+    'path' => base_path().'admin/config/acrocrm',
     'title' => t('Settings'),
     'permission' => 'administer acrocrm',
   );
@@ -252,14 +252,14 @@ function acrocrm_admin_paths() {
 function acrocrm_get_message_markup() {
   $messages = drupal_get_messages();
   $markup = '<div class="row"><div class="col-lg-10 col-md-12">';
-  if ($messages['error']) {
+  if (isset($messages['error']) && $messages['error']) {
     $markup .= '<div class="alert alert-danger">';
     foreach ($messages['error'] as $message) {
       $markup .= t($message) . '<br>';
     }
     $markup .= '</div>';
   }
-  if ($messages['status']) {
+  if (isset($messages['status']) && $messages['status']) {
     $markup .= '<div class="alert alert-success">';
     foreach ($messages['status'] as $message) {
       $markup .= t($message) . '<br>';

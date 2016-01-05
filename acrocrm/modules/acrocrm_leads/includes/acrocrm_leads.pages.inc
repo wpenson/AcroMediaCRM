@@ -1,117 +1,217 @@
 <?php
 
 function acrocrm_leads_overview_page() {
+    // load the leads from the database
+    $leads = acrocrm_leads_load_leads();
 
-  // load the leads from the database
-  $leads = acrocrm_leads_load_leads();
+    $page['content']['leads'] = array(
+        '#markup' => acrocrm_leads_generate_leads_html($leads)
+    );
 
-  $page['content']['leads'] = array(
-    '#markup' => acrocrm_leads_generate_leads_html($leads)
-  );
+    $page['content']['reps'] = array(
+        '#markup' => acrocrm_leads_get_sales_reps()
+    );
 
-  $page['content']['reps'] = array(
-    '#markup' => acrocrm_leads_get_sales_reps()
-  );
-
-  return theme('acrocrm_leads_home', array('page' => $page));
+    return theme('acrocrm_leads_home', array('page' => $page));
 }
 
 /*
  * Get a list of all leads from the database
  */
 function acrocrm_leads_load_leads() {
-  $leads = db_query('SELECT * from leads');
+    $leads = db_query('SELECT * from leads');
 
-  $leads_arr = array();
+    $leads_arr = array();
 
-  if ($leads) {
-
-    foreach ($leads as $lead) {
-      $leads_arr[] = array(
-        'firstname' => $lead->firstname,
-        'name' => $lead->name,
-        'email' => $lead->email,
-        'phone' => $lead->phone,
-        'comments' => $lead->comments,
-        'priority' => $lead->priority
-      );
+    if ($leads) {
+        foreach ($leads as $lead) {
+            $leads_arr[] = array(
+                'lead_id' => $lead->lead_id,
+                'firstname' => $lead->firstname,
+                'name' => $lead->name,
+                'email' => $lead->email,
+                'phone' => $lead->phone,
+                'comments' => $lead->comments,
+                'priority' => $lead->priority
+            );
+        }
     }
-  } else {
-    $leads_arr[] = 'An error occurred, could not retrieve leads from database.';
-  }
+    else {
+        $leads_arr[] = 'An error occurred. Could not retrieve leads from database.';
+    }
 
-  return $leads_arr;
+    return $leads_arr;
+}
+
+/*
+ * Create lead edit modal/pop-up HTML.
+ */
+function acrocrm_leads_edit_lead_ajax($lead_id) {
+    $form = drupal_get_form('acrocrm_leads_single_lead_form');
+
+    $lead = db_select('leads', 'l')
+        ->fields('l')
+        ->condition('lead_id', $lead_id, '=')
+        ->execute()
+        ->fetchAssoc();
+
+    $form['firstname']['#value'] = $lead['firstname'];
+    $form['name']['#value'] = $lead['name'];
+    $form['email']['#value'] = $lead['email'];
+    $form['phone']['#value'] = $lead['phone'];
+    $form['comments']['#value'] = $lead['comments'];
+    $form['priority']['#value'] = $lead['priority'];
+
+    $form["#prefix"] =
+      '<div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="editLead">Edit Lead</h4>
+      </div>
+      <div class="modal-body">';
+
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Save Changes',
+        '#prefix' => '</div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button>',
+        '#suffix' => '</div>',
+        '#weight' => 7,
+        '#attributes' => array(
+            'class' => array('btn', 'btn-primary'),
+            'onclick' => "test_submit();",
+            'id' => array('submit'),
+        ),
+        '#executes_submit_callback' => FALSE,
+        //'#submit' => array('acrocrm_leads_single_lead_edit_form_submit'),
+        '#ajax' => array(
+            'callback' => 'acrocrm_leads_single_lead_edit_form_submit',
+            'wrapper' => 'leadEditModal',
+            'method' => 'replace',
+            'effect' => 'fade',
+        ),
+        '#id' => 'modalsharebutton',
+    );
+
+//    $form['#attached']['library'] = array(
+//        array('system', 'drupal.ajax'),
+//      array('system', 'jquery.form'),
+//    );
+
+//    $page['content']['header'] = array(
+//        '#markup' => '<div class="row">
+//                    <div class="col-lg-12">
+//                        <h1 class="page-header">New Lead</h1>
+//                    </div>
+//                  </div>'
+//    );
+
+    // Need to initialize a placeholder so this displays before the form.
+    //$page['content']['messages']['#markup'] = '';
+    //$page['content']['new_lead_form'] = $form;
+
+    // The messages appear after the form has been loaded.
+    //$page['content']['messages']['#markup'] = acrocrm_get_message_markup();
+
+    echo drupal_render($form);
+
+    //return theme('acrocrm_leads_home', array('page' => $page));
 }
 
 /*
  * Create the HTML to display a lead
  */
 function acrocrm_leads_generate_leads_html($leads) {
-  $search_div = '<div class="input-group">
-                <input type="text" class="form-control" aria-label="..." placeholder="Search leads">
-                <div class="input-group-btn">
-                  <button type="button" class="btn btn-default">Action</button>
-                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="caret"></span>
-                    <span class="sr-only">Toggle Dropdown</span>
-                  </button>
-                  <ul class="dropdown-menu dropdown-menu-right">
-                    <li><a href="#">Show all</a></li>
-                    <li><a href="#">Another action</a></li>
-                    <li><a href="#">Something else here</a></li>
-                    <li role="separator" class="divider"></li>
-                    <li><a href="#">Separated link</a></li>
-                  </ul>
-                </div>
-              </div>';
+    $search_div =
+      '<div class="input-group">
+        <input type="text" class="form-control" aria-label="..." placeholder="Search leads">
+        <div class="input-group-btn">
+          <button type="button" class="btn btn-default">Action</button>
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="caret"></span>
+            <span class="sr-only">Toggle Dropdown</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-right">
+            <li><a href="#">Show all</a></li>
+            <li><a href="#">Another action</a></li>
+            <li><a href="#">Something else here</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+          </ul>
+        </div>
+      </div>';
 
-  $leads_list = '';
-  foreach ($leads as $lead) {
-    $leads_list .= '<a class="list-group-item lead-draggable" href="#">';
+    $leads_edit_modal =
+      '<div class="modal fade" id="leadEditModal" tabindex="-1" role="dialog" aria-labelledby="editLead">
+        <div class="vertical-alignment-helper">
+          <div class="modal-dialog modal-lg vertical-align-center" role="document">
+            <div class="modal-content">
+            </div>
+          </div>
+        </div>
+      </div>';
 
-    if (strlen($lead['firstname']) > 0) {
-      $leads_list .= '<h4 class="list-group-item-heading">' . $lead['firstname'] . ' ' . $lead['name'] . '</h4>';
-    } else {
-      $leads_list .= '<h4 class="list-group-item-heading">' . $lead['name'] . '</h4>';
-    }
+    $leads_list = '';
+    foreach ($leads as $lead) {
+        $leads_list .= '<a class="list-group-item lead-draggable" href="#">';
 
-    $leads_list .= '<div class="priority pull-right">Priority:
+        $leads_list .= '<div class="pull-right text-right">';
+        $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
+        $leads_list .= '<button type="button" href="/drupal/acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
+        $leads_list .= '<button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></button>';
+        $leads_list .= '</div>';
+
+//        $leads_list .= '<div role="group" class="collapse in btn-group" id="confirmDelete" aria-label="...">';
+//        $leads_list .= '<button type="button" class="btn btn-danger" data-toggle="collapse">Remove</button>';
+//        $leads_list .= '<button type="button" class="btn btn-danger" data-toggle="collapse">Cancel</button>';
+//        $leads_list .= '</div>';
+
+        $leads_list .=
+          '<div class="priority">Priority:
             <select id="set-priority" class="input-group">
                 <option value="unassigned">unassigned</option>
                 <option value="low">low</option>
                 <option value="medium">medium</option>
                 <option value="high">high</option>
-            </select></div>';
+            </select>
+          </div>';
 
-    $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
-    $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
-    $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
+        $leads_list .= '</div>';
 
-    $leads_list .= '</a>';
-  }
+        if (strlen($lead['firstname']) > 0) {
+            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['firstname'] . ' ' . $lead['name'] . '</h4>';
+        }
+        else {
+            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['name'] . '</h4>';
+        }
 
-  $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_list . '</div>';
+        $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
+        $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+        $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
 
-  return $leads_div;
+        $leads_list .=  '</a>';
+    }
+
+    $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_edit_modal . $leads_list . '</div>';
+
+    return $leads_div;
 }
 
 /*
  * Get a list of all sales reps and create html to display sales reps
  */
 function acrocrm_leads_get_sales_reps() {
-  $users = entity_load('user');
+    $users = entity_load('user');
 
-  $rep_div = '';
+    $rep_div = '';
 
-  foreach ($users as $user) {
-    if (user_access('sales rep', $user)) {
-      $rep_div = $rep_div . '<div id="' . $user->uid . '" class="lead-rep-overview">' . $user->name . '</div>';
+    foreach ($users as $user) {
+        if (user_access('sales rep', $user)) {
+            $rep_div = $rep_div . '<div id="' . $user->uid . '" class="lead-rep-overview">' . $user->name . '</div>';
+        }
     }
-  }
 
-  $sales_reps = '<div class="col-md-6">' . $rep_div . '</div>';
+    $sales_reps = '<div class="col-md-6">' . $rep_div . '</div>';
 
-  return $sales_reps;
+    return $sales_reps;
 }
 
 function acrocrm_leads_new_lead_page() {
@@ -125,7 +225,7 @@ function acrocrm_leads_new_lead_page() {
 
   // Need to initialize a placeholder so this displays before the form.
   $page['content']['messages']['#markup'] = '';
-  $page['content']['new_lead_form'] = drupal_get_form('acrocrm_leads_new_lead_form');
+  $page['content']['new_lead_form'] = drupal_get_form('acrocrm_leads_single_lead_form');
 
   // The messages appear after the form has been loaded.
   $page['content']['messages']['#markup'] = acrocrm_get_message_markup();
@@ -133,7 +233,7 @@ function acrocrm_leads_new_lead_page() {
   return theme('acrocrm_leads_home', array('page' => $page));
 }
 
-function acrocrm_leads_new_lead_form($form, &$form_state) {
+function acrocrm_leads_single_lead_form($form, &$form_state) {
   $form['#prefix'] = '<div class="row">
                         <div class="col-lg-10 col-md-12">
                             <div class="panel panel-default">
@@ -274,8 +374,33 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
 /**
  * Submit callback for acrocrm_leads_new_lead_form().
  */
+function acrocrm_leads_single_lead_form_submit($form, $form_state) {
+    $lead_id = db_insert('leads')
+        ->fields(array(
+            'name' => $form_state['values']['name'],
+            'firstname' => $form_state['values']['firstname'],
+            'email' => $form_state['values']['email'],
+            'phone' => $form_state['values']['phone'],
+            'comments' => $form_state['values']['comments'],
+            'priority' => $form_state['values']['priority']))
+        ->execute();
+
+    if ($form_state['values']['assign'] != '') {
+        db_insert('assigned_leads')
+            ->fields(array(
+                'uid' => $form_state['values']['assign'],
+                'lead_id' => $lead_id,
+            ))
+            ->execute();
+    }
+
+    drupal_set_message(t('The new lead has been created successfully.'));
+}
+
+/**
+ * Submit callback for acrocrm_leads_new_lead_form().
+ */
 function acrocrm_leads_new_lead_form_submit($form, $form_state) {
-  global $user;
   $lead_id = db_insert('leads')
     ->fields(array(
                'name' => $form_state['values']['name'],
@@ -283,11 +408,7 @@ function acrocrm_leads_new_lead_form_submit($form, $form_state) {
                'email' => $form_state['values']['email'],
                'phone' => $form_state['values']['phone'],
                'comments' => $form_state['values']['comments'],
-               'priority' => $form_state['values']['priority'],
-               'created_time' => date('Y-m-d H:i:s'),
-               'created_by' => $user->uid,
-               'modified_by' => $user->uid,
-               'status' => 'APPROVED'))
+               'priority' => $form_state['values']['priority']))
     ->execute();
 
   if ($form_state['values']['assign'] != '') {

@@ -9,6 +9,9 @@ h1, h2, h3 {
     height: 300px;
 }
 
+#overlay-content {
+    padding: 0;
+}
 
 /* --- Leads overview page --- */
 
@@ -39,9 +42,9 @@ h1, h2, h3 {
 }
 
 .page-header {
-padding-bottom: 9px;
-margin: 15px 0 20px;
-border-bottom: 1px solid #eee
+    padding-bottom: 9px;
+    margin: 15px 0 20px;
+    border-bottom: 1px solid #eee
 }
 
 .form-item label {
@@ -75,3 +78,26 @@ input.form-submit {
     border-color: #2e6da4;
 }
 
+.priority {
+    margin-top: 10px;
+}
+
+.vertical-alignment-helper {
+    display:table;
+    height: 100%;
+    width: 100%;
+    pointer-events:none;
+}
+.vertical-align-center {
+    /* To center vertically */
+    display: table-cell;
+    vertical-align: middle;
+    pointer-events:none;
+}
+.modal-content {
+    width:inherit;
+    height:inherit;
+    /* To center horizontally */
+    margin: 0 auto;
+    pointer-events: all;
+}
