@@ -39,9 +39,9 @@ h1, h2, h3 {
 }
 
 .page-header {
-padding-bottom: 9px;
-margin: 15px 0 20px;
-border-bottom: 1px solid #eee
+    padding-bottom: 9px;
+    margin: 15px 0 20px;
+    border-bottom: 1px solid #eee
 }
 
 .form-item label {
@@ -74,4 +74,5 @@ input.form-submit {
     background-color: #337ab7;
     border-color: #2e6da4;
 }
+
 

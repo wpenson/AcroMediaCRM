@@ -46,17 +46,41 @@ function acrocrm_leads_menu() {
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
-  $items['admin/config/acrocrm/acrocrm_leads'] = array(
-    'title' => 'AcroCRM Leads Contact form',
-    'description' => 'Configuration for the AcroCRM Leads Contact form',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('acrocrm_leads_contact_form_settings_form'),
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/acrocrm_leads.forms.inc',
-    'type' => MENU_NORMAL_ITEM
+//  $items['admin/config/acrocrm/acrocrm_leads'] = array(
+//    'title' => 'AcroCRM Leads Contact form',
+//    'description' => 'Configuration for the AcroCRM Leads Contact form',
+//    'page callback' => 'drupal_get_form',
+//    'page arguments' => array('acrocrm_leads_contact_form_settings_form'),
+//    'access arguments' => array('access administration pages'),
+//    'file' => 'includes/acrocrm_leads.forms.inc',
+//    'type' => MENU_NORMAL_ITEM
+//  );
+
+  $items['acrocrm_leads/assign_lead'] = array(
+      'page callback' => 'acrocrm_leads_ajax_get_ajax', // Render HTML
+      'page arguments' => array(3),
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access acrocrm'),
+      'delivery callback' => 'acrocrm_leads_ajax_callback',  // Magic goes here
   );
 
   return $items;
+}
+
+function acrocrm_leads_ajax_get_ajax() {
+//  // The function will receive the array of arguments after the "get/ajax" prefix
+//  $path = implode('/', func_get_args());
+//  $render_string = menu_execute_active_handler($path, FALSE);
+//  return $render_string;
+}
+
+function acrocrm_leads_ajax_callback($page_callback_result) {
+  // Only render content
+  $content = drupal_render($page_callback_result);
+
+  // Add CSS ans JS files, add some markup
+  $html = '<p>hi world</p>';
+  print $html;
 }
 
 function acrocrm_leads_theme() {

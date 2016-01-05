@@ -1,5 +1,19 @@
 // --- DRAGGABLE UI --- //
 
-$( ".lead-draggable" ).draggable({
-    snap: ".lead-rep-overview"
-});
+// --- DRAGGABLE UI --- //
+$( ".lead-sortable, .lead-list" ).sortable({
+    connectWith: ".drag-list",
+    receive : function(event, ui) {
+        // assume that id for rep is "rep_x"
+        var rep_id = $(this).attr("id").split('_')[1];
+
+        // assume that id for lead is "lead_x"
+        var lead_id = (ui.item[0].id).split('_')[1];
+
+        return true;
+    }
+}).disableSelection();
+
+function myModule_ajax_load() {
+    jQuery("#ajax-target").load("/acrocrm_leads/assign_lead");
+}
