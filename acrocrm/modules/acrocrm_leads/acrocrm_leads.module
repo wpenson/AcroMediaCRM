@@ -186,13 +186,13 @@ function acrocrm_leads_block_view($delta = '') {
   }
 }
 
-//function acrocrm_leads_form_acrocrm_leads_single_lead_form_alter(&$form, &$form_state, $form_id) {
-//  $form['#submit'][] = 'acrocrm_leads_single_lead_edit_form_submit';
-//}
-//
-//function acrocrm_leads_single_lead_edit_form_submit(&$form, &$form_state) {
-//  $form_state['redirect'] = 'home';
-//}
+function acrocrm_leads_form_acrocrm_leads_edit_lead_form_alter(&$form, &$form_state, $form_id) {
+  $form['#submit'][] = 'acrocrm_leads_edit_lead_custom_form_submit';
+}
+
+function acrocrm_leads_edit_lead_custom_form_submit(&$form, &$form_state) {
+  $form_state['redirect'] = 'acrocrm_leads/overview';
+}
 
 /**************************************************************
  * Contact form for block. I can't seem to figure out how to

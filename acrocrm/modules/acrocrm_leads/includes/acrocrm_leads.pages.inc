@@ -48,7 +48,6 @@ function acrocrm_leads_load_leads() {
     $leads_arr = array();
 
     if ($leads) {
-
         while ($lead = $leads->fetchAssoc()) {
 
             $leads_arr[] = array(
@@ -61,7 +60,6 @@ function acrocrm_leads_load_leads() {
                 'priority' => $lead['priority']
             );
         }
-
     } else {
         $leads_arr[] = 'An error occurred, could not retrieve leads from database.';
     }
@@ -73,7 +71,7 @@ function acrocrm_leads_load_leads() {
  * Create lead edit modal/pop-up HTML.
  */
 function acrocrm_leads_edit_lead_ajax($lead_id) {
-    $form = drupal_get_form('acrocrm_leads_single_lead_form');
+    $form = drupal_get_form('acrocrm_leads_edit_lead_form');
 
     $lead = db_select('leads', 'l')
         ->fields('l')
@@ -103,70 +101,37 @@ function acrocrm_leads_edit_lead_ajax($lead_id) {
         '#weight' => 7,
         '#attributes' => array(
             'class' => array('btn', 'btn-primary'),
-            'onclick' => "test_submit();",
-            'id' => array('submit'),
         ),
-        '#executes_submit_callback' => FALSE,
-        //'#submit' => array('acrocrm_leads_single_lead_edit_form_submit'),
-        '#ajax' => array(
-            'callback' => 'acrocrm_leads_single_lead_edit_form_submit',
-            'wrapper' => 'leadEditModal',
-            'method' => 'replace',
-            'effect' => 'fade',
-        ),
-        '#id' => 'modalsharebutton',
     );
 
-//    $form['#attached']['library'] = array(
-//        array('system', 'drupal.ajax'),
-//      array('system', 'jquery.form'),
-//    );
-
-//    $page['content']['header'] = array(
-//        '#markup' => '<div class="row">
-//                    <div class="col-lg-12">
-//                        <h1 class="page-header">New Lead</h1>
-//                    </div>
-//                  </div>'
-//    );
-
-    // Need to initialize a placeholder so this displays before the form.
-    //$page['content']['messages']['#markup'] = '';
-    //$page['content']['new_lead_form'] = $form;
-
-    // The messages appear after the form has been loaded.
-    //$page['content']['messages']['#markup'] = acrocrm_get_message_markup();
-
     echo drupal_render($form);
-
-    //return theme('acrocrm_leads_home', array('page' => $page));
 }
 
 /*
  * Create the HTML to display a lead
  */
 function acrocrm_leads_generate_leads_html($leads) {
-
-    $search_div = '<div class="input-group">
-                <input type="text" class="form-control" aria-label="..." placeholder="Search leads">
-                <div class="input-group-btn">
-                  <button type="button" class="btn btn-default">Action</button>
-                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="caret"></span>
-                    <span class="sr-only">Toggle Dropdown</span>
-                  </button>
-                  <ul class="dropdown-menu dropdown-menu-right">
-                    <li><a href="#">Show all</a></li>
-                    <li><a href="#">Another action</a></li>
-                    <li><a href="#">Something else here</a></li>
-                    <li role="separator" class="divider"></li>
-                    <li><a href="#">Separated link</a></li>
-                  </ul>
-                </div>
-              </div>';
+    $search_div =
+      '<div class="input-group">
+        <input type="text" class="form-control" aria-label="..." placeholder="Search leads">
+        <div class="input-group-btn">
+          <button type="button" class="btn btn-default">Action</button>
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="caret"></span>
+            <span class="sr-only">Toggle Dropdown</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-right">
+            <li><a href="#">Show all</a></li>
+            <li><a href="#">Another action</a></li>
+            <li><a href="#">Something else here</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+          </ul>
+        </div>
+      </div>';
 
     $leads_edit_modal =
-        '<div class="modal fade" id="leadEditModal" tabindex="-1" role="dialog" aria-labelledby="editLead">
+      '<div class="modal fade" id="leadEditModal" tabindex="-1" role="dialog" aria-labelledby="editLead">
         <div class="vertical-alignment-helper">
           <div class="modal-dialog modal-lg vertical-align-center" role="document">
             <div class="modal-content">
@@ -176,6 +141,9 @@ function acrocrm_leads_generate_leads_html($leads) {
       </div>';
 
     $leads_list = '';
+    $leads_list .= '<a class="btn" href="javascript:void(0)" onclick="myModule_ajax_load()">Ajax Test</a>';
+    $leads_list .= '<div id="ajax-target">Ajax goes here!!!</div>';
+
     foreach ($leads as $lead) {
         $leads_list .= '<div class="list-group-item lead-sortable drag-list" href="javascript:void(0)">';
         $leads_list .= '<div id="lead_' . $lead['lead_id'] . '">';
@@ -353,7 +321,17 @@ function acrocrm_leads_new_lead_page() {
     return theme('acrocrm_leads_home', array('page' => $page));
 }
 
-function acrocrm_leads_single_lead_form($form, &$form_state) {
+function acrocrm_leads_edit_lead_form($form, &$form_state) {
+    generate_lead_form($form, $form_state);
+    return $form;
+}
+
+function acrocrm_leads_new_lead_form($form, &$form_state) {
+    generate_lead_form($form, $form_state);
+    return $form;
+}
+
+function generate_lead_form(&$form, &$form_state) {
     $form['#prefix'] = '<div class="row">
 
                         <div class="col-lg-10 col-md-12">
@@ -419,7 +397,6 @@ function acrocrm_leads_single_lead_form($form, &$form_state) {
         ),
     );
 
-
     $form['name'] = array(
         '#type' => 'textfield',
         '#title' => t('Last Name'),
@@ -433,7 +410,6 @@ function acrocrm_leads_single_lead_form($form, &$form_state) {
             'class' => array('form-control'),
         ),
     );
-
 
     $form['email'] = array(
         '#type' => 'textfield',
@@ -488,14 +464,12 @@ function acrocrm_leads_single_lead_form($form, &$form_state) {
     );
 
     $form['#suffix'] = '</div></div></div></div></div>';
-
-    return $form;
 }
 
 /**
- * Submit callback for acrocrm_leads_new_lead_form().
+ * Submit callback for acrocrm_leads_edit_lead_form().
  */
-function acrocrm_leads_single_lead_form_submit($form, $form_state) {
+function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
     $lead_id = db_insert('leads')
         ->fields(array(
             'name' => $form_state['values']['name'],
@@ -515,7 +489,7 @@ function acrocrm_leads_single_lead_form_submit($form, $form_state) {
             ->execute();
     }
 
-    drupal_set_message(t('The new lead has been created successfully.'));
+    drupal_set_message(t('Edit Successful.'));
 }
 
 /**
@@ -554,6 +528,23 @@ function acrocrm_leads_new_lead_form_submit($form, $form_state) {
  *   during processing.
  */
 function acrocrm_leads_new_lead_form_validate($form, &$form_state) {
+    generate_lead_form($form, $form_state);
+}
+
+/**
+ * Implements validation from the Form API for the edit lead form.
+ *
+ * @param $form
+ *   A structured array containing the elements and properties of the form.
+ * @param $form_state
+ *   An array that stores information about the form's current state
+ *   during processing.
+ */
+function acrocrm_leads_edit_lead_form_validate($form, &$form_state) {
+    generate_lead_form($form, $form_state);
+}
+
+function generate_lead_validation(&$form, &$form_state) {
     $email = $form_state['values']['email'];
     $email_pattern = '/^[^@]*@[^@]*/';
     if ($email != '' && !preg_match($email_pattern, $email)) {
