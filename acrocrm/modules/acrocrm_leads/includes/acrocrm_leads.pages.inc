@@ -66,8 +66,8 @@ function acrocrm_leads_generate_leads_html($leads) {
               </div>';
 
     $leads_list = '';
-    //$leads_list .= '<a class="btn" href="#" onclick="myModule_ajax_load()">Ajax Test</a>';
-    //$leads_list .= '<div id="ajax-target">Ajax goes here!!!</div>';
+    $leads_list .= '<a class="btn" href="javascript:void(0)" onclick="myModule_ajax_load()">Ajax Test</a>';
+    $leads_list .= '<div id="ajax-target">Ajax goes here!!!</div>';
     foreach ($leads as $lead) {
         $leads_list .= '<div class="list-group-item lead-sortable drag-list"><div id="lead_' . $lead['lead_id'] . '">';
 

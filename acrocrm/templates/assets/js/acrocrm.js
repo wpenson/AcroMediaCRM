@@ -10,10 +10,17 @@ $( ".lead-sortable, .lead-list" ).sortable({
         // assume that id for lead is "lead_x"
         var lead_id = (ui.item[0].id).split('_')[1];
 
+        $.ajax({
+            url: "/acrocrm_leads/assign_lead?lead_id=" + lead_id + "&rep_id=" + rep_id,
+            success: function(result) {
+                console.log(result);
+            }
+        })
+
         return true;
     }
 }).disableSelection();
 
-function myModule_ajax_load() {
-    jQuery("#ajax-target").load("/acrocrm_leads/assign_lead");
-}
+//function myModule_ajax_load() {
+//    jQuery("#ajax-target").load("/acrocrm_leads/assign_lead?" + lead_id);
+//}
