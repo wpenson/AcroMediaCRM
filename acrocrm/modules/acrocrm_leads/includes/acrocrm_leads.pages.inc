@@ -141,18 +141,26 @@ function acrocrm_leads_generate_leads_html($leads) {
                 </div>
               </div>';
 
+    $leads_edit_modal =
+        '<div class="modal fade" id="leadEditModal" tabindex="-1" role="dialog" aria-labelledby="editLead">
+        <div class="vertical-alignment-helper">
+          <div class="modal-dialog modal-lg vertical-align-center" role="document">
+            <div class="modal-content">
+            </div>
+          </div>
+        </div>
+      </div>';
+
     $leads_list = '';
     $leads_list .= '<a class="btn" href="javascript:void(0)" onclick="myModule_ajax_load()">Ajax Test</a>';
     $leads_list .= '<div id="ajax-target">Ajax goes here!!!</div>';
     foreach ($leads as $lead) {
-        //$leads_list .= '<div class="list-group-item lead-sortable drag-list"><div id="lead_' . $lead['lead_id'] . '">';
-
         $leads_list .= '<div class="list-group-item lead-sortable drag-list" href="javascript:void(0)">';
         $leads_list .= '<div id="lead_' . $lead['lead_id'] . '">';
 
         $leads_list .= '<div class="pull-right text-right">';
         $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
-        $leads_list .= '<button type="button" href="/drupal/acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
+        $leads_list .= '<button type="button" href="'. base_path() .'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
         $leads_list .= '<button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></button>';
         $leads_list .= '</div>';
 
@@ -181,7 +189,7 @@ function acrocrm_leads_generate_leads_html($leads) {
         $leads_list .= '</div></div>';
     }
 
-    $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_list . '</div>';
+    $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_edit_modal . $leads_list . '</div>';
 
     return $leads_div;
 }
@@ -243,7 +251,7 @@ function acrocrm_leads_new_lead_page() {
     return theme('acrocrm_leads_home', array('page' => $page));
 }
 
-function acrocrm_leads_new_lead_form($form, &$form_state) {
+function acrocrm_leads_single_lead_form($form, &$form_state) {
     $form['#prefix'] = '<div class="row">
 
                         <div class="col-lg-10 col-md-12">

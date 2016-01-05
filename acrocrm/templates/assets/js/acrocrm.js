@@ -1,7 +1,4 @@
 // --- DRAGGABLE UI --- //
-
-
-// --- DRAGGABLE UI --- //
 $( ".lead-sortable, .lead-list" ).sortable({
     connectWith: ".drag-list",
     receive : function(event, ui) {
