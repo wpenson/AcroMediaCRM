@@ -505,12 +505,6 @@ function generate_lead_form(&$form, &$form_state) {
  * Submit callback for acrocrm_leads_edit_lead_form().
  */
 function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
-    drupal_debug($form_state);
-
-    ini_set("log_errors", 1);
-    ini_set("error_log", "/Users/wade/Desktop/php-error.log");
-    error_log(print_r($form_state, $return = true));
-
     $lead_id = db_update('leads')
         ->fields(array(
             'name' => $form_state['values']['name'],
