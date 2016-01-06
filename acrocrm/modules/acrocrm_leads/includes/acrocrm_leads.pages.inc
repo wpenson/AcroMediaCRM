@@ -86,6 +86,8 @@ function acrocrm_leads_edit_lead_ajax($lead_id) {
     $form['comments']['#value'] = $lead['comments'];
     $form['priority']['#value'] = $lead['priority'];
 
+    $form['lead_id']['#value'] = $lead_id;
+
     $form["#prefix"] =
       '<div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -105,6 +107,14 @@ function acrocrm_leads_edit_lead_ajax($lead_id) {
     );
 
     echo drupal_render($form);
+}
+
+function acrocrm_leads_delete_lead_ajax($lead_id) {
+    db_delete('leads')
+        ->condition('lead_id', $lead_id, '=')
+        ->execute();
+
+    drupal_goto($path = 'acrocrm_leads/overview');
 }
 
 /*
@@ -140,6 +150,27 @@ function acrocrm_leads_generate_leads_html($leads) {
         </div>
       </div>';
 
+    $delete_lead_confirmation_modal =
+      '<div class="modal fade" id="deleteLeadConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteLead">
+        <div class="vertical-alignment-helper">
+          <div class="modal-dialog modal-sm vertical-align-center" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="editLead">Edit Lead</h4>
+              </div>
+              <div class="modal-body">
+                Are you sure you want to delete this lead?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                <button type="button" id="deleteLeadConfirmationButton" class="btn btn-danger">Yes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>';
+
     $leads_list = '';
     $leads_list .= '<a class="btn" href="javascript:void(0)" onclick="myModule_ajax_load()">Ajax Test</a>';
     $leads_list .= '<div id="ajax-target">Ajax goes here!!!</div>';
@@ -150,8 +181,8 @@ function acrocrm_leads_generate_leads_html($leads) {
 
         $leads_list .= '<div class="pull-right text-right">';
         $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
-        $leads_list .= '<button type="button" href="'. base_path() .'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
-        $leads_list .= '<button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></button>';
+        $leads_list .= '<button type="button" href="'. base_path() .'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
+        $leads_list .= '<button type="button" class="btn btn-danger" data-url="'. base_path() .'acrocrm_leads/delete_lead/" data-id="' . $lead['lead_id'] .'" data-toggle="modal" data-target="#deleteLeadConfirmationModal"><span class="glyphicon glyphicon-trash"></span></button>';
         $leads_list .= '</div>';
 
 
@@ -195,7 +226,7 @@ function acrocrm_leads_generate_leads_html($leads) {
         $leads_list .= '</div></div>';
     }
 
-    $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_edit_modal . $leads_list . '</div>';
+    $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
 
     return $leads_div;
 }
@@ -452,6 +483,10 @@ function generate_lead_form(&$form, &$form_state) {
         ),
     );
 
+    $form['lead_id'] = array(
+        '#type' => 'hidden',
+    );
+
     $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Submit'),
@@ -470,7 +505,13 @@ function generate_lead_form(&$form, &$form_state) {
  * Submit callback for acrocrm_leads_edit_lead_form().
  */
 function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
-    $lead_id = db_insert('leads')
+    drupal_debug($form_state);
+
+    ini_set("log_errors", 1);
+    ini_set("error_log", "/Users/wade/Desktop/php-error.log");
+    error_log(print_r($form_state, $return = true));
+
+    $lead_id = db_update('leads')
         ->fields(array(
             'name' => $form_state['values']['name'],
             'firstname' => $form_state['values']['firstname'],
@@ -478,18 +519,24 @@ function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
             'phone' => $form_state['values']['phone'],
             'comments' => $form_state['values']['comments'],
             'priority' => $form_state['values']['priority']))
+        ->condition('lead_id', $form_state['values']['lead_id'], '=')
         ->execute();
 
     if ($form_state['values']['assign'] != '') {
-        db_insert('assigned_leads')
+        db_update('assigned_leads')
             ->fields(array(
                 'uid' => $form_state['values']['assign'],
                 'lead_id' => $lead_id,
             ))
             ->execute();
     }
+    else {
+        db_delete('assigned_leads')
+            ->condition('lead_id', $lead_id)
+            ->execute();
+    }
 
-    drupal_set_message(t('Edit Successful.'));
+    drupal_set_message(t('The lead has been updated.'));
 }
 
 /**

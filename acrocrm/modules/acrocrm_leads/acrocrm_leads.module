@@ -55,6 +55,15 @@ function acrocrm_leads_menu() {
       'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
+  $items['acrocrm_leads/delete_lead'] = array(
+      'page arguments' => array(2),
+      'access callback' => TRUE,
+      'page callback' => 'acrocrm_leads_delete_lead_ajax',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access acrocrm'),
+      'file' => 'includes/acrocrm_leads.pages.inc',
+  );
+
   $items['admin/config/acrocrm/acrocrm_leads'] = array(
     'title' => 'AcroCRM Leads Contact form',
     'description' => 'Configuration for the AcroCRM Leads Contact form',
