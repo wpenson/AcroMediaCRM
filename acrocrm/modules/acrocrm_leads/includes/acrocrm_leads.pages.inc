@@ -20,21 +20,45 @@ function acrocrm_leads_overview_page() {
  * Get a list of all leads from the database
  */
 function acrocrm_leads_load_leads() {
-    $leads = db_query('SELECT * from leads');
+    $assigned_leads = db_select('assigned_leads', 'lead_id')
+        ->fields('lead_id')
+        ->execute();
+
+
+    if ($assigned_leads->rowCount() > 0) {
+        $lead_ids = array();
+
+        while ($lead_id = $assigned_leads->fetchAssoc()) {
+            //$lead_ids .= $lead_id["lead_id"] . ', ';
+            array_push($lead_ids, $lead_id["lead_id"]);
+        }
+
+        $leads = db_select('leads', 'l')
+            ->fields('l')
+            ->condition('lead_id', $lead_ids, 'NOT IN')
+            ->execute();
+    }
+
+    else {
+        $leads = db_select('leads', 'l')
+        ->fields('l')
+        ->execute();
+    }
 
     $leads_arr = array();
 
     if ($leads) {
 
-        foreach ($leads as $lead) {
+        while ($lead = $leads->fetchAssoc()) {
+
             $leads_arr[] = array(
-                'lead_id' => $lead->lead_id,
-                'firstname' => $lead->firstname,
-                'name' => $lead->name,
-                'email' => $lead->email,
-                'phone' => $lead->phone,
-                'comments' => $lead->comments,
-                'priority' => $lead->priority
+                'lead_id' => $lead['lead_id'],
+                'firstname' => $lead['firstname'],
+                'name' => $lead['name'],
+                'email' => $lead['email'],
+                'phone' => $lead['phone'],
+                'comments' => $lead['comments'],
+                'priority' => $lead['priority']
             );
         }
 
@@ -152,8 +176,6 @@ function acrocrm_leads_generate_leads_html($leads) {
       </div>';
 
     $leads_list = '';
-    $leads_list .= '<a class="btn" href="javascript:void(0)" onclick="myModule_ajax_load()">Ajax Test</a>';
-    $leads_list .= '<div id="ajax-target">Ajax goes here!!!</div>';
     foreach ($leads as $lead) {
         $leads_list .= '<div class="list-group-item lead-sortable drag-list" href="javascript:void(0)">';
         $leads_list .= '<div id="lead_' . $lead['lead_id'] . '">';
@@ -165,14 +187,30 @@ function acrocrm_leads_generate_leads_html($leads) {
         $leads_list .= '</div>';
 
 
-        $leads_list .= '<div class="priority">Priority:
-            <select id="set-priority" class="input-group">
-                <option value="unassigned">unassigned</option>
-                <option value="low">low</option>
-                <option value="medium">medium</option>
-                <option value="high">high</option>
-            </select>
-          </div>';
+        $priority = $lead['priority'];
+        $leads_list .= '<div class="priority">Priority:';
+        $leads_list .= '<select class="set-priority input-group" onchange="assignPriority('. $lead['lead_id'] .', this)">';
+        $leads_list .= '<option value="unassigned"';
+        if ($priority === '') {
+            $leads_list .= ' selected ';
+        }
+        $leads_list .= '>unassigned</option>';
+        $leads_list .= '<option value="low"';
+        if ($priority === 'low') {
+            $leads_list .= ' selected ';
+        }
+        $leads_list .= '>low</option>';
+        $leads_list .= '<option value="medium"';
+        if ($priority === 'medium') {
+            $leads_list .= ' selected ';
+        }
+        $leads_list .= '>medium</option>';
+        $leads_list .= '<option value="high"';
+        if ($priority === 'high') {
+            $leads_list .= ' high ';
+        }
+        $leads_list .= '>high</option>';
+        $leads_list .= '</select></div>';
 
         $leads_list .= '</div>';
 
@@ -206,23 +244,87 @@ function acrocrm_leads_get_sales_reps() {
         $leads_list = '';
 
         if (user_access('sales rep', $user)) {
-            $leads_list .= '<ul id="rep_' . $user->uid . '" class="drag-list lead-list">';
-            $sql = 'SELECT lead_id from assigned_leads WHERE uid=' . $user->uid;
-            $leads =  db_query($sql);
+            $assigned_leads = db_select('assigned_leads', 'lead_id')
+                ->fields('lead_id')
+                ->condition('uid', $user->uid, '=')
+                ->execute();
 
-            if ($leads->rowCount() > 0) {
-                foreach ($leads as $lead) {
-                    $leads_list .= '<li>' . $lead->lead_id . '</li>';
+            $lead_ids = array();
+
+            while ($lead_id = $assigned_leads->fetchAssoc()) {
+                array_push($lead_ids, $lead_id["lead_id"]);
+            }
+
+            if (count($lead_ids) > 0) {
+                $leads = db_select('leads', 'l')
+                    ->fields('l')
+                    ->condition('lead_id', $lead_ids, 'IN')
+                    ->execute();
+
+                $leads_list .= '<div id="rep_' . $user->uid . '" class="drag-list lead-list">';
+
+                if ($leads->rowCount() > 0) {
+                    while ($lead = $leads->fetchAssoc()) {
+                        $leads_list .= '<div id="lead_' . $lead['lead_id'] . '" class="accordion">';
+                        if (strlen($lead['firstname']) > 0) {
+                            $leads_list .= '<h4>' . $lead['firstname'] . ' ' . $lead['name'];
+                            $leads_list .= '<div class="pull-right text-right accordion-btn">';
+                            $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
+                            $leads_list .= '<button type="button" href="'. base_path() .'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
+                            $leads_list .= '<button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></button>';
+                            $leads_list .= '</div></div>';
+                            $leads_list .= '</h4>';
+                        } else {
+                            $leads_list .= '<h4>' . $lead['name'] . '</h4>';
+                        }
+                        // start accordian div
+                        $leads_list .= '<div>';
+                        $priority = $lead['priority'];
+                        $leads_list .= '<div class="priority pull-right">Priority:';
+                        $leads_list .= '<select class="input-group set-priority" onchange="assignPriority('. $lead['lead_id'] .', this)">';
+                        $leads_list .= '<option value="unassigned"';
+                        if ($priority === '') {
+                            $leads_list .= ' selected ';
+                        }
+                        $leads_list .= '>unassigned</option>';
+                        $leads_list .= '<option value="low"';
+                        if ($priority === 'low') {
+                            $leads_list .= ' selected ';
+                        }
+                        $leads_list .= '>low</option>';
+                        $leads_list .= '<option value="medium"';
+                        if ($priority === 'medium') {
+                            $leads_list .= ' selected ';
+                        }
+                        $leads_list .= '>medium</option>';
+                        $leads_list .= '<option value="high"';
+                        if ($priority === 'high') {
+                            $leads_list .= ' high ';
+                        }
+                        $leads_list .= '>high</option>';
+                        $leads_list .= '</select></div>';
+
+                        $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
+                        $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+                        $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p></div>';
+                        // end accordian div
+
+                        $leads_list .= '</div>';
+                    }
+                    $leads_list .= '</div>';
                 }
-                $leads_list .= '</ul>';
             }
             else {
-                $leads_list .= '<li>no assigned leads</li></ul>';
+                $leads_list .= '<div id="rep_' . $user->uid . '" class="drag-list lead-list">';
+                $leads_list .= '<h4 class="no-assigned-leads">no assigned leads</h4>';
+                $leads_list .= '</div>';
+                $leads_list .= '<div class="drag-list lead-list"> </div>';
             }
 
-            $rep_div .= '<div id="' . $user->uid . '" class="list-group-item lead-rep-overview" href="javascript:void(0)">';
+            $rep_div .= '<div id="' . $user->uid . '" class="list-group-item lead-rep-overview">';
             $rep_div .= '<h4 class="list-group-item-heading">' . $user->name . '</h4>';
-            $rep_div .= '<p class="list-group-item-text"><strong>Assigned Leads: </strong>' . $leads_list . '</p>';
+            $rep_div .= '<p class="list-group-item-text"><strong>Assigned Leads: </strong></p>';
+            $rep_div .= $leads_list;
             $rep_div .= '</div>';
         }
     }

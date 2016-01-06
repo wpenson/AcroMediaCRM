@@ -66,11 +66,17 @@ function acrocrm_leads_menu() {
   );
 
   $items['acrocrm_leads/assign_lead'] = array(
-      'page callback' => 'acrocrm_leads_ajax_get_ajax', // Render HTML
+      'page callback' => 'acrocrm_leads_ajax_get_ajax',
       'page arguments' => array(3),
       'type' => MENU_CALLBACK,
       'access arguments' => array('access acrocrm'),
-      'delivery callback' => 'acrocrm_leads_ajax_callback',  // Magic goes here
+  );
+
+  $items['acrocrm_leads/assign_lead_priority'] = array(
+      'page callback' => 'acrocrm_leads_priority_ajax_get_ajax',
+      'page arguments' => array(3),
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access acrocrm'),
   );
 
   return $items;
@@ -79,20 +85,55 @@ function acrocrm_leads_menu() {
 function acrocrm_leads_ajax_get_ajax() {
   // The function will receive the array of arguments after the "get/ajax" prefix
   $path = implode('/', func_get_args());
-  $render_string = menu_execute_active_handler($path, FALSE);
-  return $render_string;
+  $path = explode('/', $path);
+
+  // lead id is at index 1
+  $lead_id = $path[1];
+  // rep id is at index 0
+  $rep_id = $path[0];
+
+  $check_exists = db_query('SELECT * FROM assigned_leads WHERE lead_id=:id', array(':id' => $lead_id));
+
+  if ($check_exists->rowCount() > 0) {
+    $update_assignment = db_update('assigned_leads')
+      ->fields(array(
+          'uid' => $rep_id
+      ))
+      ->condition('lead_id', $lead_id, '=')
+      ->execute();
+  }
+  else {
+    $assign_lead = db_insert('assigned_leads')
+      ->fields(array(
+          'uid' => $rep_id,
+          'lead_id' => $lead_id
+      ))
+      ->execute();
+  }
+
+  print $path[0] . $path[1];
 }
 
-function acrocrm_leads_ajax_callback($page_callback_result) {
-  // Only render content
-  $url = implode('/', func_get_args());
+function acrocrm_leads_priority_ajax_get_ajax() {
+  $path = implode('/', func_get_args());
+  $path = explode('/', $path);
+  print_r($path);
+  // lead_id is at index 1
+  $lead_id = $path[1];
+  // priority is at index 0
+  $priority = $path[0];
 
-  // Add CSS ans JS files, add some markup
-  $html = '<p>hi</p>';
-  foreach ($url as $u) {
-    $html .= $u;
+  $check_exists = db_query('SELECT * FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
+
+  if ($check_exists->rowCount() > 0) {
+    db_update('leads')
+      ->fields(array(
+        'priority' => $priority
+      ))
+      ->condition('lead_id', $lead_id, '=')
+      ->execute();
   }
-  print $html;
+
 }
 
 function acrocrm_leads_theme() {

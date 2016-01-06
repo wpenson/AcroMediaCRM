@@ -37,7 +37,7 @@ h1, h2, h3 {
     border-radius: 0;
 }
 
-#leads-list #set-priority {
+#leads-list .set-priority {
     display: inline;
 }
 
@@ -80,6 +80,16 @@ input.form-submit {
 
 .priority {
     margin-top: 10px;
+}
+
+h4.ui-accordion-header {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.accordion-btn {
+    margin-top: -10px;
 }
 
 .vertical-alignment-helper {
