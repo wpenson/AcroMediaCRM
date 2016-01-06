@@ -62,6 +62,139 @@ function acrocrm_leads_load_leads() {
     } else {
         $leads_arr[] = 'An error occurred, could not retrieve leads from database.';
     }
+  return $leads_arr;
+}
+
+/**
+ * Gets recently created leads from the database.
+ * @param $leads
+ * @return string
+ */
+function acrocrm_leads_recently_created_leads($limit) {
+  $leads = db_query('SELECT firstname, leads.name AS leadname, email, phone, comments, priority, created_time, users.name AS username
+                    FROM leads
+                    LEFT JOIN users
+                    ON created_by = uid
+                    ORDER BY created_time DESC
+                    LIMIT ' . $limit);
+
+  $leads_arr = array();
+
+  if ($leads) {
+    foreach ($leads as $lead) {
+      $leads_arr[] = array(
+        'firstname' => $lead->firstname,
+        'name' => $lead->leadname,
+        'email' => $lead->email,
+        'phone' => $lead->phone,
+        'comments' => $lead->comments,
+        'priority' => $lead->priority,
+        'created_by' => $lead->username == NULL || $lead->username == '' ? 'Web Contact Form' : $lead->username,
+        'created_time' => $lead->created_time,
+      );
+    }
+  } else {
+    $leads_arr[] = 'An error occurred, could not retrieve leads from database.';
+  }
+
+  return $leads_arr;
+}
+
+/**
+ * Gets leads created by the given user.
+ */
+function acrocrm_leads_modified_by_user($uid, $limit) {
+  $leads = db_query('SELECT firstname, name, email, phone, comments, priority, created_time
+                    FROM leads
+                    WHERE modified_by = ' . $uid . '
+                    ORDER BY modified_time DESC
+                    LIMIT ' . $limit);
+
+  $leads_arr = array();
+
+  if ($leads) {
+    foreach ($leads as $lead) {
+      $leads_arr[] = array(
+        'firstname' => $lead->firstname,
+        'name' => $lead->name,
+        'email' => $lead->email,
+        'phone' => $lead->phone,
+        'comments' => $lead->comments,
+        'priority' => $lead->priority,
+        'modified_time' => $lead->modified_time,
+      );
+    }
+  } else {
+    $leads_arr[] = 'An error occurred, could not retrieve leads from database.';
+  }
+
+  return $leads_arr;
+}
+
+/**
+ * Gets leads that are assigned to a given user.
+ */
+function acrocrm_leads_assigned_leads($uid) {
+  $leads = db_query('SELECT firstname, leads.name AS leadname, email, phone, comments, priority, created_time
+                    FROM leads
+                    INNER JOIN assigned_leads
+                    ON assigned_leads.lead_id = leads.lead_id
+                    INNER JOIN users
+                    ON assigned_leads.uid = users.uid
+                    WHERE users.uid = ' . $uid);
+
+  $leads_arr = array();
+
+  if ($leads) {
+    foreach ($leads as $lead) {
+      $leads_arr[] = array(
+        'lead_id' => $lead->lead_id,
+        'firstname' => $lead->firstname,
+        'name' => $lead->leadname,
+        'email' => $lead->email,
+        'phone' => $lead->phone,
+        'comments' => $lead->comments,
+        'priority' => $lead->priority,
+      );
+    }
+  } else {
+    $leads_arr[] = 'An error occurred, could not retrieve leads from database.';
+  }
+
+  return $leads_arr;
+}
+
+/**
+ * Gets recently modified leads from the database.
+ * @param $leads
+ * @return string
+ */
+function acrocrm_leads_recently_modified_leads($limit) {
+  $leads = db_query('SELECT firstname, leads.name AS leadname, email, phone, comments, priority, modified_time, users.name AS username
+                    FROM leads
+                    LEFT JOIN users
+                    ON modified_by = uid
+                    ORDER BY modified_time DESC
+                    LIMIT ' . $limit);
+
+  $leads_arr = array();
+
+  if ($leads) {
+    foreach ($leads as $lead) {
+      $leads_arr[] = array(
+        'firstname' => $lead->firstname,
+        'name' => $lead->leadname,
+        'email' => $lead->email,
+        'phone' => $lead->phone,
+        'comments' => $lead->comments,
+        'priority' => $lead->priority,
+        'modified_by' => $lead->username == NULL || $lead->username == '' ? 'Web Contact Form' : $lead->username,
+        'modified_time_time' => $lead->created_time,
+      );
+    }
+  } else {
+    $leads_arr[] = 'An error occurred, could not retrieve leads from database.';
+  }
 
     return $leads_arr;
 }
