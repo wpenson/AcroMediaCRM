@@ -125,6 +125,10 @@ function acrocrm_leads_priority_ajax_get_ajax() {
 
   $check_exists = db_query('SELECT * FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
 
+  if ($priority === 'unassigned') {
+    $priority = '';
+  }
+
   if ($check_exists->rowCount() > 0) {
     db_update('leads')
       ->fields(array(

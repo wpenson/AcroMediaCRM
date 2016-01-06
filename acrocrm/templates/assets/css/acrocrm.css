@@ -3,14 +3,8 @@ h1, h2, h3 {
     padding-top: 20px;
 }
 
-#smiley-face {
-    float: right;
-    width: 300px;
-    height: 300px;
-}
-
-#overlay-content {
-    padding: 0;
+.navbar-static-top {
+    z-index: 0;
 }
 
 /* --- Leads overview page --- */
@@ -20,11 +14,15 @@ h1, h2, h3 {
     padding-top:10px;
 }
 
-#leads-list .input-group {
+#leads-list .input-group, .set-priority.input-group {
     padding: 10px;
     background-color: #fafafa;
     border: 1px solid #ddd;
     display: block;
+}
+
+.set-priority.input-group {
+    display: inline;
 }
 
 #leads-list .input-group input.form-control {
@@ -37,7 +35,7 @@ h1, h2, h3 {
     border-radius: 0;
 }
 
-#leads-list .set-priority {
+#leads-list .set-priority, .set-priority {
     display: inline;
 }
 

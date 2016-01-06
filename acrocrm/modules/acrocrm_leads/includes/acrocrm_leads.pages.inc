@@ -188,7 +188,7 @@ function acrocrm_leads_generate_leads_html($leads) {
 
 
         $priority = $lead['priority'];
-        $leads_list .= '<div class="priority">Priority:';
+        $leads_list .= '<div class="priority"><strong>Priority: </strong>';
         $leads_list .= '<select class="set-priority input-group" onchange="assignPriority('. $lead['lead_id'] .', this)">';
         $leads_list .= '<option value="unassigned"';
         if ($priority === '') {
@@ -280,7 +280,7 @@ function acrocrm_leads_get_sales_reps() {
                         // start accordian div
                         $leads_list .= '<div>';
                         $priority = $lead['priority'];
-                        $leads_list .= '<div class="priority pull-right">Priority:';
+                        $leads_list .= '<div class="priority pull-right rep-priority"><strong>Priority: </strong>';
                         $leads_list .= '<select class="input-group set-priority" onchange="assignPriority('. $lead['lead_id'] .', this)">';
                         $leads_list .= '<option value="unassigned"';
                         if ($priority === '') {
