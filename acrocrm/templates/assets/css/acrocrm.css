@@ -7,6 +7,16 @@ h1, h2, h3 {
     z-index: 0;
 }
 
+#smiley-face {
+    float: right;
+    width: 300px;
+    height: 300px;
+}
+
+#overlay-content {
+    padding: 0;
+}
+
 /* --- Leads overview page --- */
 
 .page-acrocrm-leads-overview #page-wrapper {
