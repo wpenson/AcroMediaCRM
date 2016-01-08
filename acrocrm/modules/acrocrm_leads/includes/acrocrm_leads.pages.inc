@@ -4,7 +4,6 @@ function acrocrm_leads_overview_page() {
     // load the leads from the database
     $leads = acrocrm_leads_load_leads();
 
-
     $page['content']['leads'] = array(
         '#markup' => acrocrm_leads_generate_leads_html($leads)
     );
@@ -85,6 +84,15 @@ function acrocrm_leads_edit_lead_ajax($lead_id) {
     $form['phone']['#value'] = $lead['phone'];
     $form['comments']['#value'] = $lead['comments'];
     $form['priority']['#value'] = $lead['priority'];
+
+    $assigned_salesrep = db_select('assigned_leads', 'al')
+        ->fields('al', array('uid'))
+        ->condition('lead_id', $lead_id, '=')
+        ->execute()
+        ->fetchAssoc();
+
+    if (isset($assigned_salesrep['uid']))
+        $form['assign']['#value'] = $assigned_salesrep['uid'];
 
     $form['lead_id']['#value'] = $lead_id;
 
@@ -181,8 +189,8 @@ function acrocrm_leads_generate_leads_html($leads) {
 
         $leads_list .= '<div class="pull-right text-right">';
         $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
-        $leads_list .= '<button type="button" href="'. base_path() .'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
-        $leads_list .= '<button type="button" class="btn btn-danger" data-url="'. base_path() .'acrocrm_leads/delete_lead/" data-id="' . $lead['lead_id'] .'" data-toggle="modal" data-target="#deleteLeadConfirmationModal"><span class="glyphicon glyphicon-trash"></span></button>';
+        $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
+        $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#deleteLeadConfirmationModal"><span class="glyphicon glyphicon-trash"></span></button>';
         $leads_list .= '</div>';
 
 
@@ -269,8 +277,8 @@ function acrocrm_leads_get_sales_reps() {
                             $leads_list .= '<h4>' . $lead['firstname'] . ' ' . $lead['name'];
                             $leads_list .= '<div class="pull-right text-right accordion-btn">';
                             $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
-                            $leads_list .= '<button type="button" href="'. base_path() .'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
-                            $leads_list .= '<button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></button>';
+                            $leads_list .= '<button type="button" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-toggle="modal" data-target="#leadEditModal"><span class="glyphicon glyphicon-pencil"></span></button>';
+                            $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#deleteLeadConfirmationModal"><span class="glyphicon glyphicon-trash"></span></button>';
                             $leads_list .= '</div></div>';
                             $leads_list .= '</h4>';
                         } else {
@@ -505,7 +513,7 @@ function generate_lead_form(&$form, &$form_state) {
  * Submit callback for acrocrm_leads_edit_lead_form().
  */
 function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
-    $lead_id = db_update('leads')
+    db_update('leads')
         ->fields(array(
             'name' => $form_state['values']['name'],
             'firstname' => $form_state['values']['firstname'],
@@ -516,21 +524,42 @@ function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
         ->condition('lead_id', $form_state['values']['lead_id'], '=')
         ->execute();
 
-    if ($form_state['values']['assign'] != '') {
-        db_update('assigned_leads')
-            ->fields(array(
-                'uid' => $form_state['values']['assign'],
-                'lead_id' => $lead_id,
-            ))
-            ->execute();
+    $check_exists = db_select('assigned_leads', 'al')
+        ->fields('al')
+        ->condition('lead_id', $form_state['values']['lead_id'], '=')
+        ->execute();
+
+//    ini_set("log_errors", 1);
+//    ini_set("error_log", "/Users/wade/Desktop/php-error.log");
+//    error_log(print_r($form_state['values']['lead_id'], $return = true));
+
+    if ($form_state['values']['assign'] != 0) {
+        if ($check_exists->rowCount() > 0) {
+            db_update('assigned_leads')
+                ->fields(array(
+                    'uid' => $form_state['values']['assign']
+                ))
+                ->condition('lead_id', $form_state['values']['lead_id'], '=')
+                ->execute();
+        }
+        else {
+            db_insert('assigned_leads')
+                ->fields(array(
+                    'uid' => $form_state['values']['assign'],
+                    'lead_id' => $form_state['values']['lead_id']
+                ))
+                ->execute();
+        }
     }
     else {
-        db_delete('assigned_leads')
-            ->condition('lead_id', $lead_id)
-            ->execute();
+        if ($check_exists->rowCount() > 0) {
+            db_delete('assigned_leads')
+                ->condition('lead_id', $form_state['values']['lead_id'])
+                ->execute();
+        }
     }
 
-    drupal_set_message(t('The lead has been updated.'));
+    drupal_set_message(t('The lead has been updated successfully.'));
 }
 
 /**

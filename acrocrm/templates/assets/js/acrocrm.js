@@ -36,9 +36,16 @@ function assignPriority(lead_id, element) {
 // --- Leads Edit and Delete Modal --- //
 Drupal.behaviors.acrocrm_leads = {
     'attach': function(context) {
+        $('#leadEditModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var url = button.data('url');
+
+            var modal = $(this);
+            modal.find('.modal-content').load(url);
+        })
+
         $('#deleteLeadConfirmationModal').on('show.bs.modal', function (event) {
             var trigger_button = $(event.relatedTarget);
-            var id = trigger_button.data('id'); // Extract info from data-* attributes
             var url = trigger_button.data('url');
 
             var modal = $(this);
@@ -57,7 +64,7 @@ Drupal.behaviors.acrocrm_leads = {
             //});
 
             modal.find('#deleteLeadConfirmationButton').click(function() {
-                window.location.replace(url + id);
+                window.location.replace(url);
             });
         });
     }
