@@ -5,7 +5,7 @@ function acrocrm_leads_overview_page() {
     $leads = acrocrm_leads_load_leads();
 
     $page['content']['leads'] = array(
-        '#markup' => acrocrm_leads_generate_leads_html($leads)
+        '#markup' => acrocrm_leads_generate_leads_html($leads, true)
     );
 
     $page['content']['reps'] = array(
@@ -135,7 +135,7 @@ function acrocrm_leads_modified_by_user($uid, $limit) {
  * Gets leads that are assigned to a given user.
  */
 function acrocrm_leads_assigned_leads($uid) {
-  $leads = db_query('SELECT firstname, leads.name AS leadname, email, phone, comments, priority, created_time
+    $leads = db_query('SELECT leads.lead_id, firstname, leads.name AS leadname, email, phone, comments, priority, created_time
                     FROM leads
                     INNER JOIN assigned_leads
                     ON assigned_leads.lead_id = leads.lead_id
@@ -261,9 +261,12 @@ function acrocrm_leads_delete_lead_ajax($lead_id) {
 /*
  * Create the HTML to display a lead
  */
-function acrocrm_leads_generate_leads_html($leads) {
-    $search_div =
-      '<div class="input-group">
+function acrocrm_leads_generate_leads_html($leads, $search_bar) {
+    $search_div = '';
+
+    if ($search_bar) {
+        $search_div =
+            '<div class="input-group">
         <input type="text" class="form-control" aria-label="..." placeholder="Search leads">
         <div class="input-group-btn">
           <button type="button" class="btn btn-default">Action</button>
@@ -280,6 +283,7 @@ function acrocrm_leads_generate_leads_html($leads) {
           </ul>
         </div>
       </div>';
+    }
 
     $leads_edit_modal =
       '<div class="modal fade" id="leadEditModal" tabindex="-1" role="dialog" aria-labelledby="editLead">
@@ -313,8 +317,6 @@ function acrocrm_leads_generate_leads_html($leads) {
       </div>';
 
     $leads_list = '';
-    $leads_list .= '<a class="btn" href="javascript:void(0)" onclick="myModule_ajax_load()">Ajax Test</a>';
-    $leads_list .= '<div id="ajax-target">Ajax goes here!!!</div>';
 
     foreach ($leads as $lead) {
         $leads_list .= '<div class="list-group-item lead-sortable drag-list" href="javascript:void(0)">';
@@ -472,6 +474,29 @@ function acrocrm_leads_get_sales_reps() {
     $sales_reps = '<div class="col-md-6">' . $rep_div . '</div>';
 
     return $sales_reps;
+}
+
+function acrocrm_leads_my_leads_page() {
+    $page['content']['header'] = array(
+        '#markup' => '<div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">My Leads</h1>
+                    </div>
+                  </div>'
+    );
+    // Need to initialize a placeholder so this displays before the page content.
+    $page['content']['messages']['#markup'] = '';
+
+    global $user;
+
+    $page['content']['leads'] = array(
+        '#markup' => acrocrm_leads_generate_leads_html(acrocrm_leads_assigned_leads($user->uid), false)
+    );
+
+    // The messages appear after the form has been loaded.
+    $page['content']['messages']['#markup'] = acrocrm_get_message_markup();
+
+    return theme('acrocrm_leads_home', array('page' => $page));
 }
 
 function acrocrm_leads_new_lead_page() {
