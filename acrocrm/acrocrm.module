@@ -148,8 +148,15 @@ function acrocrm_page(&$variables) {
     drupal_add_js($js_path . 'acrocrm.js', array('scope' => 'footer'));
 
     // Add items to sidebar
-    if (module_exists('acrocrm_leads')) {
+    if (module_exists('acrocrm_dashboard')) {
+        $items['dashboard'] = array(
+            'path' => base_path() . 'acrocrm_dashboard',
+            'title' => t('Dashboard'),
+            'permission' => 'administer acrocrm'
+        );
+    }
 
+    if (module_exists('acrocrm_leads')) {
         $items['leads'] = array(
             'path' => '#',
             'title' => t('Leads'),

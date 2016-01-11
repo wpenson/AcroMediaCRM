@@ -1,0 +1,9 @@
+name = Acro CRM Dashboard
+description = Display lead information and statistics.
+package = Acro CRM
+core = 7.x
+
+dependencies[] = acrocrm
+dependencies[] = acrocrm_leads
+
+configure = admin/config/acrocrm/acrocrm_dashboard

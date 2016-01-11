@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param $path
+ *  Path of the site to display help
+ * @param $arg
+ *  Array that holds the current path returned by the arg() function.
+ * @return string
+ *  Ant HTML string
+ */
+function acrocrm_dashboard_help($path, $arg) {
+    switch ($path) {
+        case "admin/help#acrocrm_dashboard":
+            return '<p>' . t("Dashboard module for AcroCRM") . '</p>';
+            break;
+    }
+}
+
+/**
+ * Implements hook_menu
+ */
+function acrocrm_dashboard_menu() {
+    $items = array();
+
+    $items['acrocrm_dashboard/main'] = array(
+        'title' => 'AcroCRM Dashboard',
+        'description' => 'AcroCRM Dashboard',
+        'page callback' => 'acrocrm_dashboard_main_page',
+        'access arguments' => array('access acrocrm'),
+    );
+
+    return $items;
+}
+
+function acrocrm_dashboard_theme() {
+    return array(
+        'page__acrocrm_dashboard' => array(
+            'variables' => array('page' => NULL),
+            'preprocess functions' => array('acrocrm_dashboard_page'),
+        ),
+        'acrocrm_dashboard_home' => array(
+            'base hook' => 'page__acrocrm_dashboard',
+            'path' => drupal_get_path('module', 'acrocrm') . '/templates',
+            'template' => 'main--acrocrm',
+        ),
+    );
+}
+
+function acrocrm_dashboard_page(&$variables) {
+    acrocrm_page($variables);
+
+}
+
+function acrocrm_dashboard_main_page() {
+    $page['content']['header'] = array(
+        '#markup' => '<div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">Dashboard</h1>
+                    </div>
+                  </div>'
+    );
+
+    return theme('acrocrm_dashboard_home', array('page' => $page));
+}
