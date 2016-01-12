@@ -24,29 +24,16 @@ h1, h2, h3 {
     padding-top:10px;
 }
 
-#leads-list .input-group, .set-priority.input-group {
+#lead-search {
     padding: 10px;
     background-color: #fafafa;
     border: 1px solid #ddd;
     display: block;
 }
 
-.set-priority.input-group {
-    display: inline;
-}
-
-#leads-list .input-group input.form-control {
-    max-width: 80%;
-}
-
-#leads-list .list-group-item {
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
-}
-
-#leads-list .set-priority, .set-priority {
-    display: inline;
+#lead-search ul {
+    list-style: none;
+    padding: 5px 0;
 }
 
 .page-header {

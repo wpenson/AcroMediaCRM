@@ -33,18 +33,19 @@ function assignPriority(lead_id, element) {
     });
 }
 
-// --- Leads Edit and Delete Modal --- //
+// --- Leads Search, Edit, and Delete --- //
+
 Drupal.behaviors.acrocrm_leads = {
     'attach': function(context) {
-        $('#leadEditModal').on('show.bs.modal', function (event) {
+        $('#lead-edit-modal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
             var url = button.data('url');
 
             var modal = $(this);
             modal.find('.modal-content').load(url);
-        })
+        });
 
-        $('#deleteLeadConfirmationModal').on('show.bs.modal', function (event) {
+        $('#delete-lead-confirmation-modal').on('show.bs.modal', function (event) {
             var trigger_button = $(event.relatedTarget);
             var url = trigger_button.data('url');
 
@@ -63,9 +64,21 @@ Drupal.behaviors.acrocrm_leads = {
             //    });
             //});
 
-            modal.find('#deleteLeadConfirmationButton').click(function() {
+            modal.find('#delete-lead-confirmation-button').click(function() {
                 window.location.replace(url);
             });
+        });
+
+        $('#lead-search-button').click(function(event) {
+            var button = $(event.currentTarget);
+            var url = button.data('url');
+        });
+
+        $('.lead-filter').click(function(event) {
+            var target = $(event.currentTarget);
+            var url = target.closest('ul').data('url');
+            var group = target.data('group');
+            var value = target.data('value');
         });
     }
 };
