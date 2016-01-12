@@ -302,7 +302,7 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
             <div class="modal-content">
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="editLead">Edit Lead</h4>
+                <h4 class="modal-title" id="editLead">Delete Lead</h4>
               </div>
               <div class="modal-body">
                 Are you sure you want to delete this lead?
@@ -756,7 +756,7 @@ function acrocrm_leads_new_lead_form_submit($form, $form_state) {
  *   during processing.
  */
 function acrocrm_leads_new_lead_form_validate($form, &$form_state) {
-    generate_lead_form($form, $form_state);
+    generate_lead_validation($form, $form_state);
 }
 
 /**
@@ -769,7 +769,7 @@ function acrocrm_leads_new_lead_form_validate($form, &$form_state) {
  *   during processing.
  */
 function acrocrm_leads_edit_lead_form_validate($form, &$form_state) {
-    generate_lead_form($form, $form_state);
+    generate_lead_validation($form, $form_state);
 }
 
 function generate_lead_validation(&$form, &$form_state) {
