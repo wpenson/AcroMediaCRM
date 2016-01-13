@@ -244,23 +244,53 @@ function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
     $leads_query->fields('l');
 
     if ($_SESSION['lead_show_pref'] == 'unassigned') {
-        // TODO
+        $leads_query->leftJoin('assigned_leads', 'al', 'l.lead_id = al.lead_id');
+        $leads_query->isNull('al.lead_id');
     }
     else if ($_SESSION['lead_show_pref'] == 'assigned') {
         $leads_query->innerJoin('assigned_leads', 'al', 'l.lead_id = al.lead_id');
     }
     else if ($_SESSION['lead_show_pref'] == 'deleted') {
-        // TODO
+        $leads_query->condition('l.status', 'DELETED', '=');
     }
 
-    if ($_SESSION['lead_search_val'] == 'created_time' || $_SESSION['lead_search_val'] == 'modified_time') {
-        // TODO
-    }
-    else if ($_SESSION['lead_search_val'] != '') {
-        $leads_query->condition('l.' . $_SESSION['lead_search_pref'], '%' . $_SESSION['lead_search_val'] . '%', 'LIKE');
+    if ($_SESSION['lead_search_val'] != '') {
+        if ($_SESSION['lead_search_pref'] == 'created_time' || $_SESSION['lead_search_val'] == 'modified_time') {
+            // TODO
+        }
+        else if ($_SESSION['lead_search_pref'] == 'name') {
+            $name = explode(' ', $_SESSION['lead_search_val']);
+
+            $or = db_or();
+            $or->condition('l.name', '%' . $name[0] . '%', 'LIKE');
+            $or->condition('l.firstname', '%' . $name[0] . '%', 'LIKE');
+            $leads_query->condition($or);
+
+            if (isset($name[1])) {
+                $or = db_or();
+                $or->condition('l.name', '%' . $name[1] . '%', 'LIKE');
+                $or->condition('l.firstname', '%' . $name[1] . '%', 'LIKE');
+                $leads_query->condition($or);
+            }
+        }
+        else {
+            $leads_query->condition('l.' . $_SESSION['lead_search_pref'], '%' . $_SESSION['lead_search_val'] . '%', 'LIKE');
+        }
     }
 
-    $leads_query->orderBy('l.' . $_SESSION['lead_sort_pref'], 'ASC');
+    if ($_SESSION['lead_sort_pref'] == 'priority') {
+        $leads_query->addExpression("CASE WHEN l.priority = 'high' THEN 1
+                                     WHEN l.priority = 'medium' THEN 2
+                                     WHEN l.priority = 'low' THEN 3
+                                     WHEN l.priority = 'unassigned' THEN 4
+                                     ELSE l.priority END",
+                                    'order_col');
+        $leads_query->orderBy('order_col', 'ASC');
+    }
+    else {
+        $leads_query->orderBy('l.' . $_SESSION['lead_sort_pref'], 'ASC');
+    }
+
     $leads_query = $leads_query->execute();
     $leads = array();
 
@@ -456,7 +486,8 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
 			</div>
 		</div>';
 
-    $leads_list = '<div id="leads-list">' . acrocrm_leads_generate_leads_list_html($leads) . '</div>';
+    //$leads_list = '<div id="leads-list">' . acrocrm_leads_generate_leads_list_html($leads) . '</div>';
+    $leads_list = '<div id="leads-list"></div>';
 
     $leads_div = '<div class="list-group col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
 
@@ -497,7 +528,7 @@ function acrocrm_leads_generate_leads_list_html(&$leads) {
         $leads_list .= '>medium</option>';
         $leads_list .= '<option value="high"';
         if ($priority === 'high') {
-            $leads_list .= ' high ';
+            $leads_list .= ' selected ';
         }
         $leads_list .= '>high</option>';
         $leads_list .= '</select></div>';
@@ -587,7 +618,7 @@ function acrocrm_leads_get_sales_reps() {
                         $leads_list .= '>medium</option>';
                         $leads_list .= '<option value="high"';
                         if ($priority === 'high') {
-                            $leads_list .= ' high ';
+                            $leads_list .= ' selected ';
                         }
                         $leads_list .= '>high</option>';
                         $leads_list .= '</select></div>';
