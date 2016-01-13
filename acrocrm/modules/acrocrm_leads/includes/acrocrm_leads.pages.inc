@@ -199,6 +199,91 @@ function acrocrm_leads_recently_modified_leads($limit) {
     return $leads_arr;
 }
 
+function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
+    // Allowed values used for validation
+    $valid_search_field_values = ['name', 'email'];
+    $valid_show_values = ['all', 'unassigned', 'assigned', 'deleted'];
+    $valid_sort_values = ['created_time', 'modified_time', 'priority', 'name', 'email'];
+
+    drupal_session_start();
+
+    if ($group != NULL) {
+        if ($group == 'search-field' && in_array($value, $valid_search_field_values)) {
+            $_SESSION['lead_search_pref'] = $value;
+        }
+        else if ($group == 'show' && in_array($value, $valid_show_values)) {
+            $_SESSION['lead_show_pref'] = $value;
+        }
+        else if ($group == 'sort' && in_array($value, $valid_sort_values)) {
+            $_SESSION['lead_sort_pref'] = $value;
+        }
+        else if ($group == 'search') {
+            $_SESSION['lead_search_val'] = $value;
+        }
+    }
+
+    // Set defaults
+    if (!isset($_SESSION['lead_search_pref'])) {
+        $_SESSION['lead_search_pref'] = 'name';
+    }
+
+    if (!isset($_SESSION['lead_show_pref'])) {
+        $_SESSION['lead_show_pref'] = 'unassigned';
+    }
+
+    if (!isset($_SESSION['lead_sort_pref'])) {
+        $_SESSION['lead_sort_pref'] = 'created_time';
+    }
+
+    if (!isset($_SESSION['lead_search_val'])) {
+        $_SESSION['lead_search_val'] = '';
+    }
+
+    // Build query
+    $leads_query = db_select('leads', 'l');
+    $leads_query->fields('l');
+
+    if ($_SESSION['lead_show_pref'] == 'unassigned') {
+        // TODO
+    }
+    else if ($_SESSION['lead_show_pref'] == 'assigned') {
+        $leads_query->innerJoin('assigned_leads', 'al', 'l.lead_id = al.lead_id');
+    }
+    else if ($_SESSION['lead_show_pref'] == 'deleted') {
+        // TODO
+    }
+
+    if ($_SESSION['lead_search_val'] == 'created_time' || $_SESSION['lead_search_val'] == 'modified_time') {
+        // TODO
+    }
+    else if ($_SESSION['lead_search_val'] != '') {
+        $leads_query->condition('l.' . $_SESSION['lead_search_pref'], '%' . $_SESSION['lead_search_val'] . '%', 'LIKE');
+    }
+
+    $leads_query->orderBy('l.' . $_SESSION['lead_sort_pref'], 'ASC');
+    $leads_query = $leads_query->execute();
+    $leads = array();
+
+    if ($leads_query->rowCount() > 0) {
+        while ($lead = $leads_query->fetchAssoc()) {
+            $leads[] = array(
+                'lead_id' => $lead['lead_id'],
+                'firstname' => $lead['firstname'],
+                'name' => $lead['name'],
+                'email' => $lead['email'],
+                'phone' => $lead['phone'],
+                'comments' => $lead['comments'],
+                'priority' => $lead['priority']
+            );
+        }
+
+        echo acrocrm_leads_generate_leads_list_html($leads);
+    }
+    else {
+       echo "No leads found";
+    }
+}
+
 /*
  * Create lead edit modal/pop-up HTML.
  */
@@ -262,74 +347,123 @@ function acrocrm_leads_delete_lead_ajax($lead_id) {
  * Create the HTML to display a lead
  */
 function acrocrm_leads_generate_leads_html($leads, $search_bar) {
-    $search_div = '';
+	$search_div = '';
 
-    if ($search_bar) {
-        $search_div =
-            '<div id="lead-search">
-                <div class="input-group">
-                    <input type="text" class="form-control" aria-label="..." placeholder="Search by name">
-                    <div class="input-group-btn">
-                        <button type="button" id="lead-search-button" class="btn btn-default" data-url="' . base_path() . 'acrocrm_leads/search_leads/">
-                            <i class="glyphicon glyphicon-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-right" data-url="' . base_path() . 'acrocrm_leads/filter_leads/" style="z-index: 1;">
-                            <li>&nbsp;&nbsp;<b>Search by</b></li>
-                            <li><a href="#" class="lead-filter" data-group="search" data-value="name">Name</a></li>
-                            <li><a href="#" class="lead-filter" data-group="search" data-value="email">Email</a></li>
+	if ($search_bar) {
+		$search_div =
+			'<div id="lead-search" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
+				<div class="input-group">
+					<input type="text" class="form-control" aria-label="..." placeholder="Search by name">
+					<div class="input-group-btn">
+						<button type="button" id="lead-search-button" class="btn btn-default">
+							<i class="glyphicon glyphicon-search"></i>
+						</button>
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu dropdown-menu-right" style="z-index: 1;">
+							<li>&nbsp;&nbsp;<b>Search by</b></li>
+							<li><a href="#" class="lead-filter" data-group="search-field" data-value="name">Name</a></li>
+							<li><a href="#" class="lead-filter" data-group="search-field" data-value="email">Email</a></li>
 
-                            <li role="separator" class="divider"></li>
+							<li role="separator" class="divider"></li>
 
-                            <li>&nbsp;&nbsp;<b>Show</b></li>
-                            <li><a href="#" class="lead-filter" data-group="show" data-value="all"><i class="glyphicon glyphicon-ok"></i> All</a></li>
-                            <li><a href="#" class="lead-filter" data-group="show" data-value="unassigned">Unassigned</a></li>
-                            <li><a href="#" class="lead-filter" data-group="show" data-value="deleted">Deleted</a></li>
+							<li>&nbsp;&nbsp;<b>Show</b></li>
+							<li><a href="#" class="lead-filter" data-group="show" data-value="all">All</a></li>
+							<li><a href="#" class="lead-filter" data-group="show" data-value="assigned">Assigned</a></li>
+							<li><a href="#" class="lead-filter" data-group="show" data-value="unassigned">Unassigned</a></li>
+							<li><a href="#" class="lead-filter" data-group="show" data-value="deleted">Deleted</a></li>
 
-                            <li role="separator" class="divider"></li>
+							<li role="separator" class="divider"></li>
 
-                            <li>&nbsp;&nbsp;<b>Sort by</b></li>
-                            <li><a href="#" class="lead-filter" data-group="sort" data-value="name">Name</a></li>
-                            <li><a href="#" class="lead-filter" data-group="sort" data-value="email">Email</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>';
-    }
+							<li>
+							    &nbsp;&nbsp;
+							    <b>Sort by</b>
+							    &nbsp;
+							    <span class="btn-group btn-group-xs pull-right" role="group" style="margin-right: 5px;">
+							        <button type="button" class="btn btn-default">Asc</button>
+							        <button type="button" class="btn btn-default">Desc</button>
+							    </span>
+							</li>
+							<li><a href="#" class="lead-filter" data-group="sort" data-value="created_time">Date Created</a></li>
+							<li><a href="#" class="lead-filter" data-group="sort" data-value="modified_time">Date Modified</a></li>
+							<li><a href="#" class="lead-filter" data-group="sort" data-value="priority">Priority</a></li>
+							<li><a href="#" class="lead-filter" data-group="sort" data-value="name">Name</a></li>
+							<li><a href="#" class="lead-filter" data-group="sort" data-value="email">Email</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>';
 
-    $leads_edit_modal =
-      '<div class="modal fade" id="lead-edit-modal" tabindex="-1" role="dialog" aria-labelledby="edit-lead">
-        <div class="vertical-alignment-helper">
-          <div class="modal-dialog modal-lg vertical-align-center" role="document">
-            <div class="modal-content">
-            </div>
-          </div>
-        </div>
-      </div>';
+        drupal_session_start();
 
-    $delete_lead_confirmation_modal =
-      '<div class="modal fade" id="delete-lead-confirmation-modal" tabindex="-1" role="dialog" aria-labelledby="delete-lead">
-        <div class="vertical-alignment-helper">
-          <div class="modal-dialog modal-sm vertical-align-center" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="edit-lead">Delete Lead</h4>
-              </div>
-              <div class="modal-body">
-                Are you sure you want to delete this lead?
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
-                <button type="button" id="delete-lead-confirmation-button" class="btn btn-danger">Yes</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>';
+        // Set defaults
+        if (!isset($_SESSION['lead_search_pref'])) {
+            $_SESSION['lead_search_pref'] = 'name';
+        }
 
+        if (!isset($_SESSION['lead_show_pref'])) {
+            $_SESSION['lead_show_pref'] = 'unassigned';
+        }
+
+        if (!isset($_SESSION['lead_sort_pref'])) {
+            $_SESSION['lead_sort_pref'] = 'created_time';
+        }
+
+        if (!isset($_SESSION['lead_search_val'])) {
+            $_SESSION['lead_search_val'] = '';
+        }
+
+        $search_div .=
+            '<script id="temporary-lead-dropdown-setup-script">
+                $(document).ready(function() {
+                    $("ul li a[data-group=\'search-field\'][data-value=\'' . $_SESSION['lead_search_pref'] . '\']").prepend("<i class=\'lead-search-dropdown-check glyphicon glyphicon-ok\'></i>");
+                    $("ul li a[data-group=\'show\'][data-value=\'' . $_SESSION['lead_show_pref'] . '\']").prepend("<i class=\'lead-search-dropdown-check glyphicon glyphicon-ok\'></i>");
+                    $("ul li a[data-group=\'sort\'][data-value=\'' . $_SESSION['lead_sort_pref'] . '\']").prepend("<i class=\'lead-search-dropdown-check glyphicon glyphicon-ok\'></i>");
+
+                    $("#temporary-lead-dropdown-setup-script").remove();
+                });
+            </script>';
+	}
+
+	$leads_edit_modal =
+		'<div class="modal fade" id="lead-edit-modal" tabindex="-1" role="dialog" aria-labelledby="edit-lead">
+			<div class="vertical-alignment-helper">
+				<div class="modal-dialog modal-lg vertical-align-center" role="document">
+					<div class="modal-content"></div>
+				</div>
+			</div>
+		</div>';
+
+	$delete_lead_confirmation_modal =
+		'<div class="modal fade" id="delete-lead-confirmation-modal" tabindex="-1" role="dialog" aria-labelledby="delete-lead">
+			<div class="vertical-alignment-helper">
+				<div class="modal-dialog modal-sm vertical-align-center" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title" id="edit-lead">Delete Lead</h4>
+						</div>
+						<div class="modal-body">
+							Are you sure you want to delete this lead?
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+							<button type="button" id="delete-lead-confirmation-button" class="btn btn-danger">Yes</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>';
+
+    $leads_list = '<div id="leads-list">' . acrocrm_leads_generate_leads_list_html($leads) . '</div>';
+
+    $leads_div = '<div class="list-group col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
+
+    return $leads_div;
+}
+
+function acrocrm_leads_generate_leads_list_html(&$leads) {
     $leads_list = '';
 
     foreach ($leads as $lead) {
@@ -383,9 +517,7 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
         $leads_list .= '</div></div>';
     }
 
-    $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
-
-    return $leads_div;
+    return $leads_list;
 }
 
 /*

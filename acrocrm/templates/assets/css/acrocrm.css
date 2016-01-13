@@ -73,6 +73,16 @@ input.form-submit {
     border-color: #2e6da4;
 }
 
+#leads-list .list-group-item {
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+}
+
+.lead-search-dropdown-check {
+    margin-right: 5px;
+}
+
 .priority {
     margin-top: 10px;
 }

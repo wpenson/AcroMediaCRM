@@ -54,6 +54,15 @@ function acrocrm_leads_menu() {
       'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
+  $items['acrocrm_leads/filter_leads'] = array(
+      'page arguments' => array(2, 3),
+      'access callback' => TRUE,
+      'page callback' => 'acrocrm_leads_filter_leads_ajax',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access acrocrm'),
+      'file' => 'includes/acrocrm_leads.pages.inc',
+  );
+
   $items['acrocrm_leads/edit_lead'] = array(
       'page arguments' => array(2),
       'access callback' => TRUE,

@@ -69,16 +69,37 @@ Drupal.behaviors.acrocrm_leads = {
             });
         });
 
-        $('#lead-search-button').click(function(event) {
-            var button = $(event.currentTarget);
-            var url = button.data('url');
-        });
-
-        $('.lead-filter').click(function(event) {
+        $('.lead-filter, #lead-search-button').click(function(event) {
             var target = $(event.currentTarget);
-            var url = target.closest('ul').data('url');
+            var url = $('#lead-search').data('url');
             var group = target.data('group');
-            var value = target.data('value');
+            var value = '';
+            var params = '';
+
+            if (group != null) {
+                value = target.data('value');
+                params += group + '/' + value;
+            }
+            else {
+                var search_term = $('#lead-search input').val();
+                params += 'search';
+
+                if (search_term != '') {
+                    params += '/' + search_term;
+                }
+            }
+
+            $('#leads-list').load(url + params, function(response, status, xhr) {
+                if (status == "error") {
+                    alert("Sorry but there was an error: " + msg + xhr.status + " " + xhr.statusText);
+                    return false;
+                }
+            });
+
+            if (group != null) {
+                $("ul li a[data-group=" + group + "] .lead-search-dropdown-check").remove();
+                $("ul li a[data-group=" + group + "][data-value=" + value + "]").prepend("<i class='lead-search-dropdown-check glyphicon glyphicon-ok'></i>");
+            }
         });
     }
 };
