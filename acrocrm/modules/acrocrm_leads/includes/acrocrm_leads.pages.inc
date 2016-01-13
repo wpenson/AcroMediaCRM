@@ -135,13 +135,16 @@ function acrocrm_leads_modified_by_user($uid, $limit) {
  * Gets leads that are assigned to a given user.
  */
 function acrocrm_leads_assigned_leads($uid) {
-    $leads = db_query('SELECT leads.lead_id, firstname, leads.name AS leadname, email, phone, comments, priority, created_time
+    $leads = db_query("SELECT leads.lead_id, firstname, leads.name AS leadname, email, phone, comments, priority, created_time, leads.status
                     FROM leads
                     INNER JOIN assigned_leads
                     ON assigned_leads.lead_id = leads.lead_id
                     INNER JOIN users
                     ON assigned_leads.uid = users.uid
-                    WHERE users.uid = ' . $uid);
+                    WHERE users.uid = :uid
+                    AND leads.status != 'CONVERTED'
+                    AND leads.status != 'DELETED'",
+        array(":uid" => $uid));
 
   $leads_arr = array();
 
@@ -338,6 +341,9 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
 
         $leads_list .= '<div class="pull-right text-right">';
         $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
+        if (module_exists('acrocrm_hubspot_integration')) {
+            $leads_list .= '<button type="button" class="btn btn-success" onclick="createHubspotContact(' . $lead['lead_id'] . ', this)"><span class="glyphicon glyphicon-user"></span></button>';
+        }
         $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
         $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
         $leads_list .= '</div>';
@@ -492,7 +498,7 @@ function acrocrm_leads_get_sales_reps() {
 
 function acrocrm_leads_my_leads_page() {
     $page['content']['header'] = array(
-        '#markup' => '<div class="row">
+        '#markup' => '<div id="header-row" class="row">
                     <div class="col-lg-12">
                         <h1 class="page-header">My Leads</h1>
                     </div>
