@@ -37,7 +37,11 @@ function createHubspotContact(lead_id, element) {
                 var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-success">';
                 var suffix = '<br></div></div></div>';
                 $(prefix + 'The HubSpot contact was created successfully' + suffix).insertAfter('#header-row');
-                $('#lead_' + lead_id).remove();
+                $('#lead_' + lead_id + '_container').remove();
+
+                if ($('.lead-container').length == 0) {
+                    $('<div class="no-leads">There are no leads to display.</div>').insertAfter('#delete-lead-confirmation-modal');
+                }
             } else {
                 var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-danger">';
                 var suffix = '<br></div></div></div>';

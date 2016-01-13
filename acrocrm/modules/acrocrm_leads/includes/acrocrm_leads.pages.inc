@@ -5,7 +5,7 @@ function acrocrm_leads_overview_page() {
     $leads = acrocrm_leads_load_leads();
 
     $page['content']['leads'] = array(
-        '#markup' => acrocrm_leads_generate_leads_html($leads, true)
+        '#markup' => acrocrm_leads_generate_leads_html($leads, true, 'overview')
     );
 
     $page['content']['reps'] = array(
@@ -264,7 +264,7 @@ function acrocrm_leads_delete_lead_ajax($lead_id) {
 /*
  * Create the HTML to display a lead
  */
-function acrocrm_leads_generate_leads_html($leads, $search_bar) {
+function acrocrm_leads_generate_leads_html($leads, $search_bar, $page_name) {
     $search_div = '';
 
     if ($search_bar) {
@@ -335,61 +335,64 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
 
     $leads_list = '';
 
-    foreach ($leads as $lead) {
-        $leads_list .= '<div class="list-group-item lead-sortable drag-list" href="javascript:void(0)">';
-        $leads_list .= '<div id="lead_' . $lead['lead_id'] . '">';
+    if (count($leads) > 0) {
+        foreach ($leads as $lead) {
+            $leads_list .= '<div id="lead_' . $lead['lead_id'] . '_container" class="list-group-item lead-sortable drag-list lead-container" href="javascript:void(0)">';
+            $leads_list .= '<div id="lead_' . $lead['lead_id'] . '">';
 
-        $leads_list .= '<div class="pull-right text-right">';
-        $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
-        if (module_exists('acrocrm_hubspot_integration')) {
-            $leads_list .= '<button type="button" class="btn btn-success" onclick="createHubspotContact(' . $lead['lead_id'] . ', this)"><span class="glyphicon glyphicon-user"></span></button>';
+            $leads_list .= '<div class="pull-right text-right">';
+            $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
+            if (module_exists('acrocrm_hubspot_integration') && $page_name == 'my_leads') {
+                $leads_list .= '<button type="button" class="btn btn-success" onclick="createHubspotContact(' . $lead['lead_id'] . ', this)"><span class="glyphicon glyphicon-user"></span></button>';
+            }
+            $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
+            $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+            $leads_list .= '</div>';
+
+
+            $priority = $lead['priority'];
+            $leads_list .= '<div class="priority"><strong>Priority: </strong>';
+            $leads_list .= '<select class="set-priority input-group" onchange="assignPriority(' . $lead['lead_id'] . ', this)">';
+            $leads_list .= '<option value="unassigned"';
+            if ($priority === '') {
+                $leads_list .= ' selected ';
+            }
+            $leads_list .= '>unassigned</option>';
+            $leads_list .= '<option value="low"';
+            if ($priority === 'low') {
+                $leads_list .= ' selected ';
+            }
+            $leads_list .= '>low</option>';
+            $leads_list .= '<option value="medium"';
+            if ($priority === 'medium') {
+                $leads_list .= ' selected ';
+            }
+            $leads_list .= '>medium</option>';
+            $leads_list .= '<option value="high"';
+            if ($priority === 'high') {
+                $leads_list .= ' high ';
+            }
+            $leads_list .= '>high</option>';
+            $leads_list .= '</select></div>';
+
+            $leads_list .= '</div>';
+
+            if (strlen($lead['firstname']) > 0) {
+                $leads_list .= '<h4 class="list-group-item-heading">' . $lead['firstname'] . ' ' . $lead['name'] . '</h4>';
+            } else {
+                $leads_list .= '<h4 class="list-group-item-heading">' . $lead['name'] . '</h4>';
+            }
+
+            $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
+            $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+            $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
+
+            $leads_list .= '</div></div>';
         }
-        $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
-        $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
-        $leads_list .= '</div>';
-
-
-        $priority = $lead['priority'];
-        $leads_list .= '<div class="priority"><strong>Priority: </strong>';
-        $leads_list .= '<select class="set-priority input-group" onchange="assignPriority('. $lead['lead_id'] .', this)">';
-        $leads_list .= '<option value="unassigned"';
-        if ($priority === '') {
-            $leads_list .= ' selected ';
-        }
-        $leads_list .= '>unassigned</option>';
-        $leads_list .= '<option value="low"';
-        if ($priority === 'low') {
-            $leads_list .= ' selected ';
-        }
-        $leads_list .= '>low</option>';
-        $leads_list .= '<option value="medium"';
-        if ($priority === 'medium') {
-            $leads_list .= ' selected ';
-        }
-        $leads_list .= '>medium</option>';
-        $leads_list .= '<option value="high"';
-        if ($priority === 'high') {
-            $leads_list .= ' high ';
-        }
-        $leads_list .= '>high</option>';
-        $leads_list .= '</select></div>';
-
-        $leads_list .= '</div>';
-
-        if (strlen($lead['firstname']) > 0) {
-            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['firstname'] . ' ' . $lead['name'] . '</h4>';
-        } else {
-            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['name'] . '</h4>';
-        }
-
-        $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
-        $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
-        $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
-
-        $leads_list .= '</div></div>';
+    } else {
+        $leads_list = '<div class="no-leads">There are no leads to display.</div>';
     }
-
-    $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
+    $leads_div = ($page_name == 'my_leads' ? '<div id="leads-list" class="list-group col-md-12">' : '<div id="leads-list" class="list-group col-md-6">') . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
 
     return $leads_div;
 }
@@ -509,8 +512,17 @@ function acrocrm_leads_my_leads_page() {
 
     global $user;
 
-    $page['content']['leads'] = array(
-        '#markup' => acrocrm_leads_generate_leads_html(acrocrm_leads_assigned_leads($user->uid), false)
+    $prefix = '<div class="row">
+                    <div class="col-lg-10 col-md-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Currently Assigned Leads</div>
+                                <div class="panel-body">';
+    $suffix = '</div></div></div></div></div>';
+
+    $page['content']['leads$'] = array(
+        '#markup' => $prefix . acrocrm_leads_generate_leads_html(acrocrm_leads_assigned_leads($user->uid),
+                false,
+                'my_leads') . $suffix
     );
 
     // The messages appear after the form has been loaded.
