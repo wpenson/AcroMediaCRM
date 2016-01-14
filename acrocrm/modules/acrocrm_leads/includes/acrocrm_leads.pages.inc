@@ -201,7 +201,7 @@ function acrocrm_leads_recently_modified_leads($limit) {
 
 function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
     // Allowed values used for validation
-    $valid_search_field_values = ['name', 'email'];
+    $valid_search_field_values = ['name', 'email', 'comments', 'phone'];
     $valid_show_values = ['all', 'unassigned', 'assigned', 'deleted'];
     $valid_sort_values = ['created_time', 'modified_time', 'priority', 'name', 'email'];
 
@@ -216,6 +216,9 @@ function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
         }
         else if ($group == 'sort' && in_array($value, $valid_sort_values)) {
             $_SESSION['lead_sort_pref'] = $value;
+        }
+        else if ($group == 'sort-order' && ($value == 'asc' || $value == 'desc')) {
+            $_SESSION['lead_sort_order_pref'] = $value;
         }
         else if ($group == 'search') {
             $_SESSION['lead_search_val'] = $value;
@@ -233,6 +236,10 @@ function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
 
     if (!isset($_SESSION['lead_sort_pref'])) {
         $_SESSION['lead_sort_pref'] = 'created_time';
+    }
+
+    if (!isset($_SESSION['lead_sort_order_pref'])) {
+        $_SESSION['lead_sort_order_pref'] = 'asc';
     }
 
     if (!isset($_SESSION['lead_search_val'])) {
@@ -285,10 +292,10 @@ function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
                                      WHEN l.priority = 'unassigned' THEN 4
                                      ELSE l.priority END",
                                     'order_col');
-        $leads_query->orderBy('order_col', 'ASC');
+        $leads_query->orderBy('order_col', strtoupper($_SESSION['lead_sort_order_pref']));
     }
     else {
-        $leads_query->orderBy('l.' . $_SESSION['lead_sort_pref'], 'ASC');
+        $leads_query->orderBy('l.' . $_SESSION['lead_sort_pref'], strtoupper($_SESSION['lead_sort_order_pref']));
     }
 
     $leads_query = $leads_query->execute();
@@ -310,7 +317,7 @@ function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
         echo acrocrm_leads_generate_leads_list_html($leads);
     }
     else {
-       echo "No leads found";
+       echo '<div class="lead-list-message-div">No Leads Found</div>';
     }
 }
 
@@ -383,7 +390,7 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
 		$search_div =
 			'<div id="lead-search" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
 				<div class="input-group">
-					<input type="text" class="form-control" aria-label="..." placeholder="Search by name">
+					<input type="text" class="form-control" aria-label="..." placeholder="">
 					<div class="input-group-btn">
 						<button type="button" id="lead-search-button" class="btn btn-default">
 							<i class="glyphicon glyphicon-search"></i>
@@ -395,6 +402,8 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
 							<li>&nbsp;&nbsp;<b>Search by</b></li>
 							<li><a href="#" class="lead-filter" data-group="search-field" data-value="name">Name</a></li>
 							<li><a href="#" class="lead-filter" data-group="search-field" data-value="email">Email</a></li>
+							<li><a href="#" class="lead-filter" data-group="search-field" data-value="phone">Phone</a></li>
+							<li><a href="#" class="lead-filter" data-group="search-field" data-value="comments">Comments</a></li>
 
 							<li role="separator" class="divider"></li>
 
@@ -411,14 +420,14 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
 							    <b>Sort by</b>
 							    &nbsp;
 							    <span class="btn-group btn-group-xs pull-right" role="group" style="margin-right: 5px;">
-							        <button type="button" class="btn btn-default">Asc</button>
-							        <button type="button" class="btn btn-default">Desc</button>
+							        <button type="button" class="lead-filter btn btn-default" data-group="sort-order" data-value="asc">Asc</button>
+							        <button type="button" class="lead-filter btn btn-default" data-group="sort-order" data-value="desc">Desc</button>
 							    </span>
 							</li>
 							<li><a href="#" class="lead-filter" data-group="sort" data-value="created_time">Date Created</a></li>
 							<li><a href="#" class="lead-filter" data-group="sort" data-value="modified_time">Date Modified</a></li>
 							<li><a href="#" class="lead-filter" data-group="sort" data-value="priority">Priority</a></li>
-							<li><a href="#" class="lead-filter" data-group="sort" data-value="name">Name</a></li>
+							<li><a href="#" class="lead-filter" data-group="sort" data-value="name">Last Name</a></li>
 							<li><a href="#" class="lead-filter" data-group="sort" data-value="email">Email</a></li>
 						</ul>
 					</div>
@@ -440,6 +449,10 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
             $_SESSION['lead_sort_pref'] = 'created_time';
         }
 
+        if (!isset($_SESSION['lead_sort_order_pref'])) {
+            $_SESSION['lead_sort_order_pref'] = 'asc';
+        }
+
         if (!isset($_SESSION['lead_search_val'])) {
             $_SESSION['lead_search_val'] = '';
         }
@@ -450,6 +463,8 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
                     $("ul li a[data-group=\'search-field\'][data-value=\'' . $_SESSION['lead_search_pref'] . '\']").prepend("<i class=\'lead-search-dropdown-check glyphicon glyphicon-ok\'></i>");
                     $("ul li a[data-group=\'show\'][data-value=\'' . $_SESSION['lead_show_pref'] . '\']").prepend("<i class=\'lead-search-dropdown-check glyphicon glyphicon-ok\'></i>");
                     $("ul li a[data-group=\'sort\'][data-value=\'' . $_SESSION['lead_sort_pref'] . '\']").prepend("<i class=\'lead-search-dropdown-check glyphicon glyphicon-ok\'></i>");
+                    $("[data-group=\'sort-order\'][data-value=\'' . $_SESSION['lead_sort_order_pref'] . '\']").addClass("active");
+                    $("#lead-search input").attr("placeholder", "Search by ' . $_SESSION['lead_search_pref'] . '");
 
                     $("#temporary-lead-dropdown-setup-script").remove();
                 });
@@ -486,9 +501,7 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar) {
 			</div>
 		</div>';
 
-    //$leads_list = '<div id="leads-list">' . acrocrm_leads_generate_leads_list_html($leads) . '</div>';
     $leads_list = '<div id="leads-list"></div>';
-
     $leads_div = '<div class="list-group col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
 
     return $leads_div;

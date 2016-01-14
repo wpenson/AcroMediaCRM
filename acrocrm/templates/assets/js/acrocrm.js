@@ -73,6 +73,7 @@ Drupal.behaviors.acrocrm_leads = {
             var target = $(event.currentTarget);
             var url = $('#lead-search').data('url');
             var group = target.data('group');
+            var lead_search_box = $('#lead-search input');
             var value = '';
             var params = '';
 
@@ -81,7 +82,7 @@ Drupal.behaviors.acrocrm_leads = {
                 params += group + '/' + value;
             }
             else {
-                var search_term = $('#lead-search input').val();
+                var search_term = lead_search_box.val();
                 params += 'search';
 
                 if (search_term != '') {
@@ -89,21 +90,76 @@ Drupal.behaviors.acrocrm_leads = {
                 }
             }
 
-            $('#leads-list').load(url + params, function(response, status, xhr) {
+            var spinner_opts = {
+                lines: 13 // The number of lines to draw
+                , length: 28 // The length of each line
+                , width: 14 // The line thickness
+                , radius: 42 // The radius of the inner circle
+                , scale: 0.25 // Scales overall size of the spinner
+                , corners: 0 // Corner roundness (0..1)
+                , color: '#000' // #rgb or #rrggbb or array of colors
+                , opacity: 0.25 // Opacity of the lines
+                , rotate: 0 // The rotation offset
+                , direction: 1 // 1: clockwise, -1: counterclockwise
+                , speed: 1.5 // Rounds per second
+                , trail: 60 // Afterglow percentage
+                , fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+                , zIndex: 2e9 // The z-index (defaults to 2000000000)
+                , className: 'spinner' // The CSS class to assign to the spinner
+                , top: '190%' // Top position relative to parent
+                , left: '50%' // Left position relative to parent
+                , shadow: false // Whether to render a shadow
+                , hwaccel: false // Whether to use hardware acceleration
+                , position: 'absolute' // Element positioning
+            };
+
+            var spinner = new Spinner(spinner_opts).spin();
+            var lead_list = $('#leads-list');
+            lead_list.html(spinner.el);
+
+            lead_list.load(url + params, function(response, status, xhr) {
                 if (status == "error") {
-                    alert("Sorry but there was an error: " + msg + xhr.status + " " + xhr.statusText);
+                    $('#leads-list').html("<div class='lead-list-message-div'>Sorry but there was an error: " + xhr.status + " " + xhr.statusText + "</div>");
                     return false;
                 }
             });
 
             if (group != null) {
-                $("ul li a[data-group=" + group + "] .lead-search-dropdown-check").remove();
-                $("ul li a[data-group=" + group + "][data-value=" + value + "]").prepend("<i class='lead-search-dropdown-check glyphicon glyphicon-ok'></i>");
+                if (group != 'sort-order') {
+                    $("ul li a[data-group=" + group + "] .lead-search-dropdown-check").remove();
+                    $("ul li a[data-group=" + group + "][data-value=" + value + "]").prepend("<i class='lead-search-dropdown-check glyphicon glyphicon-ok'></i>");
+                }
+                else {
+                    if (value == 'asc') {
+                        $("[data-group='sort-order'][data-value=desc]").removeClass("active");
+                        $("[data-group='sort-order'][data-value=asc]").addClass("active");
+                    }
+                    else {
+                        $("[data-group='sort-order'][data-value=asc]").removeClass("active");
+                        $("[data-group='sort-order'][data-value=desc]").addClass("active");
+                    }
+                }
+
+                if (group == 'search-field') {
+                    lead_search_box.attr('placeholder', "Search by " + value);
+                }
             }
         }
 
         var timeout_thread = null;
+        var previous_val = '';
         $('#lead-search input').on('keyup', function(e) {
+            if (e.keyCode == '13') {
+                loadLeadList(e);
+                return;
+            }
+
+            if ($.trim($(this).val()) == '' && $.trim(previous_val) == '') {
+                previous_val = $(this).val();
+                return;
+            }
+            previous_val = $(this).val();
+
             clearTimeout(timeout_thread);
             timeout_thread = setTimeout(function() { loadLeadList(e); }, 100);
         });
