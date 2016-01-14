@@ -170,6 +170,7 @@ Drupal.behaviors.acrocrm_leads = {
 
         $('.lead-filter, #lead-search-button').on('click', function(e) {
             loadLeadList(e);
+            e.stopPropagation();
         });
     }
 };
