@@ -5,7 +5,7 @@ function acrocrm_leads_overview_page() {
     $leads = acrocrm_leads_load_leads();
 
     $page['content']['leads'] = array(
-        '#markup' => acrocrm_leads_generate_leads_html($leads, true, 'overview')
+        '#markup' => acrocrm_leads_generate_leads_html($leads)
     );
 
     $page['content']['reps'] = array(
@@ -264,7 +264,135 @@ function acrocrm_leads_delete_lead_ajax($lead_id) {
 /*
  * Create the HTML to display a lead
  */
-function acrocrm_leads_generate_leads_html($leads, $search_bar, $page_name) {
+function acrocrm_leads_generate_leads_html($leads) {
+    $search_div = '';
+
+    $search_div =
+        '<div id="lead-search">
+                <div class="input-group">
+                    <input type="text" class="form-control" aria-label="..." placeholder="Search by name">
+                    <div class="input-group-btn">
+                        <button type="button" id="lead-search-button" class="btn btn-default" data-url="' . base_path() . 'acrocrm_leads/search_leads/">
+                            <i class="glyphicon glyphicon-search"></i>
+                        </button>
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right" data-url="' . base_path() . 'acrocrm_leads/filter_leads/" style="z-index: 1;">
+                            <li>&nbsp;&nbsp;<b>Search by</b></li>
+                            <li><a href="#" class="lead-filter" data-group="search" data-value="name">Name</a></li>
+                            <li><a href="#" class="lead-filter" data-group="search" data-value="email">Email</a></li>
+
+                            <li role="separator" class="divider"></li>
+
+                            <li>&nbsp;&nbsp;<b>Show</b></li>
+                            <li><a href="#" class="lead-filter" data-group="show" data-value="all"><i class="glyphicon glyphicon-ok"></i> All</a></li>
+                            <li><a href="#" class="lead-filter" data-group="show" data-value="unassigned">Unassigned</a></li>
+                            <li><a href="#" class="lead-filter" data-group="show" data-value="deleted">Deleted</a></li>
+
+                            <li role="separator" class="divider"></li>
+
+                            <li>&nbsp;&nbsp;<b>Sort by</b></li>
+                            <li><a href="#" class="lead-filter" data-group="sort" data-value="name">Name</a></li>
+                            <li><a href="#" class="lead-filter" data-group="sort" data-value="email">Email</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>';
+
+    $leads_edit_modal =
+        '<div class="modal fade" id="lead-edit-modal" tabindex="-1" role="dialog" aria-labelledby="edit-lead">
+        <div class="vertical-alignment-helper">
+          <div class="modal-dialog modal-lg vertical-align-center" role="document">
+            <div class="modal-content">
+            </div>
+          </div>
+        </div>
+      </div>';
+
+    $delete_lead_confirmation_modal =
+        '<div class="modal fade" id="delete-lead-confirmation-modal" tabindex="-1" role="dialog" aria-labelledby="delete-lead">
+        <div class="vertical-alignment-helper">
+          <div class="modal-dialog modal-sm vertical-align-center" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="edit-lead">Delete Lead</h4>
+              </div>
+              <div class="modal-body">
+                Are you sure you want to delete this lead?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                <button type="button" id="delete-lead-confirmation-button" class="btn btn-danger">Yes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>';
+
+    $leads_list = '';
+
+    foreach ($leads as $lead) {
+        $leads_list .= '<div id="lead_' . $lead['lead_id'] . '_container" class="list-group-item lead-sortable drag-list lead-container" href="javascript:void(0)">';
+        $leads_list .= '<div id="lead_' . $lead['lead_id'] . '">';
+
+        $leads_list .= '<div class="pull-right text-right">';
+        $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
+        $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
+        $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+        $leads_list .= '</div>';
+
+
+        $priority = $lead['priority'];
+        $leads_list .= '<div class="priority"><strong>Priority: </strong>';
+        $leads_list .= '<select class="set-priority input-group" onchange="assignPriority(' . $lead['lead_id'] . ', this)">';
+        $leads_list .= '<option value="unassigned"';
+        if ($priority === '') {
+            $leads_list .= ' selected ';
+        }
+        $leads_list .= '>unassigned</option>';
+        $leads_list .= '<option value="low"';
+        if ($priority === 'low') {
+            $leads_list .= ' selected ';
+        }
+        $leads_list .= '>low</option>';
+        $leads_list .= '<option value="medium"';
+        if ($priority === 'medium') {
+            $leads_list .= ' selected ';
+        }
+        $leads_list .= '>medium</option>';
+        $leads_list .= '<option value="high"';
+        if ($priority === 'high') {
+            $leads_list .= ' high ';
+        }
+        $leads_list .= '>high</option>';
+        $leads_list .= '</select></div>';
+
+        $leads_list .= '</div>';
+
+        if (strlen($lead['firstname']) > 0) {
+            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['firstname'] . ' ' . $lead['name'] . '</h4>';
+        } else {
+            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['name'] . '</h4>';
+        }
+
+        $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
+        $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+        $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
+
+        $leads_list .= '</div></div>';
+    }
+
+    $leads_div = '<div id="leads-list" class="list-group col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
+
+    return $leads_div;
+}
+
+/*
+ * Create the HTML to display a lead on the my leads page.
+ */
+function acrocrm_leads_my_leads_generate_leads_html($leads, $search_bar, $page_name) {
     $search_div = '';
 
     if ($search_bar) {
@@ -303,7 +431,7 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar, $page_name) {
     }
 
     $leads_edit_modal =
-      '<div class="modal fade" id="lead-edit-modal" tabindex="-1" role="dialog" aria-labelledby="edit-lead">
+        '<div class="modal fade" id="lead-edit-modal" tabindex="-1" role="dialog" aria-labelledby="edit-lead">
         <div class="vertical-alignment-helper">
           <div class="modal-dialog modal-lg vertical-align-center" role="document">
             <div class="modal-content">
@@ -313,7 +441,7 @@ function acrocrm_leads_generate_leads_html($leads, $search_bar, $page_name) {
       </div>';
 
     $delete_lead_confirmation_modal =
-      '<div class="modal fade" id="delete-lead-confirmation-modal" tabindex="-1" role="dialog" aria-labelledby="delete-lead">
+        '<div class="modal fade" id="delete-lead-confirmation-modal" tabindex="-1" role="dialog" aria-labelledby="delete-lead">
         <div class="vertical-alignment-helper">
           <div class="modal-dialog modal-sm vertical-align-center" role="document">
             <div class="modal-content">
@@ -520,7 +648,7 @@ function acrocrm_leads_my_leads_page() {
     $suffix = '</div></div></div></div></div>';
 
     $page['content']['leads$'] = array(
-        '#markup' => $prefix . acrocrm_leads_generate_leads_html(acrocrm_leads_assigned_leads($user->uid),
+        '#markup' => $prefix . acrocrm_leads_my_leads_generate_leads_html(acrocrm_leads_assigned_leads($user->uid),
                 false,
                 'my_leads') . $suffix
     );
