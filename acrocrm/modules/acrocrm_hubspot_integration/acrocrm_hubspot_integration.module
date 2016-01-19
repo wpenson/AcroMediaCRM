@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param $path
+ *  Path of the site to display help
+ * @param $arg
+ *  Array that holds the current path returned by the arg() function.
+ * @return string
+ *  Ant HTML string
+ */
+function acrocrm_hubspot_integration_help($path, $arg) {
+    switch ($path) {
+        case "admin/help#acrocrm_hubspot_integration":
+            return '<p>' . t("HubSpot integration for the AcroCRM Leads module") . '</p>';
+            break;
+    }
+}
+
+/**
+ * Implements hook_menu
+ */
+function acrocrm_hubspot_integration_menu() {
+    $items = array();
+
+    $items['acrocrm_hubspot_integration/create_contact'] = array(
+        'page arguments' => array(2),
+        'access callback' => TRUE,
+        'page callback' => 'acrocrm_hubspot_integration_create_contact_ajax',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access acrocrm'),
+    );
+
+    return $items;
+}
+
+function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {
+    $leads = db_query('SELECT email, firstname, name, phone, comments  FROM leads WHERE lead_id=:id LIMIT 1', array(':id' => $lead_id));
+    $lead = $leads->fetch();
+
+    if ($lead) {
+        $arr = array(
+            'properties' => array(
+                array(
+                    'property' => 'email',
+                    'value' => $lead->email,
+                ),
+                array(
+                    'property' => 'firstname',
+                    'value' => $lead->firstname,
+                ),
+                array(
+                    'property' => 'lastname',
+                    'value' => $lead->name
+                ),
+                array(
+                    'property' => 'phone',
+                    'value' => $lead->phone
+                ),
+                array("property" => "lifecyclestage",
+                    "value" => "lead"
+                ),
+                array("property" => "message",
+                    "value" => $lead->comments
+                )
+            )
+        );
+
+        $post_json = json_encode($arr);
+        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
+        $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . $hapikey;
+        $ch = @curl_init();
+        @curl_setopt($ch, CURLOPT_POST, true);
+        @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_json);
+        @curl_setopt($ch, CURLOPT_URL, $endpoint);
+        @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        @curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response_json = @curl_exec($ch);
+        @curl_close($ch);
+
+        $response = json_decode($response_json);
+
+        if ($response->status == "error") {
+            if ($response->message == "Contact already exists") {
+                print 'contact_already_exists';
+            } elseif (preg_match('/^Email address [A-Za-z@_\-]* is invalid$/', $response->message) == 1) {
+                print 'email_invalid';
+            } else {
+                print $response->message;
+            }
+        } else {
+            db_update('leads')
+                ->fields(array('status' => 'CONVERTED'))
+                ->condition('lead_id', $lead_id)
+                ->execute();
+            print 'success';
+        }
+    } else {
+        print "lead_not_found";
+    }
+}

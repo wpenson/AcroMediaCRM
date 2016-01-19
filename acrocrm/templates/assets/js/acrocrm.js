@@ -29,6 +29,43 @@ $( ".accordion" ).accordion({
     active: false
 });
 
+function createHubspotContact(lead_id, element) {
+    $.ajax({
+        url: "/acrocrm_hubspot_integration/create_contact/" + lead_id,
+        success: function (data) {
+            var message = data.trim();
+            $('#message-container').remove();
+            if (message == "success") {
+                var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-success">';
+                var suffix = '<br></div></div></div>';
+                $(prefix + 'The HubSpot contact was created successfully' + suffix).insertAfter('#header-row');
+                $('#lead_' + lead_id + '_container').remove();
+
+                if ($('.lead-container').length == 0) {
+                    $('<div class="no-leads">There are no leads to display.</div>').insertAfter('#delete-lead-confirmation-modal');
+                }
+            } else {
+                var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-danger">';
+                var suffix = '<br></div></div></div>';
+
+                if (message == "contact_already_exists") {
+                    $(prefix + "The contact you are trying to create on HubSpot already exists. " +
+                        "This could be due to a duplicate email address." + suffix).insertAfter('#header-row');
+                } else if (message == "email_invalid") {
+                    $(prefix + "The email address of the contact you are trying to create on HubSpot is invalid. " +
+                        "HubSpot has stricter email validation than AcroCRM." + suffix).insertAfter('#header-row');
+                } else if (message == "email_invalid") {
+                    $(prefix + "The the contact you are trying to create could not be found. " +
+                        "Refresh the page and try again" + suffix).insertAfter('#header-row');
+                } else {
+                    $(prefix + message + suffix).insertAfter('#header-row');
+                }
+            }
+        },
+        dataType: 'text'
+    });
+}
+
 function assignPriority(lead_id, element) {
     $.ajax({
         url: "/acrocrm_leads/assign_lead_priority/" + lead_id + "/" + $(element).val()

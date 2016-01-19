@@ -1,0 +1,9 @@
+name = Acro CRM HubSpot integration
+description = Adds hubspot integration to the leads module.
+package = Acro CRM
+core = 7.x
+
+dependencies[] = acrocrm
+dependencies[] = acrocrm_leads
+
+configure = admin/config/acrocrm/acrocrm_hubspot_integration
