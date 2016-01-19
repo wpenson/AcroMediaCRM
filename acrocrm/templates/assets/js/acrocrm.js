@@ -1,25 +1,27 @@
 // --- DRAGGABLE UI --- //
-$( ".lead-sortable, .lead-list" ).sortable({
-    connectWith: ".drag-list",
-    receive : function(event, ui) {
-        // assume that id for rep is "rep_x"
-        var rep_id = $(this).attr("id").split('_')[1];
+function loadInteractions() {
+    $(".lead-sortable, .lead-list").sortable({
+        connectWith: ".drag-list",
+        receive: function (event, ui) {
+            // assume that id for rep is "rep_x"
+            var rep_id = $(this).attr("id").split('_')[1];
 
-        // assume that id for lead is "lead_x"
-        var lead_id = (ui.item[0].id).split('_')[1];
+            // assume that id for lead is "lead_x"
+            var lead_id = (ui.item[0].id).split('_')[1];
 
-        $.ajax({
-            url: "/acrocrm_leads/assign_lead/"+ lead_id + "/" + rep_id,
-            success: function(result) {
-                if (($('#rep_' + rep_id + ' .no-assigned-leads')).length > 0) {
-                    $('#rep_' + rep_id + ' .no-assigned-leads').remove();
+            $.ajax({
+                url: "/acrocrm_leads/assign_lead/" + lead_id + "/" + rep_id,
+                success: function (result) {
+                    if (($('#rep_' + rep_id + ' .no-assigned-leads')).length > 0) {
+                        $('#rep_' + rep_id + ' .no-assigned-leads').remove();
+                    }
                 }
-            }
-        });
+            });
 
-        return true;
-    }
-}).disableSelection();
+            return true;
+        }
+    }).disableSelection();
+}
 
 $( ".accordion" ).accordion({
     header: "h4",
@@ -122,28 +124,31 @@ Drupal.behaviors.acrocrm_leads = {
                     $('#leads-list').html("<div class='lead-list-message-div'>Sorry but there was an error: " + xhr.status + " " + xhr.statusText + "</div>");
                     return false;
                 }
+                else if (status == "success") {
+                    loadInteractions();
+
+                    if (group != null) {
+                        if (group != 'sort-order') {
+                            $("ul li a[data-group=" + group + "] .lead-search-dropdown-check").remove();
+                            $("ul li a[data-group=" + group + "][data-value=" + value + "]").prepend("<i class='lead-search-dropdown-check glyphicon glyphicon-ok'></i>");
+                        }
+                        else {
+                            if (value == 'asc') {
+                                $("[data-group='sort-order'][data-value=desc]").removeClass("active");
+                                $("[data-group='sort-order'][data-value=asc]").addClass("active");
+                            }
+                            else {
+                                $("[data-group='sort-order'][data-value=asc]").removeClass("active");
+                                $("[data-group='sort-order'][data-value=desc]").addClass("active");
+                            }
+                        }
+
+                        if (group == 'search-field') {
+                            lead_search_box.attr('placeholder', "Search by " + value);
+                        }
+                    }
+                }
             });
-
-            if (group != null) {
-                if (group != 'sort-order') {
-                    $("ul li a[data-group=" + group + "] .lead-search-dropdown-check").remove();
-                    $("ul li a[data-group=" + group + "][data-value=" + value + "]").prepend("<i class='lead-search-dropdown-check glyphicon glyphicon-ok'></i>");
-                }
-                else {
-                    if (value == 'asc') {
-                        $("[data-group='sort-order'][data-value=desc]").removeClass("active");
-                        $("[data-group='sort-order'][data-value=asc]").addClass("active");
-                    }
-                    else {
-                        $("[data-group='sort-order'][data-value=asc]").removeClass("active");
-                        $("[data-group='sort-order'][data-value=desc]").addClass("active");
-                    }
-                }
-
-                if (group == 'search-field') {
-                    lead_search_box.attr('placeholder', "Search by " + value);
-                }
-            }
         }
 
         var timeout_thread = null;
