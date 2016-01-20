@@ -375,12 +375,13 @@ function acrocrm_leads_edit_lead_ajax($lead_id) {
     echo drupal_render($form);
 }
 
-function acrocrm_leads_delete_lead_ajax($lead_id) {
-    db_delete('leads')
+function acrocrm_leads_delete_lead_ajax($lead_id, $redirect_page) {
+    db_update('leads')
+        ->fields(array('status' => 'DELETED'))
         ->condition('lead_id', $lead_id, '=')
         ->execute();
 
-    drupal_goto($path = 'acrocrm_leads/overview');
+    drupal_goto($path = "/acrocrm_leads/" . $redirect_page);
 }
 
 /*
@@ -518,7 +519,7 @@ function acrocrm_leads_generate_leads_list_html(&$leads) {
         $leads_list .= '<div class="pull-right text-right">';
         $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
         $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
-        $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+        $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/overview' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
         $leads_list .= '</div>';
 
 
@@ -650,7 +651,7 @@ function acrocrm_leads_my_leads_generate_leads_html($leads, $search_bar, $page_n
                 $leads_list .= '<button type="button" class="btn btn-success" onclick="createHubspotContact(' . $lead['lead_id'] . ', this)"><span class="glyphicon glyphicon-user"></span></button>';
             }
             $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
-            $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+            $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/my_leads' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
             $leads_list .= '</div>';
 
 
@@ -740,7 +741,7 @@ function acrocrm_leads_get_sales_reps() {
                             $leads_list .= '<div class="pull-right text-right accordion-btn">';
                             $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
                             $leads_list .= '<button type="button" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
-                            $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+                            $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/overview' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
                             $leads_list .= '</div></div>';
                             $leads_list .= '</h4>';
                         } else {

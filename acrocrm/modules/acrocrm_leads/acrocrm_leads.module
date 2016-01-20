@@ -73,7 +73,7 @@ function acrocrm_leads_menu() {
   );
 
   $items['acrocrm_leads/delete_lead'] = array(
-      'page arguments' => array(2),
+      'page arguments' => array(2, 3),
       'access callback' => TRUE,
       'page callback' => 'acrocrm_leads_delete_lead_ajax',
       'type' => MENU_CALLBACK,
