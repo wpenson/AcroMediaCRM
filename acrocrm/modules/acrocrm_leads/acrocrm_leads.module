@@ -109,35 +109,45 @@ function acrocrm_leads_menu() {
 }
 
 function acrocrm_leads_ajax_get_ajax() {
-  // The function will receive the array of arguments after the "get/ajax" prefix
-  $path = implode('/', func_get_args());
-  $path = explode('/', $path);
 
-  // lead id is at index 1
-  $lead_id = $path[1];
-  // rep id is at index 0
-  $rep_id = $path[0];
+    // The function will receive the array of arguments after the "get/ajax" prefix
+    $path = implode('/', func_get_args());
+    $path = explode('/', $path);
 
-  $check_exists = db_query('SELECT * FROM assigned_leads WHERE lead_id=:id', array(':id' => $lead_id));
+    // lead id is at index 1
+    $lead_id = $path[1];
+    // rep id is at index 0
+    $rep_id = $path[0];
 
-  if ($check_exists->rowCount() > 0) {
-    $update_assignment = db_update('assigned_leads')
-      ->fields(array(
+    // check to see if the lead is already assigned to someone
+    $check_exists = db_query('SELECT * FROM assigned_leads WHERE lead_id=:id', array(':id' => $lead_id));
+
+    // if lead exists just update assignment
+    if ($check_exists->rowCount() > 0) {
+        $update_assignment = db_update('assigned_leads')
+        ->fields(array(
           'uid' => $rep_id
-      ))
-      ->condition('lead_id', $lead_id, '=')
-      ->execute();
-  }
-  else {
-    $assign_lead = db_insert('assigned_leads')
-      ->fields(array(
-          'uid' => $rep_id,
-          'lead_id' => $lead_id
-      ))
-      ->execute();
-  }
+        ))
+        ->condition('lead_id', $lead_id, '=')
+        ->execute();
+    }
+    // else insert the assigned lead and assign to correct sales rep
+    else {
+        $assign_lead = db_insert('assigned_leads')
+        ->fields(array(
+            'uid' => $rep_id,
+            'lead_id' => $lead_id
+        ))
+        ->execute();
+    }
 
-  print $path[0] . $path[1];
+    // get the priority of the newly assigned lead so we can update the priority counts on the lead overview page
+    $get_priority = db_query('SELECT priority FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
+
+    $priority = $get_priority->fetchAssoc();
+
+    print $priority["priority"];
+
 }
 
 function acrocrm_leads_priority_ajax_get_ajax() {
@@ -181,13 +191,14 @@ function acrocrm_leads_theme() {
 }
 
 function acrocrm_leads_page(&$variables) {
-  acrocrm_page($variables);
+    acrocrm_page($variables);
 
-  $module_path = drupal_get_path('module', 'acrocrm');
+    $module_path = drupal_get_path('module', 'acrocrm');
 //  $css_path = $module_path . '/templates/assets/css/';
-  $js_path = $module_path . '/templates/assets/js/';
+    $js_path = $module_path . '/templates/assets/js/';
 
-  drupal_add_js($js_path . 'spin.min.js', array('group' => JS_THEME));
+    drupal_add_js($js_path . 'spin.min.js', array('group' => JS_THEME));
+    drupal_add_js($js_path . 'readmore.min.js', array('group' => JS_THEME));
 }
 
 /**

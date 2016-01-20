@@ -1,8 +1,35 @@
-// --- DRAGGABLE UI --- //
+$(document).ready(function() {
+    $( ".list-accordion" ).accordion({
+        header: "h5",
+        collapsible: true,
+        active: false,
+        heightStyle: "content",
+        activate: function(event, ui) {
+            $('.readmore').readmore({
+                collapsedHeight: 18
+            });
+        }
+    });
+
+    $( ".header-accordion" ).accordion({
+        header: "h4",
+        collapsible: true,
+        active: false,
+        heightStyle: "content"
+    });
+});
+
 function loadInteractions() {
-    $(".lead-sortable, .lead-list").sortable({
+    $('.readmore').readmore({
+        collapsedHeight: 18
+    });
+
+    $( ".lead-sortable, .lead-list" ).sortable({
         connectWith: ".drag-list",
-        receive: function (event, ui) {
+        receive : function(event, ui) {
+
+            // ASSIGN LEAD TO REP THAT LEAD WAS DROPPED UNDER
+
             // assume that id for rep is "rep_x"
             var rep_id = $(this).attr("id").split('_')[1];
 
@@ -10,8 +37,10 @@ function loadInteractions() {
             var lead_id = (ui.item[0].id).split('_')[1];
 
             $.ajax({
-                url: "/acrocrm_leads/assign_lead/" + lead_id + "/" + rep_id,
-                success: function (result) {
+                url: "/acrocrm_leads/assign_lead/"+ lead_id + "/" + rep_id,
+                success: function(result) {
+                    updatePriorityText(rep_id, result);
+
                     if (($('#rep_' + rep_id + ' .no-assigned-leads')).length > 0) {
                         $('#rep_' + rep_id + ' .no-assigned-leads').remove();
                     }
@@ -22,12 +51,6 @@ function loadInteractions() {
         }
     }).disableSelection();
 }
-
-$( ".accordion" ).accordion({
-    header: "h4",
-    collapsible: true,
-    active: false
-});
 
 function createHubspotContact(lead_id, element) {
     $.ajax({
@@ -70,6 +93,36 @@ function assignPriority(lead_id, element) {
     $.ajax({
         url: "/acrocrm_leads/assign_lead_priority/" + lead_id + "/" + $(element).val()
     });
+}
+
+function updatePriorityText(rep_id, priority) {
+    if (priority === '') {
+        var text = $('#unassigned-' + rep_id).text();
+        text = text.split(' ');
+        var new_priority = parseInt(text[1]) + 1;
+        $('#unassigned-' + rep_id).text("Unassigned: " + new_priority);
+    }
+
+    else if (priority === 'low') {
+        var text = $('#low-' + rep_id).text();
+        text = text.split(' ');
+        var new_priority = parseInt(text[1]) + 1;
+        $('#low-' + rep_id).text("Low: " + new_priority);
+    }
+
+    else if (priority === 'medium') {
+        var text = $('#med-' + rep_id).text();
+        text = text.split(' ');
+        var new_priority = parseInt(text[1]) + 1;
+        $('#med-' + rep_id).text("Medium: " + new_priority);
+    }
+
+    else if (priority === 'high') {
+        var text = $('#high-' + rep_id).text();
+        text = text.split(' ');
+        var new_priority = parseInt(text[1]) + 1;
+        $('#high-' + rep_id).text("High: " + new_priority);
+    }
 }
 
 // --- Leads Search, Edit, and Delete --- //

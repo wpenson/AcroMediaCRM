@@ -523,9 +523,18 @@ function acrocrm_leads_generate_leads_list_html(&$leads) {
         $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/overview' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
         $leads_list .= '</div>';
 
+        $leads_list .= '</div>';
 
+        if (strlen($lead['firstname']) > 0) {
+            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['firstname'] . ' ' . $lead['name'] . '</h4>';
+        } else {
+            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['name'] . '</h4>';
+        }
+
+        $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
+        $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
         $priority = $lead['priority'];
-        $leads_list .= '<div class="priority"><strong>Priority: </strong>';
+        $leads_list .= '<p class="list-group-item-text"><strong>Priority: </strong>';
         $leads_list .= '<select class="set-priority input-group" onchange="assignPriority('. $lead['lead_id'] .', this)">';
         $leads_list .= '<option value="unassigned"';
         if ($priority === '') {
@@ -547,20 +556,8 @@ function acrocrm_leads_generate_leads_list_html(&$leads) {
             $leads_list .= ' selected ';
         }
         $leads_list .= '>high</option>';
-        $leads_list .= '</select></div>';
-
-        $leads_list .= '</div>';
-
-        if (strlen($lead['firstname']) > 0) {
-            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['firstname'] . ' ' . $lead['name'] . '</h4>';
-        } else {
-            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['name'] . '</h4>';
-        }
-
-        $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
-        $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
-        $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
-
+        $leads_list .= '</select></p>';
+        $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
         $leads_list .= '</div></div>';
     }
 
@@ -726,59 +723,66 @@ function acrocrm_leads_get_sales_reps() {
                 array_push($lead_ids, $lead_id["lead_id"]);
             }
 
+            // keep track of the priority for each type of lead -> will be displayed next to rep's name
+            $unassigned_priority = 0;
+            $low_priority = 0;
+            $med_priority = 0;
+            $high_priority = 0;
+
             if (count($lead_ids) > 0) {
                 $leads = db_select('leads', 'l')
                     ->fields('l')
                     ->condition('lead_id', $lead_ids, 'IN')
+                    ->orderBy('priority', 'ASC')
                     ->execute();
 
                 $leads_list .= '<div id="rep_' . $user->uid . '" class="drag-list lead-list">';
 
                 if ($leads->rowCount() > 0) {
                     while ($lead = $leads->fetchAssoc()) {
-                        $leads_list .= '<div id="lead_' . $lead['lead_id'] . '" class="accordion">';
+                        $leads_list .= '<div id="lead_' . $lead['lead_id'] . '" class="list-accordion">';
                         if (strlen($lead['firstname']) > 0) {
-                            $leads_list .= '<h4>' . $lead['firstname'] . ' ' . $lead['name'];
+                            $leads_list .= '<h5>' . $lead['firstname'] . ' ' . $lead['name'];
                             $leads_list .= '<div class="pull-right text-right accordion-btn">';
                             $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
                             $leads_list .= '<button type="button" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
                             $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/overview' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
                             $leads_list .= '</div></div>';
-                            $leads_list .= '</h4>';
+                            $leads_list .= '</h5>';
                         } else {
-                            $leads_list .= '<h4>' . $lead['name'] . '</h4>';
+                            $leads_list .= '<h5>' . $lead['name'];
+                            $leads_list .= '<div class="pull-right text-right accordion-btn">';
+                            $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
+                            $leads_list .= '<button type="button" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
+                            $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+                            $leads_list .= '</div></div>';
+                            $leads_list .= '</h5>';
                         }
-                        // start accordian div
+                        // start accordion div
                         $leads_list .= '<div>';
-                        $priority = $lead['priority'];
-                        $leads_list .= '<div class="priority pull-right rep-priority"><strong>Priority: </strong>';
-                        $leads_list .= '<select class="input-group set-priority" onchange="assignPriority('. $lead['lead_id'] .', this)">';
-                        $leads_list .= '<option value="unassigned"';
-                        if ($priority === '') {
-                            $leads_list .= ' selected ';
-                        }
-                        $leads_list .= '>unassigned</option>';
-                        $leads_list .= '<option value="low"';
-                        if ($priority === 'low') {
-                            $leads_list .= ' selected ';
-                        }
-                        $leads_list .= '>low</option>';
-                        $leads_list .= '<option value="medium"';
-                        if ($priority === 'medium') {
-                            $leads_list .= ' selected ';
-                        }
-                        $leads_list .= '>medium</option>';
-                        $leads_list .= '<option value="high"';
-                        if ($priority === 'high') {
-                            $leads_list .= ' selected ';
-                        }
-                        $leads_list .= '>high</option>';
-                        $leads_list .= '</select></div>';
-
                         $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
                         $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
-                        $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p></div>';
-                        // end accordian div
+
+                        // determine what the priority of the lead is so we can show it in the rep div
+                        $priority = $lead['priority'];
+                        if ($priority == '') {
+                            $unassigned_priority += 1;
+                        }
+                        else if ($priority == 'low') {
+                            $low_priority += 1;
+                        }
+                        else if ($priority == 'medium') {
+                            $med_priority += 1;
+                        }
+                        else if ($priority == 'high') {
+                            $high_priority += 1;
+                        }
+
+                        $leads_list .= '<p class="list-group-item-text"><strong>Priority: </strong>' . $priority . '</p>';
+
+                        $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
+                        $leads_list .= '</div>';
+                        // end accordion div
 
                         $leads_list .= '</div>';
                     }
@@ -787,16 +791,24 @@ function acrocrm_leads_get_sales_reps() {
             }
             else {
                 $leads_list .= '<div id="rep_' . $user->uid . '" class="drag-list lead-list">';
-                $leads_list .= '<h4 class="no-assigned-leads">no assigned leads</h4>';
+                $leads_list .= '<h5 class="no-assigned-leads">no assigned leads</h5>';
                 $leads_list .= '</div>';
                 $leads_list .= '<div class="drag-list lead-list"> </div>';
             }
 
-            $rep_div .= '<div id="' . $user->uid . '" class="list-group-item lead-rep-overview">';
-            $rep_div .= '<h4 class="list-group-item-heading">' . $user->name . '</h4>';
-            $rep_div .= '<p class="list-group-item-text"><strong>Assigned Leads: </strong></p>';
+            $rep_div .= '<div id="' . $user->uid . '" class="list-group-item lead-rep-overview header-accordion drag-list">';
+            $rep_div .= '<h4 class="list-group-item-heading">' . $user->name;
+            // create the text to display priority beside the sales rep name
+            $rep_div .= '<span class="pull-right priority-text"><span id="high-' . $user->uid .'" class="bg-danger">High: ' . $high_priority;
+            $rep_div .= '</span> <span id="med-' . $user->uid .'" class="bg-warning">Medium: ' . $med_priority . '</span>';
+            $rep_div .= ' <span id="low-' . $user->uid .'" class="bg-success">Low: ' . $low_priority . '</span>';
+            $rep_div .= ' <span id="unassigned-' . $user->uid .'"class="bg-info">Unassigned: ' . $unassigned_priority . '</span>';
+            $rep_div .= '</h4>';
+            $rep_div .= '<div>';
+
             $rep_div .= $leads_list;
-            $rep_div .= '</div>';
+            $rep_div .= '</div>'; // end header-accordion div
+            $rep_div .= '</div>'; // end rep div
         }
     }
 
