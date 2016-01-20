@@ -327,7 +327,7 @@ function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
 /*
  * Create lead edit modal/pop-up HTML.
  */
-function acrocrm_leads_edit_lead_ajax($lead_id) {
+function acrocrm_leads_edit_lead_ajax($lead_id, $redirect_page) {
     $form = drupal_get_form('acrocrm_leads_edit_lead_form');
 
     $lead = db_select('leads', 'l')
@@ -342,6 +342,7 @@ function acrocrm_leads_edit_lead_ajax($lead_id) {
     $form['phone']['#value'] = $lead['phone'];
     $form['comments']['#value'] = $lead['comments'];
     $form['priority']['#value'] = $lead['priority'];
+    $form['redirect_page']['#value'] = $redirect_page;
 
     $assigned_salesrep = db_select('assigned_leads', 'al')
         ->fields('al', array('uid'))
@@ -650,7 +651,7 @@ function acrocrm_leads_my_leads_generate_leads_html($leads, $search_bar, $page_n
             if (module_exists('acrocrm_hubspot_integration') && $page_name == 'my_leads') {
                 $leads_list .= '<button type="button" class="btn btn-success" onclick="createHubspotContact(' . $lead['lead_id'] . ', this)"><span class="glyphicon glyphicon-user"></span></button>';
             }
-            $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
+            $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '/my_leads' . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
             $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/my_leads' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
             $leads_list .= '</div>';
 
@@ -990,7 +991,7 @@ function generate_lead_form(&$form, &$form_state) {
         '#type' => 'hidden',
     );
 
-    $form['redirect_url'] = array(
+    $form['redirect_page'] = array(
         '#type' => 'hidden',
     );
 

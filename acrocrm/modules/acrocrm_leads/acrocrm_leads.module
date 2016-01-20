@@ -64,7 +64,7 @@ function acrocrm_leads_menu() {
   );
 
   $items['acrocrm_leads/edit_lead'] = array(
-      'page arguments' => array(2),
+      'page arguments' => array(2, 3),
       'access callback' => TRUE,
       'page callback' => 'acrocrm_leads_edit_lead_ajax',
       'type' => MENU_CALLBACK,
@@ -219,7 +219,13 @@ function acrocrm_leads_form_acrocrm_leads_edit_lead_form_alter(&$form, &$form_st
 }
 
 function acrocrm_leads_edit_lead_custom_form_submit(&$form, &$form_state) {
-  $form_state['redirect'] = 'acrocrm_leads/overview';
+  $redirect_page = $form['redirect_page']['#value'];
+
+  if ($redirect_page == '' || $redirect_page == NULL) {
+    $form_state['redirect'] = 'acrocrm_leads/overview';
+  } else {
+    $form_state['redirect'] = 'acrocrm_leads/' . $redirect_page;
+  }
 }
 
 /**************************************************************
