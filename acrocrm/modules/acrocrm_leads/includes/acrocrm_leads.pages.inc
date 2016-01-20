@@ -587,10 +587,17 @@ function acrocrm_leads_get_sales_reps() {
                 array_push($lead_ids, $lead_id["lead_id"]);
             }
 
+            // keep track of the priority for each type of lead -> will be displayed next to rep's name
+            $unassigned_priority = 0;
+            $low_priority = 0;
+            $med_priority = 0;
+            $high_priority = 0;
+
             if (count($lead_ids) > 0) {
                 $leads = db_select('leads', 'l')
                     ->fields('l')
                     ->condition('lead_id', $lead_ids, 'IN')
+                    ->orderBy('priority', 'ASC')
                     ->execute();
 
                 $leads_list .= '<div id="rep_' . $user->uid . '" class="drag-list lead-list">';
@@ -623,21 +630,25 @@ function acrocrm_leads_get_sales_reps() {
                         $leads_list .= '<option value="unassigned"';
                         if ($priority === '') {
                             $leads_list .= ' selected ';
+                            $unassigned_priority += 1;
                         }
                         $leads_list .= '>unassigned</option>';
                         $leads_list .= '<option value="low"';
                         if ($priority === 'low') {
                             $leads_list .= ' selected ';
+                            $low_priority += 1;
                         }
                         $leads_list .= '>low</option>';
                         $leads_list .= '<option value="medium"';
                         if ($priority === 'medium') {
                             $leads_list .= ' selected ';
+                            $med_priority += 1;
                         }
                         $leads_list .= '>medium</option>';
                         $leads_list .= '<option value="high"';
                         if ($priority === 'high') {
                             $leads_list .= ' selected ';
+                            $high_priority += 1;
                         }
                         $leads_list .= '>high</option>';
                         $leads_list .= '</select></div>';
@@ -661,12 +672,18 @@ function acrocrm_leads_get_sales_reps() {
             }
 
             $rep_div .= '<div id="' . $user->uid . '" class="list-group-item lead-rep-overview header-accordion">';
-            $rep_div .= '<h4 class="list-group-item-heading">' . $user->name . '</h4>';
+            $rep_div .= '<h4 class="list-group-item-heading">' . $user->name;
+            // create the text to display priority beside the sales rep name
+            $rep_div .= '<span class="pull-right priority-text"><span class="bg-danger">High: ' . $high_priority;
+            $rep_div .= '</span> <span class="bg-warning">Medium: ' . $med_priority . '</span>';
+            $rep_div .= ' <span class="bg-success">Low: ' . $low_priority . '</span>';
+            $rep_div .= ' <span class="bg-info">Unassigned: ' . $unassigned_priority . '</span>';
+            $rep_div .= '</h4>';
             $rep_div .= '<div>';
+
             $rep_div .= $leads_list;
-            // end header-accordion div
-            $rep_div .= '</div>';
-            $rep_div .= '</div>';
+            $rep_div .= '</div>'; // end header-accordion div
+            $rep_div .= '</div>'; // end rep div
         }
     }
 

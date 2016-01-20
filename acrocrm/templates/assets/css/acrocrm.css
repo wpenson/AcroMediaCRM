@@ -92,6 +92,11 @@ input.form-submit {
     margin-right: 5px;
 }
 
+.priority-text {
+    font-size: 10px;
+    line-height: 20px;
+}
+
 .priority {
     margin-top: 10px;
 }
