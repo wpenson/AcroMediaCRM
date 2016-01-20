@@ -181,13 +181,14 @@ function acrocrm_leads_theme() {
 }
 
 function acrocrm_leads_page(&$variables) {
-  acrocrm_page($variables);
+    acrocrm_page($variables);
 
-  $module_path = drupal_get_path('module', 'acrocrm');
+    $module_path = drupal_get_path('module', 'acrocrm');
 //  $css_path = $module_path . '/templates/assets/css/';
-  $js_path = $module_path . '/templates/assets/js/';
+    $js_path = $module_path . '/templates/assets/js/';
 
-  drupal_add_js($js_path . 'spin.min.js', array('group' => JS_THEME));
+    drupal_add_js($js_path . 'spin.min.js', array('group' => JS_THEME));
+    drupal_add_js($js_path . 'readmore.min.js', array('group' => JS_THEME));
 }
 
 /**

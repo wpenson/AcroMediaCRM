@@ -1,31 +1,53 @@
-// --- DRAGGABLE UI --- //
-$( ".lead-sortable, .lead-list" ).sortable({
-    connectWith: ".drag-list",
-    receive : function(event, ui) {
-        // assume that id for rep is "rep_x"
-        var rep_id = $(this).attr("id").split('_')[1];
+$(document).ready(function() {
+    $( ".list-accordion" ).accordion({
+        header: "h5",
+        collapsible: true,
+        active: false,
+        heightStyle: "content",
+        activate: function(event, ui) {
+            $('.readmore').readmore({
+                collapsedHeight: 18
+            });
+        }
+    });
 
-        // assume that id for lead is "lead_x"
-        var lead_id = (ui.item[0].id).split('_')[1];
-
-        $.ajax({
-            url: "/acrocrm_leads/assign_lead/"+ lead_id + "/" + rep_id,
-            success: function(result) {
-                if (($('#rep_' + rep_id + ' .no-assigned-leads')).length > 0) {
-                    $('#rep_' + rep_id + ' .no-assigned-leads').remove();
-                }
-            }
-        });
-
-        return true;
-    }
-}).disableSelection();
-
-$( ".accordion" ).accordion({
-    header: "h4",
-    collapsible: true,
-    active: false
+    $( ".header-accordion" ).accordion({
+        header: "h4",
+        collapsible: true,
+        active: false,
+        heightStyle: "content"
+    });
 });
+
+$(window).load(function() {
+    $('.readmore').readmore({
+        collapsedHeight: 16
+    });
+});
+
+function loadInteractions() {
+    $( ".lead-sortable, .lead-list" ).sortable({
+        connectWith: ".drag-list",
+        receive : function(event, ui) {
+            // assume that id for rep is "rep_x"
+            var rep_id = $(this).attr("id").split('_')[1];
+
+            // assume that id for lead is "lead_x"
+            var lead_id = (ui.item[0].id).split('_')[1];
+
+            $.ajax({
+                url: "/acrocrm_leads/assign_lead/"+ lead_id + "/" + rep_id,
+                success: function(result) {
+                    if (($('#rep_' + rep_id + ' .no-assigned-leads')).length > 0) {
+                        $('#rep_' + rep_id + ' .no-assigned-leads').remove();
+                    }
+                }
+            });
+
+            return true;
+        }
+    }).disableSelection();
+}
 
 function assignPriority(lead_id, element) {
     $.ajax({
@@ -121,6 +143,9 @@ Drupal.behaviors.acrocrm_leads = {
                 if (status == "error") {
                     $('#leads-list').html("<div class='lead-list-message-div'>Sorry but there was an error: " + xhr.status + " " + xhr.statusText + "</div>");
                     return false;
+                }
+                else if (status == "success") {
+                    loadInteractions();
                 }
             });
 

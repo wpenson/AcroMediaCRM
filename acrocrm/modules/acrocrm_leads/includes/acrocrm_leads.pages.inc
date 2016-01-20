@@ -556,7 +556,7 @@ function acrocrm_leads_generate_leads_list_html(&$leads) {
 
         $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
         $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
-        $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
+        $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
 
         $leads_list .= '</div></div>';
     }
@@ -597,19 +597,25 @@ function acrocrm_leads_get_sales_reps() {
 
                 if ($leads->rowCount() > 0) {
                     while ($lead = $leads->fetchAssoc()) {
-                        $leads_list .= '<div id="lead_' . $lead['lead_id'] . '" class="accordion">';
+                        $leads_list .= '<div id="lead_' . $lead['lead_id'] . '" class="list-accordion">';
                         if (strlen($lead['firstname']) > 0) {
-                            $leads_list .= '<h4>' . $lead['firstname'] . ' ' . $lead['name'];
+                            $leads_list .= '<h5>' . $lead['firstname'] . ' ' . $lead['name'];
                             $leads_list .= '<div class="pull-right text-right accordion-btn">';
                             $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
                             $leads_list .= '<button type="button" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
                             $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
                             $leads_list .= '</div></div>';
-                            $leads_list .= '</h4>';
+                            $leads_list .= '</h5>';
                         } else {
-                            $leads_list .= '<h4>' . $lead['name'] . '</h4>';
+                            $leads_list .= '<h5>' . $lead['name'];
+                            $leads_list .= '<div class="pull-right text-right accordion-btn">';
+                            $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
+                            $leads_list .= '<button type="button" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" class="btn btn-primary" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
+                            $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+                            $leads_list .= '</div></div>';
+                            $leads_list .= '</h5>';
                         }
-                        // start accordian div
+                        // start accordion div
                         $leads_list .= '<div>';
                         $priority = $lead['priority'];
                         $leads_list .= '<div class="priority pull-right rep-priority"><strong>Priority: </strong>';
@@ -638,8 +644,9 @@ function acrocrm_leads_get_sales_reps() {
 
                         $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
                         $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
-                        $leads_list .= '<p class="list-group-item-text"><strong>Comments: </strong>' . $lead['comments'] . '</p></div>';
-                        // end accordian div
+                        $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
+                        $leads_list .= '</div>';
+                        // end accordion div
 
                         $leads_list .= '</div>';
                     }
@@ -653,10 +660,12 @@ function acrocrm_leads_get_sales_reps() {
                 $leads_list .= '<div class="drag-list lead-list"> </div>';
             }
 
-            $rep_div .= '<div id="' . $user->uid . '" class="list-group-item lead-rep-overview">';
+            $rep_div .= '<div id="' . $user->uid . '" class="list-group-item lead-rep-overview header-accordion">';
             $rep_div .= '<h4 class="list-group-item-heading">' . $user->name . '</h4>';
-            $rep_div .= '<p class="list-group-item-text"><strong>Assigned Leads: </strong></p>';
+            $rep_div .= '<div>';
             $rep_div .= $leads_list;
+            // end header-accordion div
+            $rep_div .= '</div>';
             $rep_div .= '</div>';
         }
     }
