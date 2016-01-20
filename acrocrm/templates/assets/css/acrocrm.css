@@ -97,15 +97,15 @@ input.form-submit {
     line-height: 20px;
 }
 
-.priority {
-    margin-top: 10px;
+.set-priority {
+    display:inline;
 }
 
 .ui-accordion-header {
     cursor: pointer;
 }
 
-.list-accordion {
+.ui-sortable-handle {
     margin: 30px 0px;
 }
 
@@ -131,4 +131,8 @@ input.form-submit {
     /* To center horizontally */
     margin: 0 auto;
     pointer-events: all;
+}
+
+.header-accordion:hover > div {
+    display: block;
 }
