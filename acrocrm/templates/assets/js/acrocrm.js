@@ -53,9 +53,14 @@ function loadInteractions() {
 }
 
 function createHubspotContact(lead_id, element) {
+    var imgTag = '<img id="loading-gif-' + lead_id + '" alt="loading" src="/acrocrm/templates/assets/images/ajax-loader.gif">';
+    $(imgTag).insertBefore($("#" + lead_id).parent());
+    $("#" + lead_id).hide();
     $.ajax({
         url: "/acrocrm_hubspot_integration/create_contact/" + lead_id,
         success: function (data) {
+            $("#loading-gif-" + lead_id).remove();
+            $("#" + lead_id).show();
             var message = data.trim();
             $('#message-container').remove();
             if (message == "success") {
