@@ -29,7 +29,7 @@ function acrocrm_menu() {
     $items = array();
 
     // Menu items that are basically just menu blocks.
-    $items['acrocrm'] = array(
+    $items['admin/acrocrm'] = array(
         'title' => 'CRM Home',
         'description' => 'Acro CRM',
         'weight' => -8,
