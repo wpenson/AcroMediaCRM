@@ -34,6 +34,16 @@ function acrocrm_hubspot_integration_menu() {
         'access arguments' => array('access acrocrm'),
     );
 
+    $items['admin/config/acrocrm/acrocrm_hubspot_integration'] = array(
+        'title' => 'AcroCRM HubSpot Integration',
+        'description' => 'Configuration for the AcroCRM HubSpot Integration',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('acrocrm_hubspot_integration_settings_form'),
+        'file' => 'includes/acrocrm_hubspot_integration.forms.inc',
+        'access arguments' => array('access administration pages'),
+        'type' => MENU_NORMAL_ITEM
+    );
+
     return $items;
 }
 
@@ -70,8 +80,8 @@ function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {
         );
 
         $post_json = json_encode($arr);
-        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-        $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . $hapikey;
+//        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
+        $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . variable_get('api_key');
         $ch = @curl_init();
         @curl_setopt($ch, CURLOPT_POST, true);
         @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_json);
