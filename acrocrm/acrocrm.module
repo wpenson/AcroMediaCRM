@@ -95,35 +95,9 @@ function acrocrm_permission() {
     );
 }
 
-// TODO: as we talked about, you can probably slim this down or even drop it entirely.
 /**
  * Implements hook_theme().
  */
-//function acrocrm_theme() {
-//    return array(
-//        'acrocrm_property_field' => array(
-//            'variables' => array(
-//                'label_hidden' => FALSE,
-//                'title_attributes' => NULL,
-//                'label' => '',
-//                'content_attributes' => NULL,
-//                'items' => array(),
-//                'item_attributes' => array(0 => ''),
-//                'classes' => '',
-//                'attributes' => '',
-//            ),
-//        ),
-//        'page__acrocrm' => array(
-//            'variables' => array('page' => NULL),
-//            'preprocess functions' => array('acrocrm_page'),
-//        ),
-//        'acrocrm_home' => array(
-//            'base hook' => 'page__acrocrm',
-//            'path' => drupal_get_path('module', 'acrocrm') . '/templates',
-//            'template' => 'main--acrocrm',
-//        ),
-//    );
-//}
 function acrocrm_theme() {
     return array(
         'page__acrocrm' => array(
@@ -236,6 +210,21 @@ function acrocrm_page(&$variables) {
     );
 
     $variables['page'] = $page;
+}
+
+//TODO - if you just specify your stuff under admin/* then you don't need to do this
+/**
+ * Implements hook_admin_paths().
+ */
+function acrocrm_admin_paths() {
+    // Set Acro CRM admin paths based on configuration.
+    if (variable_get('acrocrm_admin_path', FALSE)) {
+        $paths = array(
+            'acrocrm*' => TRUE,
+            'acrocrm/*' => TRUE,
+        );
+        return $paths;
+    }
 }
 
 function acrocrm_get_message_markup() {
