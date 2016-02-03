@@ -1,50 +1,6 @@
 <?php
 
 /**
- * @file
- *
- */
-
-/**
- * Wrapper for system_admin_menu_block_page().
- */
-function acrocrm_landing_page() {
-    $path = drupal_get_path('module', 'acrocrm');
-
-    $page['content']['logo'] = array(
-        '#theme' => 'image',
-        '#path' => $path . '/templates/assets/images/smiley_face.png',
-        '#alt' => t('Smile :)'),
-        '#attributes' => array('id' => 'smiley-face'),
-    );
-
-    /* Create list of users who are sales representatives. */
-    $users = entity_load('user');
-    $sales_reps = array();
-
-    foreach ($users as $user) {
-        if (user_access('sales rep', $user)) {
-          $sales_reps[] = $user->name . ', ' . $user->mail;
-        }
-    }
-
-    $page['content']['sales_reps'] = array(
-      '#theme' => 'item_list',
-      '#title' => t('Sales Representatives (don\'t know where to put this so it can go here for now)'),
-      '#items' => $sales_reps,
-      '#cache' => array(
-          'keys' => array('acrocrm_sales_rep', 'sales_rep_list'),
-          'bin' => 'cache',
-          'expire' => time() + 30,
-          'granularity' => DRUPAL_CACHE_PER_PAGE,
-      ),
-    );
-
-
-  return theme('acrocrm_home', array('page' => $page));
-}
-
-/**
  * Settings form for Acro CRM.
  *
  * @return array
