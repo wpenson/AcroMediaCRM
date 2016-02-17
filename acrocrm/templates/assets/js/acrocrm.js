@@ -1,9 +1,10 @@
 $(document).ready(function() {
-    $( ".list-accordion" ).accordion({
+    $(".list-accordion").accordion({
         header: "h5",
         collapsible: true,
         active: false,
         heightStyle: "content",
+        cursor: "move",
         activate: function(event, ui) {
             $('.readmore').readmore({
                 collapsedHeight: 18
@@ -11,12 +12,15 @@ $(document).ready(function() {
         }
     });
 
-    $( ".header-accordion" ).accordion({
-        header: "h4",
+    $(".sales-rep").accordion({
+        header: "> h4",
         collapsible: true,
         active: false,
-        heightStyle: "content"
+        heightStyle: "content",
+        cursor: "move"
     });
+
+    $('[data-toggle="tooltip"]').tooltip();
 });
 
 function loadInteractions() {
@@ -24,32 +28,205 @@ function loadInteractions() {
         collapsedHeight: 18
     });
 
-    $( ".lead-sortable, .lead-list" ).sortable({
-        connectWith: ".drag-list",
-        receive : function(event, ui) {
+    $("#leads-list >").draggable({
+        appendTo: "body",
+        containment: "document",
+        zIndex: 100,
+        scope: "lead",
+        helper: "clone",
+        revert: "invalid",
+        cursor: "move",
+        cursorAt: { top: 0, left: 0 },
+        refreshPositions: true,
+        start: function(event, ui) {
+            $(this).hide();
+            $(ui.helper).find(".pull-right").hide();
+            $(ui.helper).addClass("dragging-lead")
+            $(ui.helper).find("select").replaceWith($(ui.helper).find("option:selected").text());
+        },
+        stop: function(event, ui) {
+            if($(event.target).parent().attr('id') === 'leads-list') {
+                $(this).show();
+            }
+        }
+        //receive : function(event, ui) {
+        //    console.log("test");
+        //    // ASSIGN LEAD TO REP THAT LEAD WAS DROPPED UNDER
+        //
+        //    // assume that id for rep is "rep_x"
+        //    var rep_id = $(this).attr("id").split('_')[1];
+        //
+        //    // assume that id for lead is "lead_x"
+        //    var lead_id = (ui.item[0].id).split('_')[1];
+        //
+        //    $.ajax({
+        //        url: "/acrocrm_leads/assign_lead/"+ lead_id + "/" + rep_id,
+        //        success: function(result) {
+        //            updatePriorityText(rep_id, result);
+        //
+        //            if (($('#rep_' + rep_id + ' .no-assigned-leads')).length > 0) {
+        //                $('#rep_' + rep_id + ' .no-assigned-leads').remove();
+        //            }
+        //        }
+        //    });
+        //
+        //    return true;
+        //}
+    });
 
-            // ASSIGN LEAD TO REP THAT LEAD WAS DROPPED UNDER
+    $('.sales-rep').droppable({
+        scope: "lead",
+        refreshPositions: true,
+        hoverClass: "ui-state-highlight",
+        tolerance: "pointer",
+        activate: function(event, ui) {
+            $(".ui-accordion-header, .btn").css("cursor", "move");
+            $(".list-accordion, .header-accordion").accordion("option", "cursor", "move");
+            $('[data-toggle="tooltip"]').tooltip('disable');
+        },
+        deactivate: function(event, ui) {
+            $(".ui-accordion-header, .btn").css("cursor", "pointer");
+            $(".list-accordion, .header-accordion").accordion("option", "cursor", "pointer");
+            $('[data-toggle="tooltip"]').tooltip('enable');
+        },
+        drop: function(event, ui) {
+            var sales_rep = $(this);
+            var lead_draggable = $(ui.draggable);
 
-            // assume that id for rep is "rep_x"
-            var rep_id = $(this).attr("id").split('_')[1];
+            sales_rep.data("accordion-hovering", "false");
+            if (sales_rep.data("accordion-prev-active") === "false") {
+                sales_rep.accordion("option", "active", false); // Close accordion
+            }
 
-            // assume that id for lead is "lead_x"
-            var lead_id = (ui.item[0].id).split('_')[1];
+            lead_draggable.hide();
+            var url = sales_rep.data("url");
+            var params = sales_rep.attr('id') + '/' + lead_draggable.attr('id');
+            console.log(lead_draggable);
+            console.log(url + params);
 
-            $.ajax({
-                url: "/acrocrm_leads/assign_lead/"+ lead_id + "/" + rep_id,
-                success: function(result) {
-                    updatePriorityText(rep_id, result);
+            // TODO: Do assignment request - use lead
+            sales_rep.find(".sales-rep-lead-list").load(url + params, function(response, status, xhr) {
+                if (status == "success") {
+                    lead_draggable.remove();
+                }
+                else if (status == "error") {
+                    event.preventDefault();
+                    lead_draggable.show();
 
-                    if (($('#rep_' + rep_id + ' .no-assigned-leads')).length > 0) {
-                        $('#rep_' + rep_id + ' .no-assigned-leads').remove();
-                    }
+                    //$('#leads-list').html("<div class='lead-list-message-div'>Sorry but there was an error: " + xhr.status + " " + xhr.statusText + "</div>");
                 }
             });
+        },
+        over: function(event, ui) {
+            if ($(event.target).accordion("option", "active") === 0) {
+                $(event.target).data("accordion-prev-active", "true"); // Accordion was previously active
+            }
+            else {
+                $(event.target).data("accordion-hovering", "true");
 
-            return true;
+                setTimeout(function() {
+                    if ($(event.target).data("accordion-hovering") === "true") {
+                        $(event.target).accordion("option", "active", 0); // Expand accordion
+                        $(event.target).data("accordion-prev-active", "false"); // Accordion was not previously active
+                        $(event.target).data("accordion-hovering", "false");
+                    }
+                }, 750);
+            }
+        },
+        out: function(event, ui) {
+            //$(".ui-accordion-header, .btn").css("cursor", "pointer");
+            //$(".list-accordion, .header-accordion").accordion("option", "cursor", "pointer");
+
+            $(event.target).data("accordion-hovering", "false");
+            if ($(event.target).data("accordion-prev-active") === "false") {
+                $(event.target).accordion("option", "active", false); // Close accordion
+            }
         }
-    }).disableSelection();
+    });
+
+    //$("#leads-list").droppable({
+    //    //accept: ".sortable-item",
+    //    scope: "lead",
+    //    hoverClass: "ui-state-highlight",
+    //    tolerance: "pointer",
+    //    drop: function( event, ui ) {
+    //        ui.draggable.prependTo(this);
+    //        ui.draggable.removeAttr("style");
+    //    }
+    //});
+
+    //$('.rep-lead-list .sortable-item:not(.sorting-disabled)').draggable({
+    //    cursor: "move",
+    //    scope: "lead",
+    //    revert: "invalid",
+    //    helper: "clone",
+    //    cursorAt: { top: 0, left: 0 },
+    //    start: function(event, ui) {
+    //        $(this).hide();
+    //    }
+    //});
+
+    //$('.rep-lead-list').sortable({
+    //    connectWith: "#leads-list, .rep-lead-list",
+    //    cursor: "move",
+    //    dropOnEmpty: true,
+    //    revert: 'invalid',
+    //    placeholder: 'ui-state-highlight',
+    //    items: ".sortable-item:not(.sorting-disabled)",
+    //    cursorAt: { top: 0, left: 0 },
+    //    start: function (event, ui) {
+    //        //var $item = ui.helper;
+    //        //$item.css({  });
+    //        //$item.
+    //    },
+    //    stop: function (event, ui) {
+    //
+    //    },
+    //    over: function(event, ui){
+    //        if ($(this).accordion("option", "active") === 0) {
+    //            $(this).data("accordion-prev-active", "true"); // Accordion was previously active
+    //        }
+    //        else {
+    //            $(this).accordion("option", "active", 0); // Expand accordion
+    //            $(this).data("accordion-prev-active", "false"); // Accordion was not previously active
+    //        }
+    //    },
+    //    out: function(event, ui){
+    //        if ($(this).data("accordion-prev-active") === "false") {
+    //            $(this).accordion("option", "active", false); // Close accordion
+    //        }
+    //    }
+    //}).disableSelection();
+}
+
+function updatePriorityText(rep_id, priority) {
+    if (priority === '') {
+        var text = $('#unassigned-' + rep_id).text();
+        text = text.split(' ');
+        var new_priority = parseInt(text[1]) + 1;
+        $('#unassigned-' + rep_id).text("Unassigned: " + new_priority);
+    }
+
+    else if (priority === 'low') {
+        var text = $('#low-' + rep_id).text();
+        text = text.split(' ');
+        var new_priority = parseInt(text[1]) + 1;
+        $('#low-' + rep_id).text("Low: " + new_priority);
+    }
+
+    else if (priority === 'medium') {
+        var text = $('#med-' + rep_id).text();
+        text = text.split(' ');
+        var new_priority = parseInt(text[1]) + 1;
+        $('#med-' + rep_id).text("Medium: " + new_priority);
+    }
+
+    else if (priority === 'high') {
+        var text = $('#high-' + rep_id).text();
+        text = text.split(' ');
+        var new_priority = parseInt(text[1]) + 1;
+        $('#high-' + rep_id).text("High: " + new_priority);
+    }
 }
 
 function createHubspotContact(lead_id, element) {
@@ -100,36 +277,6 @@ function assignPriority(lead_id, element) {
     });
 }
 
-function updatePriorityText(rep_id, priority) {
-    if (priority === '') {
-        var text = $('#unassigned-' + rep_id).text();
-        text = text.split(' ');
-        var new_priority = parseInt(text[1]) + 1;
-        $('#unassigned-' + rep_id).text("Unassigned: " + new_priority);
-    }
-
-    else if (priority === 'low') {
-        var text = $('#low-' + rep_id).text();
-        text = text.split(' ');
-        var new_priority = parseInt(text[1]) + 1;
-        $('#low-' + rep_id).text("Low: " + new_priority);
-    }
-
-    else if (priority === 'medium') {
-        var text = $('#med-' + rep_id).text();
-        text = text.split(' ');
-        var new_priority = parseInt(text[1]) + 1;
-        $('#med-' + rep_id).text("Medium: " + new_priority);
-    }
-
-    else if (priority === 'high') {
-        var text = $('#high-' + rep_id).text();
-        text = text.split(' ');
-        var new_priority = parseInt(text[1]) + 1;
-        $('#high-' + rep_id).text("High: " + new_priority);
-    }
-}
-
 // --- Leads Search, Edit, and Delete --- //
 
 Drupal.behaviors.acrocrm_leads = {
@@ -168,9 +315,10 @@ Drupal.behaviors.acrocrm_leads = {
 
         function loadLeadList(event) {
             var target = $(event.currentTarget);
-            var url = $('#lead-search').data('url');
+            var lead_search = $('#lead-search');
+            var url = lead_search.data('url');
             var group = target.data('group');
-            var lead_search_box = $('#lead-search input');
+            var lead_search_box = lead_search.find('input');
             var value = '';
             var params = '';
 
@@ -187,39 +335,39 @@ Drupal.behaviors.acrocrm_leads = {
                 }
             }
 
-            var spinner_opts = {
-                lines: 13 // The number of lines to draw
-                , length: 28 // The length of each line
-                , width: 14 // The line thickness
-                , radius: 42 // The radius of the inner circle
-                , scale: 0.25 // Scales overall size of the spinner
-                , corners: 0 // Corner roundness (0..1)
-                , color: '#000' // #rgb or #rrggbb or array of colors
-                , opacity: 0.25 // Opacity of the lines
-                , rotate: 0 // The rotation offset
-                , direction: 1 // 1: clockwise, -1: counterclockwise
-                , speed: 1.5 // Rounds per second
-                , trail: 60 // Afterglow percentage
-                , fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
-                , zIndex: 2e9 // The z-index (defaults to 2000000000)
-                , className: 'spinner' // The CSS class to assign to the spinner
-                , top: '190%' // Top position relative to parent
-                , left: '50%' // Left position relative to parent
-                , shadow: false // Whether to render a shadow
-                , hwaccel: false // Whether to use hardware acceleration
-                , position: 'absolute' // Element positioning
-            };
+            //var spinner_opts = {
+            //    lines: 13 // The number of lines to draw
+            //    , length: 28 // The length of each line
+            //    , width: 14 // The line thickness
+            //    , radius: 42 // The radius of the inner circle
+            //    , scale: 0.25 // Scales overall size of the spinner
+            //    , corners: 0 // Corner roundness (0..1)
+            //    , color: '#000' // #rgb or #rrggbb or array of colors
+            //    , opacity: 0.25 // Opacity of the lines
+            //    , rotate: 0 // The rotation offset
+            //    , direction: 1 // 1: clockwise, -1: counterclockwise
+            //    , speed: 1.5 // Rounds per second
+            //    , trail: 60 // Afterglow percentage
+            //    , fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+            //    , zIndex: 2e9 // The z-index (defaults to 2000000000)
+            //    , className: 'spinner' // The CSS class to assign to the spinner
+            //    , top: '190%' // Top position relative to parent
+            //    , left: '50%' // Left position relative to parent
+            //    , shadow: false // Whether to render a shadow
+            //    , hwaccel: false // Whether to use hardware acceleration
+            //    , position: 'absolute' // Element positioning
+            //};
+            //
+            //var spinner = new Spinner(spinner_opts).spin();
+            //var lead_list = $('#leads-list');
+            //lead_list.html(spinner.el);
 
-            var spinner = new Spinner(spinner_opts).spin();
             var lead_list = $('#leads-list');
-            lead_list.html(spinner.el);
+            lead_search.find('img').show();
+            lead_search.find('.glyphicon-search').hide();
 
             lead_list.load(url + params, function(response, status, xhr) {
-                if (status == "error") {
-                    $('#leads-list').html("<div class='lead-list-message-div'>Sorry but there was an error: " + xhr.status + " " + xhr.statusText + "</div>");
-                    return false;
-                }
-                else if (status == "success") {
+                if (status == "success") {
                     loadInteractions();
 
                     if (group != null) {
@@ -243,6 +391,12 @@ Drupal.behaviors.acrocrm_leads = {
                         }
                     }
                 }
+                else if (status == "error") {
+                    $('#leads-list').html("<div class='lead-list-message-div'>Sorry but there was an error: " + xhr.status + " " + xhr.statusText + "</div>");
+                }
+
+                lead_search.find('img').hide();
+                lead_search.find('.glyphicon-search').show();
             });
         }
 

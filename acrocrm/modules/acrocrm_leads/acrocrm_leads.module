@@ -28,152 +28,88 @@ function acrocrm_leads_help($path, $arg) {
  * Implements hook_menu
  */
 function acrocrm_leads_menu() {
-  $items = array();
+    $items = array();
 
-  $items['acrocrm_leads/overview'] = array(
-    'title' => 'AcroCRM Leads Overview',
-    'description' => 'AcroCRM Leads Overview',
-    'page callback' => 'acrocrm_leads_overview_page',
-    'access arguments' => array('access acrocrm'),
-    'file' => 'includes/acrocrm_leads.pages.inc'
-  );
+    $items['acrocrm_leads/overview'] = array(
+        'title' => 'AcroCRM Leads Overview',
+        'description' => 'AcroCRM Leads Overview',
+        'page callback' => 'acrocrm_leads_overview_page',
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc'
+    );
 
-  $items['acrocrm_leads/new_lead'] = array(
-      'title' => 'AcroCRM New Lead',
-      'description' => 'AcroCRM New Lead Page',
-      'page callback' => 'acrocrm_leads_new_lead_page',
-      'access arguments' => array('access acrocrm'),
-      'file' => 'includes/acrocrm_leads.pages.inc',
-  );
+    $items['acrocrm_leads/new_lead'] = array(
+        'title' => 'AcroCRM New Lead',
+        'description' => 'AcroCRM New Lead Page',
+        'page callback' => 'acrocrm_leads_new_lead_page',
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc',
+    );
 
-  $items['acrocrm_leads/my_leads'] = array(
-      'title' => 'AcroCRM My Leads',
-      'description' => 'AcroCRM My Leads',
-      'page callback' => 'acrocrm_leads_my_leads_page',
-      'access arguments' => array('access acrocrm'),
-      'file' => 'includes/acrocrm_leads.pages.inc',
-  );
+    $items['acrocrm_leads/my_leads'] = array(
+        'title' => 'AcroCRM My Leads',
+        'description' => 'AcroCRM My Leads',
+        'page callback' => 'acrocrm_leads_my_leads_page',
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc',
+    );
 
-  $items['acrocrm_leads/filter_leads'] = array(
-      'page arguments' => array(2, 3),
-      'access callback' => TRUE,
-      'page callback' => 'acrocrm_leads_filter_leads_ajax',
-      'type' => MENU_CALLBACK,
-      'access arguments' => array('access acrocrm'),
-      'file' => 'includes/acrocrm_leads.pages.inc',
-  );
+    $items['acrocrm_leads/filter_leads'] = array(
+        'page callback' => 'acrocrm_leads_filter_leads_ajax',
+        'page arguments' => array(2, 3),
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc',
+    );
 
-  $items['acrocrm_leads/edit_lead'] = array(
-      'page arguments' => array(2, 3),
-      'access callback' => TRUE,
-      'page callback' => 'acrocrm_leads_edit_lead_ajax',
-      'type' => MENU_CALLBACK,
-      'access arguments' => array('access acrocrm'),
-      'file' => 'includes/acrocrm_leads.pages.inc',
-  );
+    $items['acrocrm_leads/edit_lead'] = array(
+        'page callback' => 'acrocrm_leads_edit_lead_ajax',
+        'page arguments' => array(2, 3),
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc',
+    );
 
-  $items['acrocrm_leads/delete_lead'] = array(
-      'page arguments' => array(2, 3),
-      'access callback' => TRUE,
-      'page callback' => 'acrocrm_leads_delete_lead_ajax',
-      'type' => MENU_CALLBACK,
-      'access arguments' => array('access acrocrm'),
-      'file' => 'includes/acrocrm_leads.pages.inc',
-  );
+    $items['acrocrm_leads/delete_lead'] = array(
+        'page callback' => 'acrocrm_leads_delete_lead_ajax',
+        'page arguments' => array(2, 3),
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc',
+    );
 
-  $items['admin/config/acrocrm/acrocrm_leads'] = array(
-    'title' => 'AcroCRM Leads Contact form',
-    'description' => 'Configuration for the AcroCRM Leads Contact form',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('acrocrm_leads_contact_form_settings_form'),
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/acrocrm_leads.forms.inc',
-    'type' => MENU_NORMAL_ITEM
-  );
+    $items['acrocrm_leads/assign_lead'] = array(
+        'page callback' => 'acrocrm_leads_ajax_get_ajax',
+        'access callback' => TRUE,
+        'page arguments' => array(2, 3),
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc',
+    );
 
-  $items['acrocrm_leads/assign_lead'] = array(
-      'page callback' => 'acrocrm_leads_ajax_get_ajax',
-      'page arguments' => array(3),
-      'type' => MENU_CALLBACK,
-      'access arguments' => array('access acrocrm'),
-  );
+    $items['acrocrm_leads/assign_lead_priority'] = array(
+        'page callback' => 'acrocrm_leads_priority_ajax_get_ajax',
+        'page arguments' => array(3),
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc',
+    );
 
-  $items['acrocrm_leads/assign_lead_priority'] = array(
-      'page callback' => 'acrocrm_leads_priority_ajax_get_ajax',
-      'page arguments' => array(3),
-      'type' => MENU_CALLBACK,
-      'access arguments' => array('access acrocrm'),
-  );
+    $items['admin/config/acrocrm/acrocrm_leads'] = array(
+        'title' => 'AcroCRM Leads Contact form',
+        'description' => 'Configuration for the AcroCRM Leads Contact form',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('acrocrm_leads_contact_form_settings_form'),
+        'access arguments' => array('access administration pages'),
+        'file' => 'includes/acrocrm_leads.forms.inc',
+        'type' => MENU_NORMAL_ITEM
+    );
 
   return $items;
-}
-
-function acrocrm_leads_ajax_get_ajax() {
-
-    // The function will receive the array of arguments after the "get/ajax" prefix
-    $path = implode('/', func_get_args());
-    $path = explode('/', $path);
-
-    // lead id is at index 1
-    $lead_id = $path[1];
-    // rep id is at index 0
-    $rep_id = $path[0];
-
-    // check to see if the lead is already assigned to someone
-    $check_exists = db_query('SELECT * FROM assigned_leads WHERE lead_id=:id', array(':id' => $lead_id));
-
-    // if lead exists just update assignment
-    if ($check_exists->rowCount() > 0) {
-        $update_assignment = db_update('assigned_leads')
-        ->fields(array(
-          'uid' => $rep_id
-        ))
-        ->condition('lead_id', $lead_id, '=')
-        ->execute();
-    }
-    // else insert the assigned lead and assign to correct sales rep
-    else {
-        $assign_lead = db_insert('assigned_leads')
-        ->fields(array(
-            'uid' => $rep_id,
-            'lead_id' => $lead_id
-        ))
-        ->execute();
-    }
-
-    // get the priority of the newly assigned lead so we can update the priority counts on the lead overview page
-    $get_priority = db_query('SELECT priority FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
-
-    $priority = $get_priority->fetchAssoc();
-
-    print $priority["priority"];
-
-}
-
-function acrocrm_leads_priority_ajax_get_ajax() {
-  $path = implode('/', func_get_args());
-  $path = explode('/', $path);
-  print_r($path);
-  // lead_id is at index 1
-  $lead_id = $path[1];
-  // priority is at index 0
-  $priority = $path[0];
-
-  $check_exists = db_query('SELECT * FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
-
-  if ($priority === 'unassigned') {
-    $priority = '';
-  }
-
-  if ($check_exists->rowCount() > 0) {
-    db_update('leads')
-      ->fields(array(
-        'priority' => $priority
-      ))
-      ->condition('lead_id', $lead_id, '=')
-      ->execute();
-  }
-
 }
 
 function acrocrm_leads_theme() {
