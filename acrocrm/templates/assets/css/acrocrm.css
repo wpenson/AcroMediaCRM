@@ -43,9 +43,9 @@ h1, h2, h3 {
     padding: 10px 10px 0px 10px;
 }
 
-#lead-search {
+.filter-header {
     padding: 10px;
-    background-color: #fafafa;
+    background-color: #f8f8f8;
     border: 1px solid #ddd;
     display: block;
 }
@@ -107,6 +107,10 @@ input.form-submit {
     border-radius: 0;
 }
 
+#leads-list .list-group-item:first-of-type, .sales-rep-list .list-group-item:first-of-type {
+    border-top: none !important;
+}
+
 .lead-search-dropdown-check {
     margin-right: 5px;
 }
@@ -126,10 +130,6 @@ input.form-submit {
 
 .ui-sortable-handle {
     /*margin: 30px 0px;*/
-}
-
-.accordion-btn {
-    margin-top: -10px;
 }
 
 .vertical-alignment-helper {
@@ -153,20 +153,47 @@ input.form-submit {
 }
 
 .search-spinner {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     display: none;
+}
+
+.ball-indicator {
+    background-size: 14px 14px;
+    height: 14px;
+    width: 14px;
+    display: inline-block;
+}
+
+.grey-ball {
+    background-image: url("../images/grey-ball.png");
+}
+
+.green-ball {
+    background-image: url("../images/green-ball.png");
+}
+
+.yellow-ball {
+    background-image: url("../images/yellow-ball.png");
+}
+
+.red-ball {
+    background-image: url("../images/red-ball.png");
 }
 
 /*.header-accordion:hover > div {*/
     /*display: block;*/
 /*}*/
-#leads-list > .list-group-item {
+.unassigned-lead, .unapproved-lead, .unapproved-lead > h5 {
     cursor: move;
 }
 
 .no-assigned-leads {
     margin-top: 5px;
+}
+
+#leads-list > .list-group-item {
+    background-color: transparent;
 }
 
 .sales-rep > h4 {
@@ -176,8 +203,16 @@ input.form-submit {
     margin: 0px;
 }
 
-.sales-rep > h4:hover {
-    background-color: #edf6ff;
+.sales-rep > h4:hover, .sales-rep-open {
+    background-color: #e0e0e0;
+}
+
+.sales-rep-closed {
+    background-color: #f8f8f8;
+}
+
+.sales-rep-hover {
+    background-color: transparent !important;
 }
 
 .sales-rep-list > .list-group-item {
@@ -185,8 +220,9 @@ input.form-submit {
 }
 
 .sales-rep-lead-list {
-    margin: 0px 15px 8px 15px !important;
-    border-top: 1px dashed #ddd !important;
+    margin: 0px 15px 18px 15px !important;
+    padding-top: 10px !important;
+    /*border-top: 1px dashed #ddd !important;*/
 }
 
 .sales-rep-lead-list > .list-group-item {
@@ -196,12 +232,12 @@ input.form-submit {
 }
 
 .sales-rep-lead-list > .list-group-item .btn {
-    margin-top: 6px;
+    margin-top: -4px;
 }
 
 .ui-state-highlight {
     outline: 1px solid #5cb85c;
-    background-color: #f8fff7;
+    background-color: #f3fff3 !important;
     height: auto;
     width: auto;
     z-index: 100;
@@ -217,6 +253,7 @@ input.form-submit {
 
 .dragging-lead {
     border: 1px dashed #555555;
+    background-color: #ffffff;
     -webkit-border-radius: 0 !important;
     -moz-border-radius: 0 !important;
     border-radius: 0 !important;

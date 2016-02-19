@@ -15,7 +15,7 @@ function acrocrm_leads_overview_page() {
     return theme('acrocrm_leads_home', array('page' => $page));
 }
 
-function acrocrm_leads_ajax_get_ajax($rep_id, $lead_id) {
+function acrocrm_leads_assign_lead_ajax($rep_id, $lead_id) {
     // check to see if the lead is already assigned to someone
     $check_exists = db_query('SELECT * FROM assigned_leads WHERE lead_id=:id', array(':id' => $lead_id));
 
@@ -38,15 +38,31 @@ function acrocrm_leads_ajax_get_ajax($rep_id, $lead_id) {
             ->execute();
     }
 
+    $leads_list = '';
+    acrocrm_leads_generate_sales_rep_lead_list($rep_id, $leads_list);
+    print $leads_list;
 
+
+    // TODO: Create a separate callback for querying priorities.
     // get the priority of the newly assigned lead so we can update the priority counts on the lead overview page
 //    $get_priority = db_query('SELECT priority FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
 //
 //    $priority = $get_priority->fetchAssoc();
 //
 //    print $priority["priority"];
+}
 
+function acrocrm_leads_unassign_lead_ajax($lead_id) {
+    // Delete the lead assignments from the assignment table
+    db_delete('assigned_leads')
+        ->condition('lead_id', $lead_id)
+        ->execute();
 
+   // acrocrm_leads_filter_leads_ajax();
+
+//    $leads_list = '';
+//    acrocrm_leads_generate_sales_rep_lead_list($rep_id, $leads_list);
+//    print $leads_list;
 }
 
 function acrocrm_leads_priority_ajax_get_ajax() {
@@ -311,21 +327,30 @@ function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
     // Build query
     $leads_query = db_select('leads', 'l');
     $leads_query->fields('l');
+    $assigned_fields = false;
 
     if ($_SESSION['lead_show_pref'] == 'unassigned') {
+        $leads_query->condition('l.status', 'DELETED', '<>');
         $leads_query->leftJoin('assigned_leads', 'al', 'l.lead_id = al.lead_id');
         $leads_query->isNull('al.lead_id');
     }
     else if ($_SESSION['lead_show_pref'] == 'assigned') {
         $leads_query->innerJoin('assigned_leads', 'al', 'l.lead_id = al.lead_id');
+        $leads_query->fields('al', array('uid'));
+        $assigned_fields = true;
     }
     else if ($_SESSION['lead_show_pref'] == 'deleted') {
         $leads_query->condition('l.status', 'DELETED', '=');
     }
+    else {
+        $leads_query->leftJoin('assigned_leads', 'al', 'l.lead_id = al.lead_id');
+        $leads_query->fields('al', array('uid'));
+        $assigned_fields = true;
+    }
 
     if ($_SESSION['lead_search_val'] != '') {
         if ($_SESSION['lead_search_pref'] == 'created_time' || $_SESSION['lead_search_val'] == 'modified_time') {
-            // TODO
+            // TODO: Add filtering by dates
         }
         else if ($_SESSION['lead_search_pref'] == 'name') {
             $name = explode(' ', $_SESSION['lead_search_val']);
@@ -365,21 +390,28 @@ function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
 
     if ($leads_query->rowCount() > 0) {
         while ($lead = $leads_query->fetchAssoc()) {
-            $leads[] = array(
+            $arr_entry = array(
                 'lead_id' => $lead['lead_id'],
                 'firstname' => $lead['firstname'],
                 'name' => $lead['name'],
                 'email' => $lead['email'],
                 'phone' => $lead['phone'],
                 'comments' => $lead['comments'],
-                'priority' => $lead['priority']
+                'priority' => $lead['priority'],
+                'status' => $lead['status']
             );
+
+            if ($assigned_fields === true) {
+                $arr_entry['rep_id'] = $lead['uid'];
+            }
+
+            $leads[] = $arr_entry;
         }
 
         echo acrocrm_leads_generate_leads_list_html($leads);
     }
     else {
-       echo '<div class="lead-list-message-div">No Leads Found</div>';
+        echo '<div class="lead-list-message-div">No Leads Found</div>';
     }
 }
 
@@ -441,6 +473,9 @@ function acrocrm_leads_delete_lead_ajax($lead_id, $redirect_page) {
         ->condition('lead_id', $lead_id, '=')
         ->execute();
 
+    // TODO: Remove assignments
+    // TODO: Somehow we have to be able to recover a deleted lead
+
     drupal_goto($path = "/acrocrm_leads/" . $redirect_page);
 }
 
@@ -451,51 +486,51 @@ function acrocrm_leads_generate_leads_html($leads) {
     $search_div = '';
 
     $search_div =
-        '<div id="lead-search" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
-				<div class="input-group">
-					<input type="text" class="form-control" aria-label="..." placeholder="">
-					<div class="input-group-btn">
-						<button type="button" id="lead-search-button" class="btn btn-default">
-							<img class="search-spinner" src="' . base_path() . drupal_get_path('module', 'acrocrm') . '/templates/assets/images/spinner.gif"><i class="glyphicon glyphicon-search"></i>
-						</button>
-						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<span class="caret"></span>
-						</button>
-						<ul class="dropdown-menu dropdown-menu-right" style="z-index: 1;">
-							<li>&nbsp;&nbsp;<b>Search by</b></li>
-							<li><a href="#" class="lead-filter" data-group="search-field" data-value="name">Name</a></li>
-							<li><a href="#" class="lead-filter" data-group="search-field" data-value="email">Email</a></li>
-							<li><a href="#" class="lead-filter" data-group="search-field" data-value="phone">Phone</a></li>
-							<li><a href="#" class="lead-filter" data-group="search-field" data-value="comments">Comments</a></li>
+        '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
+            <div class="input-group">
+                <input type="text" class="form-control" aria-label="..." placeholder="">
+                <div class="input-group-btn">
+                    <button type="button" id="lead-search-button" class="btn btn-default">
+                        <img class="search-spinner" src="' . base_path() . drupal_get_path('module', 'acrocrm') . '/templates/assets/images/spinner.gif"><i class="glyphicon glyphicon-search"></i>
+                    </button>
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right" style="z-index: 1;">
+                        <li>&nbsp;&nbsp;<b>Search by</b></li>
+                        <li><a href="#" class="lead-filter" data-group="search-field" data-value="name">Name</a></li>
+                        <li><a href="#" class="lead-filter" data-group="search-field" data-value="email">Email</a></li>
+                        <li><a href="#" class="lead-filter" data-group="search-field" data-value="phone">Phone</a></li>
+                        <li><a href="#" class="lead-filter" data-group="search-field" data-value="comments">Comments</a></li>
 
-							<li role="separator" class="divider"></li>
+                        <li role="separator" class="divider"></li>
 
-							<li>&nbsp;&nbsp;<b>Show</b></li>
-							<li><a href="#" class="lead-filter" data-group="show" data-value="all">All</a></li>
-							<li><a href="#" class="lead-filter" data-group="show" data-value="assigned">Assigned</a></li>
-							<li><a href="#" class="lead-filter" data-group="show" data-value="unassigned">Unassigned</a></li>
-							<li><a href="#" class="lead-filter" data-group="show" data-value="deleted">Deleted</a></li>
+                        <li>&nbsp;&nbsp;<b>Show</b></li>
+                        <li><a href="#" class="lead-filter" data-group="show" data-value="all">All</a></li>
+                        <li><a href="#" class="lead-filter" data-group="show" data-value="assigned">Assigned</a></li>
+                        <li><a href="#" class="lead-filter" data-group="show" data-value="unassigned">Unassigned</a></li>
+                        <li><a href="#" class="lead-filter" data-group="show" data-value="deleted">Deleted</a></li>
 
-							<li role="separator" class="divider"></li>
+                        <li role="separator" class="divider"></li>
 
-							<li>
-							    &nbsp;&nbsp;
-							    <b>Sort by</b>
-							    &nbsp;
-							    <span class="btn-group btn-group-xs pull-right" role="group" style="margin-right: 5px;">
-							        <button type="button" class="lead-filter btn btn-default" data-group="sort-order" data-value="asc">Asc</button>
-							        <button type="button" class="lead-filter btn btn-default" data-group="sort-order" data-value="desc">Desc</button>
-							    </span>
-							</li>
-							<li><a href="#" class="lead-filter" data-group="sort" data-value="created_time">Date Created</a></li>
-							<li><a href="#" class="lead-filter" data-group="sort" data-value="modified_time">Date Modified</a></li>
-							<li><a href="#" class="lead-filter" data-group="sort" data-value="priority">Priority</a></li>
-							<li><a href="#" class="lead-filter" data-group="sort" data-value="name">Last Name</a></li>
-							<li><a href="#" class="lead-filter" data-group="sort" data-value="email">Email</a></li>
-						</ul>
-					</div>
-				</div>
-			</div>';
+                        <li>
+                            &nbsp;&nbsp;
+                            <b>Sort by</b>
+                            &nbsp;
+                            <span class="btn-group btn-group-xs pull-right" role="group" style="margin-right: 5px;">
+                                <button type="button" class="lead-filter btn btn-default" data-group="sort-order" data-value="asc">Asc</button>
+                                <button type="button" class="lead-filter btn btn-default" data-group="sort-order" data-value="desc">Desc</button>
+                            </span>
+                        </li>
+                        <li><a href="#" class="lead-filter" data-group="sort" data-value="created_time">Date Created</a></li>
+                        <li><a href="#" class="lead-filter" data-group="sort" data-value="modified_time">Date Modified</a></li>
+                        <li><a href="#" class="lead-filter" data-group="sort" data-value="priority">Priority</a></li>
+                        <li><a href="#" class="lead-filter" data-group="sort" data-value="name">Last Name</a></li>
+                        <li><a href="#" class="lead-filter" data-group="sort" data-value="email">Email</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>';
 
     drupal_session_start();
 
@@ -564,8 +599,8 @@ function acrocrm_leads_generate_leads_html($leads) {
 			</div>
 		</div>';
 
-    $leads_list = '<div id="leads-list"></div>';
-    $leads_div = '<div class="list-group col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
+    $leads_list = '<ul id="leads-list" class="list-group"></ul>';
+    $leads_div = '<div class="col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
 
     return $leads_div;
 }
@@ -574,24 +609,60 @@ function acrocrm_leads_generate_leads_list_html(&$leads) {
     $leads_list = '';
 
     foreach ($leads as $lead) {
-        $leads_list .= '<div id="' . $lead['lead_id'] . '" class="list-group-item sortable-item" href="javascript:void(0)">';
+        if (strlen($lead['firstname']) > 0) {
+            $lead_name = $lead['firstname'] . ' ' . $lead['name'];
+        }
+        else {
+            $lead_name = $lead['name'];
+        }
+
+        $assigned = (isset($lead['rep_id']) && $lead['rep_id'] != NULL) ? true : false;
+
+        if ($assigned === true) {
+            $lead_status = 'Assigned';
+            $ball_indicator = 'yellow-ball';
+        }
+
+        switch ($lead['status']) {
+            case 'APPROVED':
+                $lead_status = 'Assigned and Approved';
+                $ball_indicator = 'green-ball';
+                break;
+            case 'UNAPPROVED':
+                if ($assigned !== true) {
+                    $lead_status = 'Not Assigned and Not Approved';
+                    $ball_indicator = 'grey-ball';
+                }
+                else {
+                    $lead_status = 'Assigned but Not Approved';
+                }
+                break;
+            case 'DELETED':
+                $lead_status = 'Deleted';
+                $ball_indicator = 'red-ball';
+                break;
+            default:
+                continue;
+        }
+
+        $leads_list .= '<li data-lead-id="' . $lead['lead_id'] . '" class="list-group-item' . (($assigned !== true && $lead_status !== 'Deleted') ? ' unassigned-lead' : '') . '" data-url="' . base_path() . 'acrocrm_leads/" href="javascript:void(0)">';
 
         $leads_list .= '<div class="pull-right text-right">';
         $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
-        $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
-        $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/overview' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+        $leads_list .= '<button data-tooltip="tooltip" title="Edit Lead" type="button" class="edit-lead-button btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
+        $leads_list .= '<button data-tooltip="tooltip" title="Delete Lead" type="button" class="delete-lead-button btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/overview' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+        $leads_list .= '</div>';
         $leads_list .= '</div>';
 
-        $leads_list .= '</div>';
-
-        if (strlen($lead['firstname']) > 0) {
-            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['firstname'] . ' ' . $lead['name'] . '</h4>';
-        } else {
-            $leads_list .= '<h4 class="list-group-item-heading">' . $lead['name'] . '</h4>';
-        }
+        $leads_list .= '<h4 class="list-group-item-heading">';
+        $leads_list .= $lead_name;
+        $leads_list .= ' <span data-tooltip="tooltip" title="' . $lead_status . '" class="ball-indicator ' . $ball_indicator . '"></span>';
+        $leads_list .= '</h4>';
 
         $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
         $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+
+        // TODO: Make priority dropdown into 4 styled radio buttons instead
         $priority = $lead['priority'];
         $leads_list .= '<p class="list-group-item-text"><strong>Priority: </strong>';
         $leads_list .= '<select class="set-priority input-group" onchange="assignPriority('. $lead['lead_id'] .', this)">';
@@ -617,7 +688,7 @@ function acrocrm_leads_generate_leads_list_html(&$leads) {
         $leads_list .= '>high</option>';
         $leads_list .= '</select></p>';
         $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
-        $leads_list .= '</div>';
+        $leads_list .= '</li>';
     }
 
     return $leads_list;
@@ -626,6 +697,7 @@ function acrocrm_leads_generate_leads_list_html(&$leads) {
 /*
  * Create the HTML to display a lead on the my leads page.
  */
+// TODO: Try to amalgamate this function into acrocrm_leads_generate_leads_html as it is mostly redundant and old code
 function acrocrm_leads_my_leads_generate_leads_html($leads, $search_bar, $page_name) {
     $search_div = '';
 
@@ -699,7 +771,6 @@ function acrocrm_leads_my_leads_generate_leads_html($leads, $search_bar, $page_n
 
     if (count($leads) > 0) {
         foreach ($leads as $lead) {
-            //$leads_list .= '<div id="lead_' . $lead['lead_id'] . '_container" href="javascript:void(0)">';
             $leads_list .= '<div id="' . $lead['lead_id'] . '">';
 
             $leads_list .= '<div class="pull-right text-right">';
@@ -763,109 +834,168 @@ function acrocrm_leads_my_leads_generate_leads_html($leads, $search_bar, $page_n
  * Get a list of all sales reps and create html to display sales reps
  */
 function acrocrm_leads_get_sales_reps() {
-    $users = entity_load('user');
+    // TODO: Add buttons/dropdowns and functionality to the filter bar. Need date range, collapse all, open all, send to hubspot, email, etc.
+    $filter_bar =
+        '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
+            <div class="input-group">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="button" class="btn btn-default">1</button>
+                    <button type="button" class="btn btn-default">2</button>
 
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Dropdown
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Dropdown link</a></li>
+                            <li><a href="#">Dropdown link</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>';
+
+    $users = entity_load('user');
     $rep_div = '';
 
     foreach ($users as $user) {
-        $leads_list = '';
-
         if (user_access('sales rep', $user)) {
-            $assigned_leads = db_select('assigned_leads', 'lead_id')
-                ->fields('lead_id')
-                ->condition('uid', $user->uid, '=')
-                ->execute();
+            $leads_list = '';
+            $priorities = acrocrm_leads_generate_sales_rep_lead_list($user->uid, $leads_list);
 
-            $lead_ids = array();
+            $rep_div .= '<li data-rep-id="' . $user->uid . '" class="list-group-item sales-rep">';
+            $rep_div .= '    <h4 class="list-group-item-heading  sorting-disabled sales-rep-closed">' . $user->name;
+            $rep_div .= '        <span class="pull-right">';
+            $rep_div .= '           <span data-tooltip="tooltip" title="High Priority" id="high-' . $user->uid .'" class="high-priority priority-indicator">' . $priorities['high'] . '</span>';
+            $rep_div .= '           <span data-tooltip="tooltip" title="Medium Priority" id="med-' . $user->uid .'" class="med-priority priority-indicator">' . $priorities['med'] . '</span>';
+            $rep_div .= '           <span data-tooltip="tooltip" title="Low Priority" id="low-' . $user->uid .'" class="low-priority priority-indicator">' . $priorities['low'] . '</span>';
+            $rep_div .= '           <span data-tooltip="tooltip" title="Undefined Priority" id="unassigned-' . $user->uid .'" class="priority-indicator">' . $priorities['unassigned'] . '</span>';
+            $rep_div .= '        </span>';
+            $rep_div .= '    </h4>';
 
-            while ($lead_id = $assigned_leads->fetchAssoc()) {
-                array_push($lead_ids, $lead_id["lead_id"]);
-            }
-
-            // keep track of the priority for each type of lead -> will be displayed next to rep's name
-            $unassigned_priority = 0;
-            $low_priority = 0;
-            $med_priority = 0;
-            $high_priority = 0;
-
-            if (count($lead_ids) > 0) {
-                $leads = db_select('leads', 'l')
-                    ->fields('l')
-                    ->condition('lead_id', $lead_ids, 'IN')
-                    ->orderBy('priority', 'ASC')
-                    ->execute();
-
-                if ($leads->rowCount() > 0) {
-                    while ($lead = $leads->fetchAssoc()) {
-                        $leads_list .= '<li id="' . $lead['lead_id'] . '" class="list-group-item list-accordion sortable-item">';
-
-                        if (strlen($lead['firstname']) > 0) {
-                            $leads_list .= '<h5>' . $lead['firstname'] . ' ' . $lead['name'];
-                        } else {
-                            $leads_list .= '<h5>' . $lead['name'];
-                        }
-
-                        $leads_list .= '<div class="pull-right text-right accordion-btn">';
-                        $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
-                        $leads_list .= '<button type="button" class="btn btn-xs btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
-                        $leads_list .= '<button type="button" class="btn btn-xs btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/overview' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
-                        $leads_list .= '</div></div>';
-                        $leads_list .= '</h5>';
-
-                        // start accordion div
-                        $leads_list .= '<div>';
-                        $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
-                        $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
-
-                        // determine what the priority of the lead is so we can show it in the rep div
-                        $priority = $lead['priority'];
-                        if ($priority == '') {
-                            $unassigned_priority += 1;
-                        }
-                        else if ($priority == 'low') {
-                            $low_priority += 1;
-                        }
-                        else if ($priority == 'medium') {
-                            $med_priority += 1;
-                        }
-                        else if ($priority == 'high') {
-                            $high_priority += 1;
-                        }
-
-                        $leads_list .= '<p class="list-group-item-text"><strong>Priority: </strong>' . $priority . '</p>';
-                        $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
-                        $leads_list .= '</div>';
-
-                        $leads_list .= '</li>';
-                    }
-                }
-            }
-            else {
-                $leads_list .= '<li class="list-group-item no-assigned-leads">No Assigned Leads</li>';
-            }
-
-            $rep_div .= '<li id="' . $user->uid . '" class="list-group-item sales-rep" data-url="' . base_path() . 'acrocrm_leads/assign_lead/">';
-            $rep_div .= '<h4 class="list-group-item-heading sortable-item sorting-disabled">' . $user->name;
-            $rep_div .= '  <span class="pull-right">';
-            $rep_div .= '    <span data-toggle="tooltip" title="High Priority" id="high-' . $user->uid .'" class="high-priority priority-indicator">' . $high_priority . '</span>';
-            $rep_div .= '    <span data-toggle="tooltip" title="Medium Priority" id="med-' . $user->uid .'" class="med-priority priority-indicator">' . $med_priority . '</span>';
-            $rep_div .= '    <span data-toggle="tooltip" title="Low Priority" id="low-' . $user->uid .'" class="low-priority priority-indicator">' . $low_priority . '</span>';
-            $rep_div .= '    <span data-toggle="tooltip" title="Undefined Priority" id="unassigned-' . $user->uid .'" class="priority-indicator">' . $unassigned_priority . '</span>';
-            $rep_div .= '  </span>';
-            $rep_div .= '</h4>';
-
-            $rep_div .= '<div>';
-            $rep_div .= '<ul class="list-group sales-rep-lead-list">';
-            $rep_div .= $leads_list;
-            $rep_div .= '</ul>';
-            $rep_div .= '</div>';
+            $rep_div .= '    <div>';
+            $rep_div .= '        <ul class="list-group sales-rep-lead-list">';
+            $rep_div .=             $leads_list;
+            $rep_div .= '        </ul>';
+            $rep_div .= '    </div>';
             $rep_div .= '</li>';
         }
     }
 
-    $sales_reps = '<ul class="list-group sales-rep-list col-md-6">' . $rep_div . '</ul>';
-
+    $sales_reps = '<div class="col-md-6">' . $filter_bar . '<ul class="list-group sales-rep-list">' . $rep_div . '</ul></div>';
     return $sales_reps;
+}
+
+function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_list) {
+    $leads_list = '';
+
+    $assigned_leads = db_select('assigned_leads', 'lead_id')
+        ->fields('lead_id')
+        ->condition('uid', $sales_rep_user_id, '=')
+        ->execute();
+
+    $lead_ids = array();
+
+    while ($lead_id = $assigned_leads->fetchAssoc()) {
+        array_push($lead_ids, $lead_id["lead_id"]);
+    }
+
+    // keep track of the priority for each type of lead -> will be displayed next to rep's name
+    $priorities['unassigned'] = 0;
+    $priorities['low'] = 0;
+    $priorities['med'] = 0;
+    $priorities['high'] = 0;
+
+    if (count($lead_ids) > 0) {
+        $leads = db_select('leads', 'l')
+            ->fields('l')
+            ->condition('lead_id', $lead_ids, 'IN')
+            ->orderBy('priority', 'ASC')
+            ->execute();
+
+        if ($leads->rowCount() > 0) {
+            while ($lead = $leads->fetchAssoc()) {
+                $leads_list .= '<li data-lead-id="' . $lead['lead_id'] . '" data-assigned-rep-id="' . $sales_rep_user_id . '" class="' . (($lead['status'] !== 'APPROVED') ? 'unapproved-lead ' : '') . 'list-group-item sales-rep-lead" data-url="' . base_path() . 'acrocrm_leads/">';
+
+                if (strlen($lead['firstname']) > 0) {
+                    $leads_list .= '<h5>' . $lead['firstname'] . ' ' . $lead['name'];
+                } else {
+                    $leads_list .= '<h5>' . $lead['name'];
+                }
+
+                $leads_list .= '<div class="pull-right text-right">';
+
+                if ($lead['status'] !== 'APPROVED') {
+                    $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
+                    $leads_list .= '<button data-tooltip="tooltip" title="Edit Lead" type="button" class="edit-lead-button btn btn-xs btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
+                    $leads_list .= '<button data-tooltip="tooltip" title="Delete Lead" type="button" class="delete-lead-button btn btn-xs btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/overview' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+                    $leads_list .= '</div>';
+                }
+                else {
+                    $leads_list .= '<span data-tooltip="tooltip" title="Approved" class="ball-indicator green-ball"></span>';
+                }
+
+                $leads_list .= '</div>';
+                $leads_list .= '</h5>';
+
+                // start accordion div
+                $leads_list .= '<div>';
+                $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
+                $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+
+                // determine what the priority of the lead is so we can show it in the rep div
+                $priority = $lead['priority'];
+                if ($priority == '') {
+                    $priorities['unassigned'] += 1;
+                }
+                else if ($priority == 'low') {
+                    $priorities['low'] += 1;
+                }
+                else if ($priority == 'medium') {
+                    $priorities['med'] += 1;
+                }
+                else if ($priority == 'high') {
+                    $priorities['high'] += 1;
+                }
+
+                // TODO: Make priority dropdown into 4 styled radio buttons instead
+                $leads_list .= '<p class="list-group-item-text"><strong>Priority: </strong>';
+                $leads_list .= '<select class="set-priority input-group" onchange="assignPriority('. $lead['lead_id'] .', this)">';
+                $leads_list .= '<option value="unassigned"';
+                if ($priority === '') {
+                    $leads_list .= ' selected ';
+                }
+                $leads_list .= '>unassigned</option>';
+                $leads_list .= '<option value="low"';
+                if ($priority === 'low') {
+                    $leads_list .= ' selected ';
+                }
+                $leads_list .= '>low</option>';
+                $leads_list .= '<option value="medium"';
+                if ($priority === 'medium') {
+                    $leads_list .= ' selected ';
+                }
+                $leads_list .= '>medium</option>';
+                $leads_list .= '<option value="high"';
+                if ($priority === 'high') {
+                    $leads_list .= ' selected ';
+                }
+                $leads_list .= '>high</option>';
+                $leads_list .= '</select></p>';
+
+                $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
+                $leads_list .= '</div>';
+
+                $leads_list .= '</li>';
+            }
+        }
+    }
+    else {
+        $leads_list .= '<li class="list-group-item no-assigned-leads">No Assigned Leads</li>';
+    }
+
+    return $priorities;
 }
 
 function acrocrm_leads_my_leads_page() {
@@ -1091,10 +1221,6 @@ function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
         ->fields('al')
         ->condition('lead_id', $form_state['values']['lead_id'], '=')
         ->execute();
-
-//    ini_set("log_errors", 1);
-//    ini_set("error_log", "/Users/wade/Desktop/php-error.log");
-//    error_log(print_r($form_state['values']['lead_id'], $return = true));
 
     if ($form_state['values']['assign'] != 0) {
         if ($check_exists->rowCount() > 0) {
