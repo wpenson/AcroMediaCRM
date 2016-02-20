@@ -38,18 +38,10 @@ function acrocrm_leads_assign_lead_ajax($rep_id, $lead_id) {
             ->execute();
     }
 
+    // regenerate leads list and print it out
     $leads_list = '';
     acrocrm_leads_generate_sales_rep_lead_list($rep_id, $leads_list);
     print $leads_list;
-
-
-    // TODO: Create a separate callback for querying priorities.
-    // get the priority of the newly assigned lead so we can update the priority counts on the lead overview page
-//    $get_priority = db_query('SELECT priority FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
-//
-//    $priority = $get_priority->fetchAssoc();
-//
-//    print $priority["priority"];
 }
 
 function acrocrm_leads_unassign_lead_ajax($lead_id) {
@@ -63,6 +55,28 @@ function acrocrm_leads_unassign_lead_ajax($lead_id) {
 //    $leads_list = '';
 //    acrocrm_leads_generate_sales_rep_lead_list($rep_id, $leads_list);
 //    print $leads_list;
+}
+
+/**
+ * Get the priority of a given lead
+ */
+function acrocrm_leads_get_lead_priority($lead_id) {
+    $check_exists = db_query('SELECT * FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
+
+    if ($check_exists->rowCount() > 0) {
+        $get_priority = db_query('SELECT priority FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
+
+        $priority = $get_priority->fetchAssoc();
+        if (strlen($priority["priority"]) == 0) {
+            print "unassigned";
+        }
+        else {
+            print $priority['priority'];
+        }
+    }
+    else {
+        print "error"; // error case
+    }
 }
 
 function acrocrm_leads_priority_ajax_get_ajax() {

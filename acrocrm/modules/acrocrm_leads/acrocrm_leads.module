@@ -90,6 +90,15 @@ function acrocrm_leads_menu() {
         'file' => 'includes/acrocrm_leads.pages.inc',
     );
 
+    $items['acrocrm_leads/get_lead_priority'] = array(
+        'page callback' => 'acrocrm_leads_get_lead_priority',
+        'access callback' => TRUE,
+        'page arguments' => array(2,3),
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc',
+    );
+
     $items['acrocrm_leads/unassign_lead'] = array(
         'page callback' => 'acrocrm_leads_unassign_lead_ajax',
         'access callback' => TRUE,
