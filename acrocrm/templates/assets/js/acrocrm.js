@@ -72,36 +72,39 @@ Drupal.behaviors.acrocrm_leads = {
                                 }
                             }
 
-                            // update priority counts
+                            // update priority counts for the rep that the lead was assigned to and if applicable the rep
+                            // that the lead was taken from
                             var url = lead_draggable.data("url") + 'get_lead_priority/';
                             var params = lead_draggable.data('lead-id');
                             $.get(url + params, function(response, status, xhr) {
                                 if (response == 'low') {
                                     $('#low-' + sales_rep.data('rep-id')).html(parseInt($('#low-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
-                                        $('#low-' + original_rep_id).html(parseInt($('#low-' + original_rep_id).html() + 1));
+                                        $('#low-' + original_rep_id).html(parseInt($('#low-' + original_rep_id).html()) - 1);
                                     }
                                 }
                                 else if (response == 'medium') {
                                     $('#med-' + sales_rep.data('rep-id')).html(parseInt($('#med-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
-                                        $('#med-' + original_rep_id).html(parseInt($('#med-' + original_rep_id).html() + 1));
+                                        $('#med-' + original_rep_id).html(parseInt($('#med-' + original_rep_id).html()) - 1);
                                     }
                                 }
                                 else if (response == 'high') {
                                     $('#high-' + sales_rep.data('rep-id')).html(parseInt($('#high-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
-                                        $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html() + 1));
+                                        $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) + 1);
                                     }
                                 }
                                 else if (response == 'unassigned') {
                                     $('#unassigned-' + sales_rep.data('rep-id')).html(parseInt($('#unassigned-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
-                                        $('#unassigned-' + original_rep_id).html(parseInt($('#unassigned-' + original_rep_id).html()) + 1);
+                                        $('#unassigned-' + original_rep_id).html(parseInt($('#unassigned-' + original_rep_id).html()) - 1);
                                     }
                                 }
                                 else {
                                     console.log('An error occurred when trying to get lead priority');
+                                    displayAlertMsg("error", 'An error occurred when trying to get lead priority, unable' +
+                                        'to update lead priority.')
                                 }
                             });
 
@@ -111,8 +114,7 @@ Drupal.behaviors.acrocrm_leads = {
                         else if (status == "error") {
                             event.preventDefault();
                             lead_draggable.show();
-
-                            // TODO: Show error message on top of page like the one when creating a lead
+                            displayAlertMsg("error", "Unable to assign lead.");
                         }
 
                         // TODO: Hide the loading indicator in the sales-rep-lead-list
@@ -173,14 +175,11 @@ Drupal.behaviors.acrocrm_leads = {
                             if (original_sales_rep.find("li").length == 0) {
                                 original_sales_rep.find('ul').html('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
                             }
-
-                            // TODO: Update priority counts for the sales rep it was taken from
                         }
                         else if (status == "error") {
                             event.preventDefault();
                             lead_draggable.show();
-
-                            // TODO: Show error message on top of page like the one when creating a lead
+                            displayAlertMsg("error", "Unable to assign lead.");
                         }
 
                         // TODO: Hide loading indicator for the leads-list
@@ -451,6 +450,28 @@ Drupal.behaviors.acrocrm_leads = {
                 },
                 dataType: 'text'
             });
+        }
+
+        // display message at the top of the content window
+        // valid message types are: 'error' (red), 'success' (green), 'warning' (yellow)
+        // msg type defaults to 'info' (blue) if none of these cases are matched
+        function displayAlertMsg(msgType, msg) {
+            var html = '<div class="col-md-12">';
+            if (msgType == 'error') {
+                html += '<div class="alert alert-danger">';
+            }
+            else if (msgType == 'success') {
+                html += '<div class="alert alert-success">';
+            }
+            else if (msgType == 'warning') {
+                html += '<div class="alert alert-warning">';
+            }
+            else {
+                html += '<div class="alert alert-info">';
+            }
+            html += msg;
+            html += '</div></div>';
+            $('#page-wrapper').prepend(html);
         }
     }
 };
