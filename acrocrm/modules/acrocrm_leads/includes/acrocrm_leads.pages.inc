@@ -846,6 +846,16 @@ function acrocrm_leads_my_leads_page() {
     // The messages appear after the form has been loaded.
     $page['content']['messages']['#markup'] = acrocrm_get_message_markup();
 
+
+    $params = array(
+        'subject' => "Test!",
+        'body' => "<p>Hello World</p>",
+    );
+
+    // Send out the e-mail.
+    drupal_mail('acrocrm_leads', 'acrocrm_leads_mail_example', "zacharias.holland@gmail.com", language_default(), $params);
+    drupal_set_message("Sent e-mail to example@example.com");
+
     return theme('acrocrm_leads_home', array('page' => $page));
 }
 

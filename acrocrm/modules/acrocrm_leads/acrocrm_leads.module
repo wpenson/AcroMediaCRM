@@ -332,3 +332,22 @@ function acrocrm_leads_contact_form_validate($form, &$form_state) {
     form_set_error('contact_email', t('You must enter a valid email address.'));
   }
 }
+
+/**
+ * Implementation of hook_mail().
+ */
+function acrocrm_leads_mail($key, &$message, $params) {
+
+    // Set the mail content type to html to send an html e-mail (optional).
+    $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+
+    // Grab the subject and body from params and add it to the message.
+    $message['subject'] = $params['subject'];
+    $message['body'][] = $params['body']; // Drupal 7
+
+    switch ($key) {
+        case "my_module_mail_example":
+            // Make other changes here if desired...
+            break;
+    }
+}
