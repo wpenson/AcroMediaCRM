@@ -178,6 +178,30 @@ Drupal.behaviors.acrocrm_leads = {
                             if (original_sales_rep.find("li").length == 0) {
                                 original_sales_rep.find('ul').html('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
                             }
+
+                            // update priority counts for the rep that the lead was assigned to and if applicable the rep
+                            // that the lead was taken from
+                            var url = lead_draggable.data("url") + 'get_lead_priority/';
+                            var params = lead_draggable.data('lead-id');
+                            $.get(url + params, function(response, status, xhr) {
+                                if (response == 'low') {
+                                    $('#low-' + original_rep_id).html(parseInt($('#low-' + original_rep_id).html()) - 1);
+                                }
+                                else if (response == 'medium') {
+                                    $('#med-' + original_rep_id).html(parseInt($('#med-' + original_rep_id).html()) - 1);
+                                }
+                                else if (response == 'high') {
+                                    $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) + 1);
+                                }
+                                else if (response == 'unassigned') {
+                                    $('#unassigned-' + original_rep_id).html(parseInt($('#unassigned-' + original_rep_id).html()) - 1);
+                                }
+                                else {
+                                    console.log('An error occurred when trying to get lead priority');
+                                    displayAlertMsg("error", 'An error occurred when trying to get lead priority, unable' +
+                                        'to update lead priority.')
+                                }
+                            });
                         }
                         else if (status == "error") {
                             event.preventDefault();
@@ -486,7 +510,8 @@ Drupal.behaviors.acrocrm_leads = {
         // valid message types are: 'error' (red), 'success' (green), 'warning' (yellow)
         // msg type defaults to 'info' (blue) if none of these cases are matched
         function displayAlertMsg(msgType, msg) {
-            var html = '<div class="col-md-12">';
+            $("#alert-msg-div").empty();
+            var html = '<div id="alert-msg-div" class="col-md-12">';
             if (msgType == 'error') {
                 html += '<div class="alert alert-danger">';
             }
