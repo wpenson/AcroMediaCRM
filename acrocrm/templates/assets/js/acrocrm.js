@@ -191,7 +191,7 @@ Drupal.behaviors.acrocrm_leads = {
                                     $('#med-' + original_rep_id).html(parseInt($('#med-' + original_rep_id).html()) - 1);
                                 }
                                 else if (response == 'high') {
-                                    $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) + 1);
+                                    $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) - 1);
                                 }
                                 else if (response == 'unassigned') {
                                     $('#unassigned-' + original_rep_id).html(parseInt($('#unassigned-' + original_rep_id).html()) - 1);
@@ -347,6 +347,7 @@ Drupal.behaviors.acrocrm_leads = {
 
         $('#delete-lead-confirmation-modal').on('show.bs.modal', function (event) {
             var trigger_button = $(event.relatedTarget);
+            console.log(trigger_button);
             var url = trigger_button.data('url');
 
             var modal = $(this);
@@ -522,3 +523,11 @@ Drupal.behaviors.acrocrm_leads = {
         }
     }
 };
+
+// update a lead's priority
+// NOTE: must be outside of Drupal.behaviors.acrocrm_leads
+function assignPriority(lead_id, element) {
+    $.ajax({
+        url: "/acrocrm_leads/assign_lead_priority/" + lead_id + "/" + $(element).val()
+    });
+}

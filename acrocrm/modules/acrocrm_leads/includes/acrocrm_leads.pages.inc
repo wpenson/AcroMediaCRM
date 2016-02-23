@@ -499,7 +499,7 @@ function acrocrm_leads_delete_lead_ajax($lead_id, $redirect_page) {
 function acrocrm_leads_generate_leads_html($leads) {
     $search_div = '';
 
-    $search_div =
+    $search_div .=
         '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
             <div class="input-group">
                 <input type="text" class="form-control" aria-label="..." placeholder="">
@@ -932,12 +932,6 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
             while ($lead = $leads->fetchAssoc()) {
                 $leads_list .= '<li data-lead-id="' . $lead['lead_id'] . '" data-assigned-rep-id="' . $sales_rep_user_id . '" class="' . (($lead['status'] !== 'APPROVED') ? 'unapproved-lead ' : '') . 'list-group-item sales-rep-lead" data-url="' . base_path() . 'acrocrm_leads/">';
 
-                if (strlen($lead['firstname']) > 0) {
-                    $leads_list .= '<h5>' . $lead['firstname'] . ' ' . $lead['name'];
-                } else {
-                    $leads_list .= '<h5>' . $lead['name'];
-                }
-
                 $leads_list .= '<div class="pull-right text-right">';
 
                 if ($lead['status'] !== 'APPROVED') {
@@ -951,6 +945,11 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
                 }
 
                 $leads_list .= '</div>';
+                if (strlen($lead['firstname']) > 0) {
+                    $leads_list .= '<h5>' . $lead['firstname'] . ' ' . $lead['name'];
+                } else {
+                    $leads_list .= '<h5><span class="accordion-title">' . $lead['name'];
+                }
                 $leads_list .= '</h5>';
 
                 // start accordion div
@@ -975,28 +974,10 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
 
                 // TODO: Make priority dropdown into 4 styled radio buttons instead
                 $leads_list .= '<p class="list-group-item-text"><strong>Priority: </strong>';
-                $leads_list .= '<select class="set-priority input-group" onchange="assignPriority('. $lead['lead_id'] .', this)">';
-                $leads_list .= '<option value="unassigned"';
                 if ($priority === '') {
-                    $leads_list .= ' selected ';
+                    $priority = 'unassigned';
                 }
-                $leads_list .= '>unassigned</option>';
-                $leads_list .= '<option value="low"';
-                if ($priority === 'low') {
-                    $leads_list .= ' selected ';
-                }
-                $leads_list .= '>low</option>';
-                $leads_list .= '<option value="medium"';
-                if ($priority === 'medium') {
-                    $leads_list .= ' selected ';
-                }
-                $leads_list .= '>medium</option>';
-                $leads_list .= '<option value="high"';
-                if ($priority === 'high') {
-                    $leads_list .= ' selected ';
-                }
-                $leads_list .= '>high</option>';
-                $leads_list .= '</select></p>';
+                $leads_list .= $priority . '</p>';
 
                 $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
                 $leads_list .= '</div>';
