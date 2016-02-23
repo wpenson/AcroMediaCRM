@@ -347,7 +347,6 @@ Drupal.behaviors.acrocrm_leads = {
 
         $('#delete-lead-confirmation-modal').on('show.bs.modal', function (event) {
             var trigger_button = $(event.relatedTarget);
-            console.log(trigger_button);
             var url = trigger_button.data('url');
 
             var modal = $(this);
@@ -400,7 +399,7 @@ Drupal.behaviors.acrocrm_leads = {
 
             lead_list.load(url + params, function(response, status, xhr) {
                 if (status == "success") {
-                    loadLeadsListInteractions()
+                    loadLeadsListInteractions();
 
                     if (group != null) {
                         if (group != 'sort-order') {

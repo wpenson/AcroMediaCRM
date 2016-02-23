@@ -181,15 +181,12 @@ input.form-submit {
     background-image: url("../images/red-ball.png");
 }
 
-/*.header-accordion:hover > div {*/
-    /*display: block;*/
-/*}*/
 .unassigned-lead, .unapproved-lead, .unapproved-lead > h5 {
     cursor: move;
 }
 
-.no-assigned-leads {
-    margin-top: 5px;
+.no-assigned-leads.list-group-item {
+    margin-bottom: 15px;
 }
 
 #leads-list > .list-group-item {
@@ -220,9 +217,17 @@ input.form-submit {
 }
 
 .sales-rep-lead-list {
-    margin: 0px 15px 18px 15px !important;
-    padding-top: 10px !important;
-    /*border-top: 1px dashed #ddd !important;*/
+    margin: 0px 15px 8px 15px !important;
+    padding-top: 15px !important;
+}
+
+.sales-rep-lead-list > .list-group-item .ui-accordion-header {
+    margin: 0px;
+    padding-bottom: 10px;
+}
+
+.sales-rep-lead-list > .list-group-item .ui-accordion-content {
+    padding-bottom: 10px;
 }
 
 .sales-rep-lead-list > .list-group-item {
@@ -246,10 +251,6 @@ input.form-submit {
 .ui-accordion .ui-accordion-content {
     overflow: auto;
 }
-
-/*.ui-accordion-header {*/
-    /*cursor: move;*/
-/*}*/
 
 .dragging-lead {
     border: 1px dashed #555555;
