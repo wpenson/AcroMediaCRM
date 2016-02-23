@@ -243,7 +243,6 @@ Drupal.behaviors.acrocrm_leads = {
             // Unapproved leads are the leads that have been approved but are not sent to hubspot, etc.
             $(".unapproved-lead").draggable({
                 appendTo: "body",
-                containment: "document",
                 zIndex: 100,
                 helper: "clone",
                 revert: "invalid",
@@ -259,7 +258,6 @@ Drupal.behaviors.acrocrm_leads = {
                         original_sales_rep.find('ul').append('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
                     }
 
-                    // TODO: Properly format the clone being dragged
                     var lead_clone = $(ui.helper);
                     lead_clone.html('<h4>' + lead_clone.find("h5").text() + '</h4>');
                     lead_clone.addClass("dragging-lead");
@@ -275,9 +273,12 @@ Drupal.behaviors.acrocrm_leads = {
         }
 
         function loadLeadsListInteractions() {
+            $('.readmore').readmore({
+                collapsedHeight: 18
+            });
+
             $(".unassigned-lead").draggable({
                 appendTo: "body",
-                containment: "document",
                 zIndex: 100,
                 helper: "clone",
                 revert: "invalid",
