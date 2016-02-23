@@ -50,12 +50,12 @@ h1, h2, h3 {
     display: block;
 }
 
-.lead-list-message-div {
+.lead-list-error-box {
     width: 100%;
-    height: 100px;
+    height: 110px;
     text-align: center;
     vertical-align: middle;
-    line-height: 100px;
+    line-height: 90px;
     border: 1px solid #ddd;
 }
 
@@ -204,7 +204,7 @@ input.form-submit {
 }
 
 .sales-rep > h4:hover, .sales-rep-open {
-    background-color: #e0e0e0;
+    background-color: #dddddd;
 }
 
 .sales-rep-closed {
@@ -278,7 +278,7 @@ input.form-submit {
 }
 
 .med-priority {
-    background-color: #f5c13c;
+    background-color: #f6bf19;
 }
 
 .low-priority {

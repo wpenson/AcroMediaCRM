@@ -425,7 +425,7 @@ function acrocrm_leads_filter_leads_ajax($group = NULL, $value = NULL) {
         echo acrocrm_leads_generate_leads_list_html($leads);
     }
     else {
-        echo '<div class="lead-list-message-div">No Leads Found</div>';
+        echo '<li class="lead-list-error-box">No Leads Found</li>';
     }
 }
 

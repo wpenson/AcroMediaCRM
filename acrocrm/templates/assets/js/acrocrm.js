@@ -43,34 +43,41 @@ Drupal.behaviors.acrocrm_leads = {
                     var original_rep_id = (lead_draggable.data('assigned-rep-id') != undefined) ? lead_draggable.data('assigned-rep-id') : null;
 
                     if (original_rep_id != null && original_rep_id == sales_rep.data('rep-id')) {
-                        lead_draggable.show();
                         return;
                     }
 
-                    lead_draggable.hide();
                     var url = lead_draggable.data("url") + 'assign_lead/';
-                    var params = sales_rep.data('rep-id') + '/' + lead_draggable.data('lead-id');
+                    var params = sales_rep.data('rep-id') + '/a' + lead_draggable.data('lead-id');
 
                     // TODO: Show loading indicator in the sales-rep-lead-list
                     sales_rep.find(".sales-rep-lead-list").load(url + params, function(response, status, xhr) {
                         if (status == "success") {
-                            lead_draggable.remove();
-                            loadSalesRepInteractions();
-
                             if (original_rep_id == null) {
-                                var leads_list = $('#leads-list');
+                                if ($('.lead-filter[data-group="show"][data-value="all"] .glyphicon-ok').length != 0) {
+                                    loadLeadList(event);
+                                    //lead_draggable.removeClass('unassigned-lead');
+                                    //lead_draggable.draggable('destroy');
+                                    //lead_draggable.find('h4 span').removeClass('grey-ball').addClass('yellow-ball').data('original-title', 'Assigned but Not Approved');
+                                }
+                                else {
+                                    lead_draggable.remove();
+                                }
 
+                                var leads_list = $('#leads-list');
                                 if (leads_list.find("li").length == 0) {
-                                    leads_list.html('<div class="lead-list-message-div">No Leads Found</div>');
+                                    leads_list.html('<li class="list-group-item lead-list-error-box">No Leads Found</li>');
                                 }
                             }
                             else {
-                                var original_sales_rep = $('.sales-rep[data-rep-id="' + original_rep_id + '"]');
+                                lead_draggable.remove();
 
+                                var original_sales_rep = $('.sales-rep[data-rep-id="' + original_rep_id + '"]');
                                 if (original_sales_rep.find("li").length == 0) {
                                     original_sales_rep.find('ul').html('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
                                 }
                             }
+
+                            loadSalesRepInteractions();
 
                             // update priority counts for the rep that the lead was assigned to and if applicable the rep
                             // that the lead was taken from
@@ -107,13 +114,9 @@ Drupal.behaviors.acrocrm_leads = {
                                         'to update lead priority.')
                                 }
                             });
-
-
-
                         }
                         else if (status == "error") {
                             event.preventDefault();
-                            lead_draggable.show();
                             displayAlertMsg("error", "Unable to assign lead.");
                         }
 
@@ -196,6 +199,8 @@ Drupal.behaviors.acrocrm_leads = {
                 collapsedHeight: 18
             });
 
+            $('[data-tooltip="tooltip"]').tooltip({container: 'body'});
+
             // TODO: Need to fix the issue when the edit or delete lead button is pressed where the click event also triggers the accordion
             // TODO: The accordion slightly jumps on close. This is caused by a margin or something and can be fixed.
             $(".sales-rep-lead").accordion({
@@ -221,18 +226,33 @@ Drupal.behaviors.acrocrm_leads = {
                 cursor: "move",
                 cursorAt: { top: 0, left: 0 },
                 refreshPositions: true,
+                create: function(event, ui) {
+
+                },
                 start: function(event, ui) {
                     $(this).hide();
 
+                    var original_rep_id = ($(this).data('assigned-rep-id') != undefined) ? $(this).data('assigned-rep-id') : null;
+                    var original_sales_rep = $('.sales-rep[data-rep-id="' + original_rep_id + '"]');
+                    if (original_sales_rep.find("li").length <= 1) {
+                        original_sales_rep.find('ul').append('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
+                    }
+
                     // TODO: Properly format the clone being dragged
                     var lead_clone = $(ui.helper);
-                    //lead_clone.data("rep-id", $(this).parent('id'));
+                    //console.log(lead_clone);
+                    //lead_clone.accordion("option", "active", 0);//.find("ui-accordion-content").show();
+                    lead_clone.find("h5").replaceWith($('<h4>' + lead_clone.find("h5").text() + '</h4>'));
                     lead_clone.find(".pull-right").hide();
                     lead_clone.addClass("dragging-lead");
-                    lead_clone.find("select").replaceWith($(ui.helper).find("option:selected").text());
+                    lead_clone.find("select").replaceWith(lead_clone.find("option:selected").text());
                 },
                 stop: function(event, ui) {
                     $(this).show();
+
+                    var original_rep_id = ($(this).data('assigned-rep-id') != undefined) ? $(this).data('assigned-rep-id') : null;
+                    var original_sales_rep = $('.sales-rep[data-rep-id="' + original_rep_id + '"]');
+                    original_sales_rep.find('.no-assigned-leads').remove();
                 }
             });
         }
@@ -248,7 +268,14 @@ Drupal.behaviors.acrocrm_leads = {
                 cursorAt: { top: 0, left: 0 },
                 refreshPositions: true,
                 start: function(event, ui) {
-                    $(this).hide();
+                    if ($('.lead-filter[data-group="show"][data-value="all"] .glyphicon-ok').length == 0) {
+                        $(this).hide();
+                    }
+
+                    var leads_list = $('#leads-list');
+                    if (leads_list.find("li").length <= 1) {
+                        leads_list.append('<li class="list-group-item lead-list-error-box">No Leads Found</li>');
+                    }
 
                     var lead_clone = $(ui.helper);
                     lead_clone.find(".pull-right").hide();
@@ -257,6 +284,9 @@ Drupal.behaviors.acrocrm_leads = {
                 },
                 stop: function(event, ui) {
                     $(this).show();
+
+                    var leads_list = $('#leads-list');
+                    leads_list.find('.lead-list-error-box').remove();
                 }
             });
         }
