@@ -47,7 +47,7 @@ Drupal.behaviors.acrocrm_leads = {
                     }
 
                     var url = lead_draggable.data("url") + 'assign_lead/';
-                    var params = sales_rep.data('rep-id') + '/a' + lead_draggable.data('lead-id');
+                    var params = sales_rep.data('rep-id') + '/' + lead_draggable.data('lead-id');
 
                     // TODO: Show loading indicator in the sales-rep-lead-list
                     sales_rep.find(".sales-rep-lead-list").load(url + params, function(response, status, xhr) {
@@ -250,9 +250,6 @@ Drupal.behaviors.acrocrm_leads = {
                 cursor: "move",
                 cursorAt: { top: 0, left: 0 },
                 refreshPositions: true,
-                create: function(event, ui) {
-
-                },
                 start: function(event, ui) {
                     $(this).hide();
 
@@ -264,12 +261,8 @@ Drupal.behaviors.acrocrm_leads = {
 
                     // TODO: Properly format the clone being dragged
                     var lead_clone = $(ui.helper);
-                    //console.log(lead_clone);
-                    //lead_clone.accordion("option", "active", 0);//.find("ui-accordion-content").show();
-                    lead_clone.find("h5").replaceWith($('<h4>' + lead_clone.find("h5").text() + '</h4>'));
-                    lead_clone.find(".pull-right").hide();
+                    lead_clone.html('<h4>' + lead_clone.find("h5").text() + '</h4>');
                     lead_clone.addClass("dragging-lead");
-                    lead_clone.find("select").replaceWith(lead_clone.find("option:selected").text());
                 },
                 stop: function(event, ui) {
                     $(this).show();
@@ -302,9 +295,8 @@ Drupal.behaviors.acrocrm_leads = {
                     }
 
                     var lead_clone = $(ui.helper);
-                    lead_clone.find(".pull-right").hide();
+                    lead_clone.html('<h4>' + lead_clone.find("h4").text() + '</h4>');
                     lead_clone.addClass("dragging-lead");
-                    lead_clone.find("select").replaceWith($(ui.helper).find("option:selected").text());
                 },
                 stop: function(event, ui) {
                     $(this).show();
