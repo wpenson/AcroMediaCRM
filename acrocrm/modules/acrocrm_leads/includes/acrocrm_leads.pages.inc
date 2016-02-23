@@ -79,7 +79,7 @@ function acrocrm_leads_get_lead_priority($lead_id) {
     }
 }
 
-function acrocrm_leads_priority_ajax_get_ajax($lead_id, $priority) {
+function acrocrm_leads_priority_ajax_get_ajax($priority, $lead_id) {
     $check_exists = db_query('SELECT * FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
 
     if ($priority === 'unassigned') {
