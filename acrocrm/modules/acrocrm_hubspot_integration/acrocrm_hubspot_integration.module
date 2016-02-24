@@ -34,6 +34,13 @@ function acrocrm_hubspot_integration_menu() {
         'access arguments' => array('access acrocrm'),
     );
 
+    $items['acrocrm_hubspot_integration/commit_assigned_leads'] = array(
+        'access callback' => TRUE,
+        'page callback' => 'acrocrm_hubspot_integration_commit_assigned_leads_ajax',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access acrocrm'),
+    );
+
     $items['admin/config/acrocrm/acrocrm_hubspot_integration'] = array(
         'title' => 'AcroCRM HubSpot Integration',
         'description' => 'Configuration for the AcroCRM HubSpot Integration',
@@ -45,6 +52,105 @@ function acrocrm_hubspot_integration_menu() {
     );
 
     return $items;
+}
+
+function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
+    $leads = db_query('SELECT leads.lead_id, email, firstname, leads.name, phone, comments
+                        FROM leads
+                        INNER JOIN assigned_leads
+                        ON leads.lead_id=assigned_leads.lead_id
+                        INNER JOIN users
+                        ON users.uid = assigned_leads.uid
+                        WHERE leads.status = \'APPROVED\' OR leads.status = \'UNAPPROVED\'');
+
+    $success = true;
+    $leads_to_commit = true;
+    $error_leads = array();
+    $response = null;
+
+    if ($leads->rowCount() > 0) {
+        while ($lead = $leads->fetch()) {
+            $lead_array = get_lead_array_for_hubspot($lead);
+            $response = create_contact_on_hubspot($lead_array);
+            if ($response->status == "error") {
+                $success = false;
+                array_push($error_leads, array("lead" => $lead, "response" => $response));
+            } else {
+                db_update('leads')
+                    ->fields(array('status' => 'CONVERTED'))
+                    ->condition('lead_id', $lead->lead_id)
+                    ->execute();
+            }
+        }
+    } else {
+        $leads_to_commit = false;
+    }
+
+    if ($success && $leads_to_commit) {
+        print 'success';
+    } elseif (!$leads_to_commit) {
+        print 'no_leads_to_commit';
+    } else {
+        $error_message = '<ul>';
+        foreach ($error_leads as $error_lead) {
+            $error_message .= '<li>';
+            if ($error_lead['response']->message == "Contact already exists") {
+                $error_message .= 'A contact with the email "' . $error_lead['lead']->email . '"  already exists, and could not be created.';
+            } elseif (preg_match('/^Email address [A-Za-z@_\-]* is invalid$/', $error_lead['response']->message) == 1) {
+                $error_message .= 'The email "' . $error_lead['lead']->email . '" is not valid on HubSpot and the contact could not be created.';
+            } else {
+                $error_message .= $error_lead['response']->message;
+            }
+            $error_message .= '</li>';
+        }
+        print $error_message . '</ul>';
+    }
+}
+
+function get_lead_array_for_hubspot($lead) {
+    $arr = array(
+        'properties' => array(
+            array(
+                'property' => 'email',
+                'value' => $lead->email,
+            ),
+            array(
+                'property' => 'firstname',
+                'value' => $lead->firstname,
+            ),
+            array(
+                'property' => 'lastname',
+                'value' => $lead->name
+            ),
+            array(
+                'property' => 'phone',
+                'value' => $lead->phone
+            ),
+            array("property" => "lifecyclestage",
+                "value" => "lead"
+            ),
+            array("property" => "message",
+                "value" => $lead->comments
+            )
+        )
+    );
+    return $arr;
+}
+
+function create_contact_on_hubspot($lead_array) {
+    $post_json = json_encode($lead_array);
+//        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
+    $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . variable_get('api_key');
+    $ch = @curl_init();
+    @curl_setopt($ch, CURLOPT_POST, true);
+    @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_json);
+    @curl_setopt($ch, CURLOPT_URL, $endpoint);
+    @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+    @curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response_json = @curl_exec($ch);
+    @curl_close($ch);
+
+    return json_decode($response_json);
 }
 
 function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {

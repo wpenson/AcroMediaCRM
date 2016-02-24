@@ -1,7 +1,7 @@
 // --- Acrocrm Leads Module --- //
 Drupal.behaviors.acrocrm_leads = {
-    'attach': function(context) {
-        $(document).ready(function(event) {
+    'attach': function (context) {
+        $(document).ready(function (event) {
             $('[data-tooltip="tooltip"]').tooltip({container: 'body'});
 
             $(".sales-rep").accordion({
@@ -10,7 +10,7 @@ Drupal.behaviors.acrocrm_leads = {
                 active: false,
                 heightStyle: "content",
                 cursor: "move",
-                beforeActivate: function(event, ui) {
+                beforeActivate: function (event, ui) {
                     ui.newHeader.addClass("sales-rep-open").removeClass("sales-rep-closed");
                     ui.oldHeader.addClass("sales-rep-closed").removeClass("sales-rep-open");
                 }
@@ -19,17 +19,17 @@ Drupal.behaviors.acrocrm_leads = {
                 refreshPositions: true,
                 hoverClass: "ui-state-highlight",
                 tolerance: "pointer",
-                activate: function(event, ui) {
+                activate: function (event, ui) {
                     $(".ui-accordion-header, .btn").css("cursor", "move");
                     $(".accordion").accordion("option", "cursor", "move");
                     $('[data-tooltip="tooltip"]').tooltip('disable');
                 },
-                deactivate: function(event, ui) {
+                deactivate: function (event, ui) {
                     $(".ui-accordion-header, .btn").css("cursor", "pointer");
                     $(".accordion").accordion("option", "cursor", "pointer");
                     $('[data-tooltip="tooltip"]').tooltip('enable');
                 },
-                drop: function(event, ui) {
+                drop: function (event, ui) {
                     var sales_rep = $(this);
                     var lead_draggable = $(ui.draggable);
 
@@ -50,7 +50,7 @@ Drupal.behaviors.acrocrm_leads = {
                     var params = sales_rep.data('rep-id') + '/' + lead_draggable.data('lead-id');
 
                     // TODO: Show loading indicator in the sales-rep-lead-list
-                    sales_rep.find(".sales-rep-lead-list").load(url + params, function(response, status, xhr) {
+                    sales_rep.find(".sales-rep-lead-list").load(url + params, function (response, status, xhr) {
                         if (status == "success") {
                             if (original_rep_id == null) {
                                 if ($('.lead-filter[data-group="show"][data-value="all"] .glyphicon-ok').length != 0) {
@@ -83,7 +83,7 @@ Drupal.behaviors.acrocrm_leads = {
                             // that the lead was taken from
                             var url = lead_draggable.data("url") + 'get_lead_priority/';
                             var params = lead_draggable.data('lead-id');
-                            $.get(url + params, function(response, status, xhr) {
+                            $.get(url + params, function (response, status, xhr) {
                                 if (response == 'low') {
                                     $('#low-' + sales_rep.data('rep-id')).html(parseInt($('#low-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
@@ -123,7 +123,7 @@ Drupal.behaviors.acrocrm_leads = {
                         // TODO: Hide the loading indicator in the sales-rep-lead-list
                     });
                 },
-                over: function(event, ui) {
+                over: function (event, ui) {
                     var sales_rep = $(this);
                     sales_rep.find("> h4").addClass("sales-rep-hover").unbind('mouseenter mouseleave');
 
@@ -133,7 +133,7 @@ Drupal.behaviors.acrocrm_leads = {
                     else {
                         sales_rep.data("accordion-hovering", "true");
 
-                        setTimeout(function() {
+                        setTimeout(function () {
                             if (sales_rep.data("accordion-hovering") === "true") {
                                 sales_rep.accordion("option", "active", 0); // Expand accordion
                                 sales_rep.data("accordion-prev-active", "false"); // Accordion was not previously active
@@ -142,7 +142,7 @@ Drupal.behaviors.acrocrm_leads = {
                         }, 750);
                     }
                 },
-                out: function(event, ui) {
+                out: function (event, ui) {
                     var sales_rep = $(this);
                     sales_rep.find("> h4").removeClass("sales-rep-hover").bind('mouseenter mouseleave');
 
@@ -158,7 +158,7 @@ Drupal.behaviors.acrocrm_leads = {
                 refreshPositions: true,
                 hoverClass: "ui-state-highlight",
                 tolerance: "pointer",
-                drop: function(event, ui) {
+                drop: function (event, ui) {
                     var leads_list = $(this);
                     var lead_draggable = $(ui.draggable);
 
@@ -168,7 +168,7 @@ Drupal.behaviors.acrocrm_leads = {
 
                     // TODO: Show loading indicator for the leads-list
 
-                    leads_list.load(url + params, function(response, status, xhr) {
+                    leads_list.load(url + params, function (response, status, xhr) {
                         if (status == "success") {
                             lead_draggable.remove();
                             loadLeadList(event); // TODO: Check for success or fail
@@ -183,7 +183,7 @@ Drupal.behaviors.acrocrm_leads = {
                             // that the lead was taken from
                             var url = lead_draggable.data("url") + 'get_lead_priority/';
                             var params = lead_draggable.data('lead-id');
-                            $.get(url + params, function(response, status, xhr) {
+                            $.get(url + params, function (response, status, xhr) {
                                 if (response == 'low') {
                                     $('#low-' + original_rep_id).html(parseInt($('#low-' + original_rep_id).html()) - 1);
                                 }
@@ -233,7 +233,7 @@ Drupal.behaviors.acrocrm_leads = {
                 active: false,
                 heightStyle: "content",
                 cursor: "move",
-                activate: function(event, ui) {
+                activate: function (event, ui) {
                     $('.readmore').readmore({
                         collapsedHeight: 18
                     });
@@ -247,9 +247,9 @@ Drupal.behaviors.acrocrm_leads = {
                 helper: "clone",
                 revert: "invalid",
                 cursor: "move",
-                cursorAt: { top: 0, left: 0 },
+                cursorAt: {top: 0, left: 0},
                 refreshPositions: true,
-                start: function(event, ui) {
+                start: function (event, ui) {
                     $(this).hide();
 
                     var original_rep_id = ($(this).data('assigned-rep-id') != undefined) ? $(this).data('assigned-rep-id') : null;
@@ -262,7 +262,7 @@ Drupal.behaviors.acrocrm_leads = {
                     lead_clone.html('<h4>' + lead_clone.find("h5").text() + '</h4>');
                     lead_clone.addClass("dragging-lead");
                 },
-                stop: function(event, ui) {
+                stop: function (event, ui) {
                     $(this).show();
 
                     var original_rep_id = ($(this).data('assigned-rep-id') != undefined) ? $(this).data('assigned-rep-id') : null;
@@ -283,9 +283,9 @@ Drupal.behaviors.acrocrm_leads = {
                 helper: "clone",
                 revert: "invalid",
                 cursor: "move",
-                cursorAt: { top: 0, left: 0 },
+                cursorAt: {top: 0, left: 0},
                 refreshPositions: true,
-                start: function(event, ui) {
+                start: function (event, ui) {
                     if ($('.lead-filter[data-group="show"][data-value="all"] .glyphicon-ok').length == 0) {
                         $(this).hide();
                     }
@@ -299,7 +299,7 @@ Drupal.behaviors.acrocrm_leads = {
                     lead_clone.html('<h4>' + lead_clone.find("h4").text() + '</h4>');
                     lead_clone.addClass("dragging-lead");
                 },
-                stop: function(event, ui) {
+                stop: function (event, ui) {
                     $(this).show();
 
                     var leads_list = $('#leads-list');
@@ -375,7 +375,7 @@ Drupal.behaviors.acrocrm_leads = {
             //    });
             //});
 
-            modal.find('#delete-lead-confirmation-button').click(function() {
+            modal.find('#delete-lead-confirmation-button').click(function () {
                 window.location.replace(url);
             });
         });
@@ -398,7 +398,7 @@ Drupal.behaviors.acrocrm_leads = {
                 params += 'search';
 
                 if (search_term != '') {
-                    params += '/' + $.trim(search_term).replace(/ /g,"+");
+                    params += '/' + $.trim(search_term).replace(/ /g, "+");
                 }
             }
 
@@ -406,7 +406,7 @@ Drupal.behaviors.acrocrm_leads = {
             lead_search.find('img').show();
             lead_search.find('.glyphicon-search').hide();
 
-            lead_list.load(url + params, function(response, status, xhr) {
+            lead_list.load(url + params, function (response, status, xhr) {
                 if (status == "success") {
                     loadLeadsListInteractions();
 
@@ -444,7 +444,7 @@ Drupal.behaviors.acrocrm_leads = {
 
         var timeout_thread = null;
         var previous_val = '';
-        $('#lead-search input').on('keyup', function(event) {
+        $('#lead-search input').on('keyup', function (event) {
             if (event.keyCode == '13') {
                 loadLeadList(event);
                 return;
@@ -457,7 +457,9 @@ Drupal.behaviors.acrocrm_leads = {
             previous_val = $(this).val();
 
             clearTimeout(timeout_thread);
-            timeout_thread = setTimeout(function() { loadLeadList(event); }, 100);
+            timeout_thread = setTimeout(function () {
+                loadLeadList(event);
+            }, 100);
         });
 
         $('.lead-filter, #lead-search-button').click(function(event) {
@@ -489,6 +491,46 @@ Drupal.behaviors.acrocrm_leads = {
         }
     }
 };
+
+// display message at the top of the content window
+// valid message types are: 'error' (red), 'success' (green), 'warning' (yellow)
+// msg type defaults to 'info' (blue) if none of these cases are matched
+function displayAlertMsgForContactCommit(msgType, msg) {
+    $("#alert-msg-div").empty();
+    var html = '<div id="alert-msg-div" class="col-md-12">';
+    if (msgType == 'error') {
+        html += '<div class="alert alert-danger">';
+    }
+    else if (msgType == 'success') {
+        html += '<div class="alert alert-success">';
+    }
+    else if (msgType == 'warning') {
+        html += '<div class="alert alert-warning">';
+    }
+    else {
+        html += '<div class="alert alert-info">';
+    }
+    html += msg;
+    html += '</div></div>';
+    $('#page-wrapper').prepend(html);
+}
+
+function commitAssignedLeads() {
+    $.ajax({
+        url: "/acrocrm_hubspot_integration/commit_assigned_leads",
+        dataType: 'text',
+        success: function (data) {
+            var message = data.trim();
+            if (message == 'success') {
+                displayAlertMsgForContactCommit('success', 'Leads created on HubSpot successfully.');
+            } else if (message == 'no_leads_to_commit') {
+                displayAlertMsgForContactCommit('info', 'There are no leads to send to HubSpot.');
+            } else {
+                displayAlertMsgForContactCommit('error', message);
+            }
+        }
+    });
+}
 
 function createHubspotContact(lead_id, element) {
     var imgTag = '<img id="loading-gif-' + lead_id + '" alt="loading" src="/acrocrm/templates/assets/images/ajax-loader.gif">';

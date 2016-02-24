@@ -844,8 +844,9 @@ function acrocrm_leads_get_sales_reps() {
     // TODO: Add buttons/dropdowns and functionality to the filter bar. Need date range, collapse all, open all, send to hubspot, email, etc.
     $filter_bar =
         '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
-            <div class="input-group">
-                <div class="btn-group" role="group" aria-label="...">
+            <div class="input-group">'
+        . (module_exists('acrocrm_hubspot_integration') ? '<button type="button" class="btn btn-primary" onclick="commitAssignedLeads()">Commit Assigned Leads</button>' : '') .
+        '<div class="btn-group" role="group" aria-label="...">
                     <button type="button" class="btn btn-default">1</button>
                     <button type="button" class="btn btn-default">2</button>
 
@@ -918,6 +919,8 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
         $leads = db_select('leads', 'l')
             ->fields('l')
             ->condition('lead_id', $lead_ids, 'IN')
+            // TODO: Might need to do this a better way
+            ->condition('status', array('APPROVED', 'UNAPPROVED'), 'IN')
             ->orderBy('priority', 'ASC')
             ->execute();
 
@@ -985,6 +988,8 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
 
                 $leads_list .= '</li>';
             }
+        } else {
+            $leads_list .= '<li class="list-group-item no-assigned-leads">No Assigned Leads</li>';
         }
     }
     else {
