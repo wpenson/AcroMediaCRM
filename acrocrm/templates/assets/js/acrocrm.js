@@ -465,48 +465,6 @@ Drupal.behaviors.acrocrm_leads = {
             event.stopPropagation();
         });
 
-        function createHubspotContact(lead_id, element) {
-            var imgTag = '<img id="loading-gif-' + lead_id + '" alt="loading" src="/acrocrm/templates/assets/images/ajax-loader.gif">';
-            $(imgTag).insertBefore($("#" + lead_id).parent());
-            $("#" + lead_id).hide();
-            $.ajax({
-                url: "/acrocrm_hubspot_integration/create_contact/" + lead_id,
-                success: function (data) {
-                    $("#loading-gif-" + lead_id).remove();
-                    $("#" + lead_id).show();
-                    var message = data.trim();
-                    $('#message-container').remove();
-                    if (message == "success") {
-                        var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-success">';
-                        var suffix = '<br></div></div></div>';
-                        $(prefix + 'The HubSpot contact was created successfully' + suffix).insertAfter('#header-row');
-                        $('#lead_' + lead_id + '_container').remove();
-
-                        if ($('.lead-container').length == 0) {
-                            $('<div class="no-leads">There are no leads to display.</div>').insertAfter('#delete-lead-confirmation-modal');
-                        }
-                    } else {
-                        var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-danger">';
-                        var suffix = '<br></div></div></div>';
-
-                        if (message == "contact_already_exists") {
-                            $(prefix + "The contact you are trying to create on HubSpot already exists. " +
-                                "This could be due to a duplicate email address." + suffix).insertAfter('#header-row');
-                        } else if (message == "email_invalid") {
-                            $(prefix + "The email address of the contact you are trying to create on HubSpot is invalid. " +
-                                "HubSpot has stricter email validation than AcroCRM." + suffix).insertAfter('#header-row');
-                        } else if (message == "email_invalid") {
-                            $(prefix + "The the contact you are trying to create could not be found. " +
-                                "Refresh the page and try again" + suffix).insertAfter('#header-row');
-                        } else {
-                            $(prefix + message + suffix).insertAfter('#header-row');
-                        }
-                    }
-                },
-                dataType: 'text'
-            });
-        }
-
         // display message at the top of the content window
         // valid message types are: 'error' (red), 'success' (green), 'warning' (yellow)
         // msg type defaults to 'info' (blue) if none of these cases are matched
@@ -531,6 +489,48 @@ Drupal.behaviors.acrocrm_leads = {
         }
     }
 };
+
+function createHubspotContact(lead_id, element) {
+    var imgTag = '<img id="loading-gif-' + lead_id + '" alt="loading" src="/acrocrm/templates/assets/images/ajax-loader.gif">';
+    $(imgTag).insertBefore($("#" + lead_id).parent());
+    $("#" + lead_id).hide();
+    $.ajax({
+        url: "/acrocrm_hubspot_integration/create_contact/" + lead_id,
+        success: function (data) {
+            $("#loading-gif-" + lead_id).remove();
+            $("#" + lead_id).show();
+            var message = data.trim();
+            $('#message-container').remove();
+            if (message == "success") {
+                var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-success">';
+                var suffix = '<br></div></div></div>';
+                $(prefix + 'The HubSpot contact was created successfully' + suffix).insertAfter('#header-row');
+                $('#lead_' + lead_id + '_container').remove();
+
+                if ($('.lead-container').length == 0) {
+                    $('<div class="no-leads">There are no leads to display.</div>').insertAfter('#delete-lead-confirmation-modal');
+                }
+            } else {
+                var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-danger">';
+                var suffix = '<br></div></div></div>';
+
+                if (message == "contact_already_exists") {
+                    $(prefix + "The contact you are trying to create on HubSpot already exists. " +
+                        "This could be due to a duplicate email address." + suffix).insertAfter('#header-row');
+                } else if (message == "email_invalid") {
+                    $(prefix + "The email address of the contact you are trying to create on HubSpot is invalid. " +
+                        "HubSpot has stricter email validation than AcroCRM." + suffix).insertAfter('#header-row');
+                } else if (message == "email_invalid") {
+                    $(prefix + "The the contact you are trying to create could not be found. " +
+                        "Refresh the page and try again" + suffix).insertAfter('#header-row');
+                } else {
+                    $(prefix + message + suffix).insertAfter('#header-row');
+                }
+            }
+        },
+        dataType: 'text'
+    });
+}
 
 // update a lead's priority
 // NOTE: must be outside of Drupal.behaviors.acrocrm_leads
