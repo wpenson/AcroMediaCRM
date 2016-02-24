@@ -49,12 +49,6 @@ function acrocrm_leads_unassign_lead_ajax($lead_id) {
     db_delete('assigned_leads')
         ->condition('lead_id', $lead_id)
         ->execute();
-
-   // acrocrm_leads_filter_leads_ajax();
-
-//    $leads_list = '';
-//    acrocrm_leads_generate_sales_rep_lead_list($rep_id, $leads_list);
-//    print $leads_list;
 }
 
 /**
@@ -79,7 +73,7 @@ function acrocrm_leads_get_lead_priority($lead_id) {
     }
 }
 
-function acrocrm_leads_priority_ajax_get_ajax($priority, $lead_id) {
+function acrocrm_leads_priority_get_ajax($priority, $lead_id) {
     $check_exists = db_query('SELECT * FROM leads WHERE lead_id=:id', array(':id' => $lead_id));
 
     if ($priority === 'unassigned') {
@@ -143,7 +137,7 @@ function acrocrm_leads_load_leads() {
     } else {
         $leads_arr[] = 'An error occurred, could not retrieve leads from database.';
     }
-  return $leads_arr;
+    return $leads_arr;
 }
 
 /**
@@ -493,6 +487,9 @@ function acrocrm_leads_generate_leads_html($leads) {
 
     $search_div .=
         '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
+            <button type="button" id="create-new-lead-button" class="btn btn-default" data-tooltip="tooltip" title="Create New Lead" data-url="' . base_path() . 'acrocrm_leads/new_lead/" data-toggle="modal" data-target="#lead-create-modal">
+                <i class="glyphicon glyphicon-plus" style="color:#009900;"></i>
+            </button>
             <div class="input-group">
                 <input type="text" class="form-control" aria-label="..." placeholder="">
                 <div class="input-group-btn">
@@ -575,6 +572,15 @@ function acrocrm_leads_generate_leads_html($leads) {
                 });
             </script>';
 
+    $lead_create_modal =
+        '<div class="modal fade" id="lead-create-modal" tabindex="-1" role="dialog" aria-labelledby="new-lead">
+			<div class="vertical-alignment-helper">
+				<div class="modal-dialog modal-lg vertical-align-center" role="document">
+					<div class="modal-content"></div>
+				</div>
+			</div>
+		</div>';
+
     $leads_edit_modal =
         '<div class="modal fade" id="lead-edit-modal" tabindex="-1" role="dialog" aria-labelledby="edit-lead">
 			<div class="vertical-alignment-helper">
@@ -606,7 +612,7 @@ function acrocrm_leads_generate_leads_html($leads) {
 		</div>';
 
     $leads_list = '<ul id="leads-list" class="list-group"></ul>';
-    $leads_div = '<div class="col-md-6">' . $search_div . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
+    $leads_div = '<div class="col-md-6" style="margin-top: 15px;">' . $search_div . $lead_create_modal . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
 
     return $leads_div;
 }
@@ -665,35 +671,30 @@ function acrocrm_leads_generate_leads_list_html(&$leads) {
         $leads_list .= ' <span data-tooltip="tooltip" title="' . $lead_status . '" class="ball-indicator ' . $ball_indicator . '"></span>';
         $leads_list .= '</h4>';
 
-        $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
-        $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+        if (isset($lead['email']) && $lead['email'] != '') {
+            $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
+        }
+
+        if (isset($lead['phone']) && $lead['phone'] != '') {
+            $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+        }
 
         // TODO: Make priority dropdown into 4 styled radio buttons instead
         $priority = $lead['priority'];
         $leads_list .= '<p class="list-group-item-text"><strong>Priority: </strong>';
-        $leads_list .= '<select class="set-priority input-group" onchange="assignPriority('. $lead['lead_id'] .', this)">';
-        $leads_list .= '<option value="unassigned"';
         if ($priority === '') {
-            $leads_list .= ' selected ';
+            $priority = 'unassigned';
         }
-        $leads_list .= '>unassigned</option>';
-        $leads_list .= '<option value="low"';
-        if ($priority === 'low') {
-            $leads_list .= ' selected ';
+        $leads_list .= $priority . '</p>';
+//        $leads_list .= '<div class="priority-radio">';
+//        $leads_list .= '<input type="radio"><div class="check"></div>';
+//        $leads_list .= '<input type="radio">';
+//        $leads_list .= '<input type="radio">';
+//        $leads_list .= '<input type="radio">';
+//        $leads_list .= '</div>';
+        if (isset($lead['comments']) && $lead['comments'] != '') {
+            $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
         }
-        $leads_list .= '>low</option>';
-        $leads_list .= '<option value="medium"';
-        if ($priority === 'medium') {
-            $leads_list .= ' selected ';
-        }
-        $leads_list .= '>medium</option>';
-        $leads_list .= '<option value="high"';
-        if ($priority === 'high') {
-            $leads_list .= ' selected ';
-        }
-        $leads_list .= '>high</option>';
-        $leads_list .= '</select></p>';
-        $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
         $leads_list .= '</li>';
     }
 
@@ -889,7 +890,7 @@ function acrocrm_leads_get_sales_reps() {
         }
     }
 
-    $sales_reps = '<div class="col-md-6">' . $filter_bar . '<ul class="list-group sales-rep-list">' . $rep_div . '</ul></div>';
+    $sales_reps = '<div class="col-md-6" style="margin-top: 15px;">' . $filter_bar . '<ul class="list-group sales-rep-list">' . $rep_div . '</ul></div>';
     return $sales_reps;
 }
 
@@ -946,8 +947,14 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
 
                 // start accordion div
                 $leads_list .= '<div>';
-                $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
-                $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+
+                if (isset($lead['email']) && $lead['email'] != '') {
+                    $leads_list .= '<p class="list-group-item-text"><strong>Email: </strong>' . $lead['email'] . '</p>';
+                }
+
+                if (isset($lead['phone']) && $lead['phone'] != '') {
+                    $leads_list .= '<p class="list-group-item-text"><strong>Phone: </strong>' . $lead['phone'] . '</p>';
+                }
 
                 // determine what the priority of the lead is so we can show it in the rep div
                 $priority = $lead['priority'];
@@ -971,7 +978,9 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
                 }
                 $leads_list .= $priority . '</p>';
 
-                $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
+                if (isset($lead['comments']) && $lead['comments'] != '') {
+                    $leads_list .= '<p class="list-group-item-text readmore"><strong>Comments: </strong>' . $lead['comments'] . '</p>';
+                }
                 $leads_list .= '</div>';
 
                 $leads_list .= '</li>';
@@ -1017,23 +1026,28 @@ function acrocrm_leads_my_leads_page() {
     return theme('acrocrm_leads_home', array('page' => $page));
 }
 
-function acrocrm_leads_new_lead_page() {
-    $page['content']['header'] = array(
-        '#markup' => '<div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">New Lead</h1>
-                    </div>
-                  </div>'
+function acrocrm_leads_new_lead_ajax() {
+    $form = drupal_get_form('acrocrm_leads_new_lead_form');
+
+    $form["#prefix"] =
+        '<div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="editLead">Create New Lead</h4>
+      </div>
+      <div class="modal-body">';
+
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Create Lead',
+        '#prefix' => '</div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button>',
+        '#suffix' => '</div>',
+        '#weight' => 7,
+        '#attributes' => array(
+            'class' => array('btn', 'btn-primary'),
+        ),
     );
 
-    // Need to initialize a placeholder so this displays before the form.
-    $page['content']['messages']['#markup'] = '';
-    $page['content']['new_lead_form'] = drupal_get_form('acrocrm_leads_new_lead_form');
-
-    // The messages appear after the form has been loaded.
-    $page['content']['messages']['#markup'] = acrocrm_get_message_markup();
-
-    return theme('acrocrm_leads_home', array('page' => $page));
+    echo drupal_render($form);
 }
 
 function acrocrm_leads_edit_lead_form($form, &$form_state) {
@@ -1047,13 +1061,6 @@ function acrocrm_leads_new_lead_form($form, &$form_state) {
 }
 
 function generate_lead_form(&$form, &$form_state) {
-    $form['#prefix'] = '<div class="row">
-
-                        <div class="col-lg-10 col-md-12">
-                            <div class="panel panel-default">
-                                <div class="panel-heading">Create a New Lead</div>
-                                <div class="panel-body">';
-
     $form['priority'] = array(
         '#type' => 'select',
         '#title' => t('Priority'),
@@ -1185,8 +1192,6 @@ function generate_lead_form(&$form, &$form_state) {
             'class' => array('btn', 'btn-primary'),
         ),
     );
-
-    $form['#suffix'] = '</div></div></div></div></div>';
 }
 
 /**

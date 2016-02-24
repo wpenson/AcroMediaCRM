@@ -38,18 +38,18 @@ function acrocrm_leads_menu() {
         'file' => 'includes/acrocrm_leads.pages.inc'
     );
 
-    $items['acrocrm_leads/new_lead'] = array(
-        'title' => 'AcroCRM New Lead',
-        'description' => 'AcroCRM New Lead Page',
-        'page callback' => 'acrocrm_leads_new_lead_page',
-        'access arguments' => array('access acrocrm'),
-        'file' => 'includes/acrocrm_leads.pages.inc',
-    );
-
     $items['acrocrm_leads/my_leads'] = array(
         'title' => 'AcroCRM My Leads',
         'description' => 'AcroCRM My Leads',
         'page callback' => 'acrocrm_leads_my_leads_page',
+        'access arguments' => array('access acrocrm'),
+        'file' => 'includes/acrocrm_leads.pages.inc',
+    );
+
+    $items['acrocrm_leads/new_lead'] = array(
+        'page callback' => 'acrocrm_leads_new_lead_ajax',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
         'access arguments' => array('access acrocrm'),
         'file' => 'includes/acrocrm_leads.pages.inc',
     );
@@ -109,7 +109,7 @@ function acrocrm_leads_menu() {
     );
 
     $items['acrocrm_leads/assign_lead_priority'] = array(
-        'page callback' => 'acrocrm_leads_priority_ajax_get_ajax',
+        'page callback' => 'acrocrm_leads_priority_get_ajax',
         'page arguments' => array(3),
         'access callback' => TRUE,
         'type' => MENU_CALLBACK,
@@ -191,6 +191,14 @@ function acrocrm_leads_edit_lead_custom_form_submit(&$form, &$form_state) {
   } else {
     $form_state['redirect'] = 'acrocrm_leads/' . $redirect_page;
   }
+}
+
+function acrocrm_leads_form_acrocrm_leads_new_lead_form_alter(&$form, &$form_state, $form_id) {
+    $form['#submit'][] = 'acrocrm_leads_new_lead_custom_form_submit';
+}
+
+function acrocrm_leads_new_lead_custom_form_submit(&$form, &$form_state) {
+    $form_state['redirect'] = 'acrocrm_leads/overview';
 }
 
 /**************************************************************

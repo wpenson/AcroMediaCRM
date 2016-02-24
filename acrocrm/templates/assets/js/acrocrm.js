@@ -99,7 +99,7 @@ Drupal.behaviors.acrocrm_leads = {
                                 else if (response == 'high') {
                                     $('#high-' + sales_rep.data('rep-id')).html(parseInt($('#high-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
-                                        $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) + 1);
+                                        $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) - 1);
                                     }
                                 }
                                 else if (response == 'unassigned') {
@@ -338,6 +338,14 @@ Drupal.behaviors.acrocrm_leads = {
             }
         }
 
+        $('#lead-create-modal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var url = button.data('url');
+
+            var modal = $(this);
+            modal.find('.modal-content').load(url);
+        });
+
         $('#lead-edit-modal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
             var url = button.data('url');
@@ -452,7 +460,7 @@ Drupal.behaviors.acrocrm_leads = {
             timeout_thread = setTimeout(function() { loadLeadList(event); }, 100);
         });
 
-        $('.lead-filter, #lead-search-button').on('click', function(event) {
+        $('.lead-filter, #lead-search-button').click(function(event) {
             loadLeadList(event);
             event.stopPropagation();
         });

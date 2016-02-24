@@ -161,10 +161,6 @@ function acrocrm_page(&$variables) {
                     'path' => base_path() . 'acrocrm_leads/overview',
                     'title' => t('Overview'),
                     'permission' => 'administer acrocrm',),
-                'new_lead' => array(
-                    'path' => base_path() . 'acrocrm_leads/new_lead',
-                    'title' => t('New Lead'),
-                    'permission' => 'administer acrocrm',),
                 'my_leads' => array(
                     'path' => base_path() . 'acrocrm_leads/my_leads',
                     'title' => t('My Leads'),
