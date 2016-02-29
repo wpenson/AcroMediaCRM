@@ -84,25 +84,26 @@ Drupal.behaviors.acrocrm_leads = {
                             var url = lead_draggable.data("url") + 'get_lead_priority/';
                             var params = lead_draggable.data('lead-id');
                             $.get(url + params, function (response, status, xhr) {
-                                if (response == 'low') {
+                                var message = response.trim();
+                                if (message == 'low') {
                                     $('#low-' + sales_rep.data('rep-id')).html(parseInt($('#low-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
                                         $('#low-' + original_rep_id).html(parseInt($('#low-' + original_rep_id).html()) - 1);
                                     }
                                 }
-                                else if (response == 'medium') {
+                                else if (message == 'medium') {
                                     $('#med-' + sales_rep.data('rep-id')).html(parseInt($('#med-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
                                         $('#med-' + original_rep_id).html(parseInt($('#med-' + original_rep_id).html()) - 1);
                                     }
                                 }
-                                else if (response == 'high') {
+                                else if (message == 'high') {
                                     $('#high-' + sales_rep.data('rep-id')).html(parseInt($('#high-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
                                         $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) - 1);
                                     }
                                 }
-                                else if (response == 'unassigned') {
+                                else if (message == 'unassigned') {
                                     $('#unassigned-' + sales_rep.data('rep-id')).html(parseInt($('#unassigned-' + sales_rep.data('rep-id')).html()) + 1);
                                     if (original_rep_id != null) {
                                         $('#unassigned-' + original_rep_id).html(parseInt($('#unassigned-' + original_rep_id).html()) - 1);
@@ -110,10 +111,10 @@ Drupal.behaviors.acrocrm_leads = {
                                 }
                                 else {
                                     console.log('An error occurred when trying to get lead priority');
-                                    displayAlertMsg("error", 'An error occurred when trying to get lead priority, unable' +
+                                    displayAlertMsg("error", 'An error occurred when trying to get lead priority, unable ' +
                                         'to update lead priority.')
                                 }
-                            });
+                            }, 'text');
                         }
                         else if (status == "error") {
                             event.preventDefault();
@@ -183,25 +184,28 @@ Drupal.behaviors.acrocrm_leads = {
                             // that the lead was taken from
                             var url = lead_draggable.data("url") + 'get_lead_priority/';
                             var params = lead_draggable.data('lead-id');
-                            $.get(url + params, function (response, status, xhr) {
-                                if (response == 'low') {
-                                    $('#low-' + original_rep_id).html(parseInt($('#low-' + original_rep_id).html()) - 1);
-                                }
-                                else if (response == 'medium') {
-                                    $('#med-' + original_rep_id).html(parseInt($('#med-' + original_rep_id).html()) - 1);
-                                }
-                                else if (response == 'high') {
-                                    $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) - 1);
-                                }
-                                else if (response == 'unassigned') {
-                                    $('#unassigned-' + original_rep_id).html(parseInt($('#unassigned-' + original_rep_id).html()) - 1);
-                                }
-                                else {
-                                    console.log('An error occurred when trying to get lead priority');
-                                    displayAlertMsg("error", 'An error occurred when trying to get lead priority, unable' +
-                                        'to update lead priority.')
-                                }
-                            });
+                            $.get(url + params,
+                                function (response, status, xhr) {
+                                    var message = response.trim();
+                                    if (response == 'low') {
+                                        $('#low-' + original_rep_id).html(parseInt($('#low-' + original_rep_id).html()) - 1);
+                                    }
+                                    else if (message === 'medium') {
+                                        $('#med-' + original_rep_id).html(parseInt($('#med-' + original_rep_id).html()) - 1);
+                                    }
+                                    else if (message === 'high') {
+                                        $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) - 1);
+                                    }
+                                    else if (message === 'unassigned') {
+                                        $('#unassigned-' + original_rep_id).html(parseInt($('#unassigned-' + original_rep_id).html()) - 1);
+                                    }
+                                    else {
+                                        console.log('An error occurred when trying to get lead priority');
+                                        displayAlertMsg("error", 'An error occurred when trying to get lead priority, unable ' +
+                                            'to update lead priority.')
+                                    }
+                                },
+                                'text');
                         }
                         else if (status == "error") {
                             event.preventDefault();
@@ -492,6 +496,7 @@ Drupal.behaviors.acrocrm_leads = {
     }
 };
 
+// This is specifically for displaying the message after committing the contacts.
 // display message at the top of the content window
 // valid message types are: 'error' (red), 'success' (green), 'warning' (yellow)
 // msg type defaults to 'info' (blue) if none of these cases are matched
@@ -516,17 +521,42 @@ function displayAlertMsgForContactCommit(msgType, msg) {
 }
 
 function commitAssignedLeads() {
+    // var text = '{"status": "error", "message": "foo", "leads": [{"id": 4, "priority": "high", "uid": 1}, {"id": 2, "priority": "unassigned", "uid": 3}]}';
+
+
+    //$(".priority-indicator").text('0');
+    //displayAlertMsgForContactCommit('error', returnObj.message);
+    // '<li class="list-group-item no-assigned-leads">No Assigned Leads</li>'
+
+
     $.ajax({
         url: "/acrocrm_hubspot_integration/commit_assigned_leads",
         dataType: 'text',
         success: function (data) {
-            var message = data.trim();
-            if (message == 'success') {
+            alert(data.trim());
+            var returnObj = $.parseJSON(data.trim());
+            if (returnObj.status === 'success') {
+                $(".sales-rep-lead-list").each(function () {
+                    $(this).find('[data-lead-id]').each(function () {
+                        $(this).remove();
+                    });
+                    $(this).not(":has(.no-assigned-leads)").append('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
+                });
+                $(".priority-indicator").text('0');
                 displayAlertMsgForContactCommit('success', 'Leads created on HubSpot successfully.');
-            } else if (message == 'no_leads_to_commit') {
+            } else if (returnObj.status === 'no_leads_to_commit') {
                 displayAlertMsgForContactCommit('info', 'There are no leads to send to HubSpot.');
             } else {
-                displayAlertMsgForContactCommit('error', message);
+                if (returnObj.leads) {
+                    for (var i = 0; i < returnObj.leads.length; i++) {
+                        $(".sales-rep-lead-list").find('[data-lead-id="' + returnObj.leads[i].id + '"]').remove();
+                        var prioritySpan = $('#' + returnObj.leads[i].priority + '-' + returnObj.leads[i].uid);
+                        var count = prioritySpan.text();
+                        prioritySpan.text(count - 1);
+                    }
+                    $(".sales-rep-lead-list").not(":has([data-lead-id])").append('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
+                }
+                displayAlertMsgForContactCommit('error', returnObj.message);
             }
         }
     });
