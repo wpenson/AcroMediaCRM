@@ -152,21 +152,29 @@ function acrocrm_page(&$variables) {
     }
 
     if (module_exists('acrocrm_leads')) {
-        $items['leads'] = array(
-            'path' => '#',
-            'title' => t('Leads'),
-            'permission' => 'administer acrocrm',
-            'child_pages' => array(
-                'overview' => array(
-                    'path' => base_path() . 'acrocrm_leads/overview',
-                    'title' => t('Overview'),
-                    'permission' => 'administer acrocrm',),
-                'my_leads' => array(
-                    'path' => base_path() . 'acrocrm_leads/my_leads',
-                    'title' => t('My Leads'),
-                    'permission' => 'administer acrocrm',),
-            ),
-        );
+        if (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == true) {
+            $items['leads'] = array(
+                'path' => base_path() . 'acrocrm_leads/overview',
+                'title' => t('Leads'),
+                'permission' => 'administer acrocrm'
+            );
+        } else {
+            $items['leads'] = array(
+                'path' => '#',
+                'title' => t('Leads'),
+                'permission' => 'administer acrocrm',
+                'child_pages' => array(
+                    'overview' => array(
+                        'path' => base_path() . 'acrocrm_leads/overview',
+                        'title' => t('Overview'),
+                        'permission' => 'administer acrocrm',),
+                    'my_leads' => array(
+                        'path' => base_path() . 'acrocrm_leads/my_leads',
+                        'title' => t('My Leads'),
+                        'permission' => 'administer acrocrm',),
+                ),
+            );
+        }
     }
     $items['settings'] = array(
         'path' => base_path() . 'admin/config/acrocrm',
