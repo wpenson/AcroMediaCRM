@@ -520,20 +520,11 @@ function displayAlertMsgForContactCommit(msgType, msg) {
     $('#page-wrapper').prepend(html);
 }
 
-function commitAssignedLeads() {
-    // var text = '{"status": "error", "message": "foo", "leads": [{"id": 4, "priority": "high", "uid": 1}, {"id": 2, "priority": "unassigned", "uid": 3}]}';
-
-
-    //$(".priority-indicator").text('0');
-    //displayAlertMsgForContactCommit('error', returnObj.message);
-    // '<li class="list-group-item no-assigned-leads">No Assigned Leads</li>'
-
-
+function commitAssignedLeads(basePath) {
     $.ajax({
-        url: "/acrocrm_hubspot_integration/commit_assigned_leads",
+        url: basePath + "acrocrm_hubspot_integration/commit_assigned_leads",
         dataType: 'text',
         success: function (data) {
-            alert(data.trim());
             var returnObj = $.parseJSON(data.trim());
             if (returnObj.status === 'success') {
                 $(".sales-rep-lead-list").each(function () {
