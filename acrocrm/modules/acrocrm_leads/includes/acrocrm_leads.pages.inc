@@ -783,7 +783,7 @@ function acrocrm_leads_my_leads_generate_leads_html($leads, $search_bar, $page_n
             $leads_list .= '<div class="pull-right text-right">';
             $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
             if (module_exists('acrocrm_hubspot_integration') && $page_name == 'my_leads') {
-                $leads_list .= '<button id="' . $lead['lead_id'] . '" type="button" class="btn btn-success" onclick="createHubspotContact(' . $lead['lead_id'] . ', this)"><span class="glyphicon glyphicon-user"></span></button>';
+                $leads_list .= '<button id="' . $lead['lead_id'] . '" type="button" class="btn btn-success" onclick="createHubspotContact(' . $lead['lead_id'] . ', \'' . base_path() . '\')"><span class="glyphicon glyphicon-user"></span></button>';
             }
             $leads_list .= '<button type="button" class="btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '/my_leads' . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
             $leads_list .= '<button type="button" class="btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '/my_leads' . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
@@ -845,23 +845,24 @@ function acrocrm_leads_get_sales_reps() {
     $filter_bar =
         '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
             <div class="input-group">'
-        . (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == true ? '<button type="button" class="btn btn-primary" onclick="commitAssignedLeads(\'' . base_path() . '\')">Commit Assigned Leads</button>' : '') .
-        '<div class="btn-group" role="group" aria-label="...">
-                    <button type="button" class="btn btn-default">1</button>
-                    <button type="button" class="btn btn-default">2</button>
-
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Dropdown
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a href="#">Dropdown link</a></li>
-                            <li><a href="#">Dropdown link</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+        . (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == true ? '<button id="commit-leads-button" type="button" class="btn btn-primary" data-url-base-path="' . base_path() . '">Commit Assigned Leads</button>' : '') .
+        // TODO: Add functions for the buttons below.
+//        '<div class="btn-group" role="group" aria-label="...">
+//                    <button type="button" class="btn btn-default">1</button>
+//                    <button type="button" class="btn btn-default">2</button>
+//
+//                    <div class="btn-group" role="group">
+//                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+//                            Dropdown
+//                            <span class="caret"></span>
+//                        </button>
+//                        <ul class="dropdown-menu">
+//                            <li><a href="#">Dropdown link</a></li>
+//                            <li><a href="#">Dropdown link</a></li>
+//                        </ul>
+//                    </div>
+//                </div>
+        '</div>
         </div>';
 
     $users = entity_load('user');

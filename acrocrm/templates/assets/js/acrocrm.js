@@ -471,6 +471,56 @@ Drupal.behaviors.acrocrm_leads = {
             event.stopPropagation();
         });
 
+        $('#commit-leads-button').click(function () {
+            commitAssignedLeads();
+        });
+
+        // Commits all the currently assigned leads in the database to hubspot.
+        function commitAssignedLeads() {
+            var commit_leads_button = $('#commit-leads-button');
+            var url_base_path = commit_leads_button.data('url-base-path');
+            var imgTag = '<img id="commit-loading-gif" alt="loading" src="' + url_base_path + 'acrocrm/templates/assets/images/ajax-loader.gif">';
+            $(imgTag).insertBefore(commit_leads_button);
+            commit_leads_button.hide();
+            $.ajax({
+                url: url_base_path + "acrocrm_hubspot_integration/commit_assigned_leads",
+                dataType: 'text',
+                success: function (data) {
+                    var returnObj = $.parseJSON(data.trim());
+                    if (returnObj.status === 'success') {
+                        $(".sales-rep-lead-list").each(function () {
+                            $(this).find('[data-lead-id]').each(function () {
+                                $(this).remove();
+                            });
+                            $(this).not(":has(.no-assigned-leads)").append('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
+                        });
+                        $(".priority-indicator").text('0');
+                        displayAlertMsg('success', 'Leads created on HubSpot successfully.');
+                    } else if (returnObj.status === 'no_leads_to_commit') {
+                        displayAlertMsg('info', 'There are no leads to send to HubSpot.');
+                    } else {
+                        if (returnObj.leads) {
+                            for (var i = 0; i < returnObj.leads.length; i++) {
+                                $(".sales-rep-lead-list").find('[data-lead-id="' + returnObj.leads[i].id + '"]').remove();
+                                var prioritySpan = $('#' + returnObj.leads[i].priority + '-' + returnObj.leads[i].uid);
+                                var count = prioritySpan.text();
+                                prioritySpan.text(count - 1);
+                            }
+                            $(".sales-rep-lead-list").not(":has([data-lead-id])").append('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
+                        }
+                        displayAlertMsg('error', returnObj.message);
+                    }
+                    $('#commit-loading-gif').remove();
+                    commit_leads_button.show();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    displayAlertMsg('error', "Something went wrong when trying to send the leads to HubSpot.");
+                    $('#commit-loading-gif').remove();
+                    commit_leads_button.show();
+                }
+            });
+        }
+
         // display message at the top of the content window
         // valid message types are: 'error' (red), 'success' (green), 'warning' (yellow)
         // msg type defaults to 'info' (blue) if none of these cases are matched
@@ -496,69 +546,12 @@ Drupal.behaviors.acrocrm_leads = {
     }
 };
 
-// This is specifically for displaying the message after committing the contacts.
-// display message at the top of the content window
-// valid message types are: 'error' (red), 'success' (green), 'warning' (yellow)
-// msg type defaults to 'info' (blue) if none of these cases are matched
-function displayAlertMsgForContactCommit(msgType, msg) {
-    $("#alert-msg-div").empty();
-    var html = '<div id="alert-msg-div" class="col-md-12">';
-    if (msgType == 'error') {
-        html += '<div class="alert alert-danger">';
-    }
-    else if (msgType == 'success') {
-        html += '<div class="alert alert-success">';
-    }
-    else if (msgType == 'warning') {
-        html += '<div class="alert alert-warning">';
-    }
-    else {
-        html += '<div class="alert alert-info">';
-    }
-    html += msg;
-    html += '</div></div>';
-    $('#page-wrapper').prepend(html);
-}
-
-function commitAssignedLeads(basePath) {
-    $.ajax({
-        url: basePath + "acrocrm_hubspot_integration/commit_assigned_leads",
-        dataType: 'text',
-        success: function (data) {
-            var returnObj = $.parseJSON(data.trim());
-            if (returnObj.status === 'success') {
-                $(".sales-rep-lead-list").each(function () {
-                    $(this).find('[data-lead-id]').each(function () {
-                        $(this).remove();
-                    });
-                    $(this).not(":has(.no-assigned-leads)").append('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
-                });
-                $(".priority-indicator").text('0');
-                displayAlertMsgForContactCommit('success', 'Leads created on HubSpot successfully.');
-            } else if (returnObj.status === 'no_leads_to_commit') {
-                displayAlertMsgForContactCommit('info', 'There are no leads to send to HubSpot.');
-            } else {
-                if (returnObj.leads) {
-                    for (var i = 0; i < returnObj.leads.length; i++) {
-                        $(".sales-rep-lead-list").find('[data-lead-id="' + returnObj.leads[i].id + '"]').remove();
-                        var prioritySpan = $('#' + returnObj.leads[i].priority + '-' + returnObj.leads[i].uid);
-                        var count = prioritySpan.text();
-                        prioritySpan.text(count - 1);
-                    }
-                    $(".sales-rep-lead-list").not(":has([data-lead-id])").append('<li class="list-group-item no-assigned-leads">No Assigned Leads</li>');
-                }
-                displayAlertMsgForContactCommit('error', returnObj.message);
-            }
-        }
-    });
-}
-
-function createHubspotContact(lead_id, element) {
-    var imgTag = '<img id="loading-gif-' + lead_id + '" alt="loading" src="/acrocrm/templates/assets/images/ajax-loader.gif">';
+function createHubspotContact(lead_id, url_base_path) {
+    var imgTag = '<img id="loading-gif-' + lead_id + '" alt="loading" src="' + url_base_path + 'acrocrm/templates/assets/images/ajax-loader.gif">';
     $(imgTag).insertBefore($("#" + lead_id).parent());
     $("#" + lead_id).hide();
     $.ajax({
-        url: "/acrocrm_hubspot_integration/create_contact/" + lead_id,
+        url: url_base_path + "acrocrm_hubspot_integration/create_contact/" + lead_id,
         success: function (data) {
             $("#loading-gif-" + lead_id).remove();
             $("#" + lead_id).show();
