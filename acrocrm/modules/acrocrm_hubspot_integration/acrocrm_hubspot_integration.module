@@ -55,7 +55,7 @@ function acrocrm_hubspot_integration_menu() {
 }
 
 function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
-    $leads = db_query('SELECT leads.lead_id, email, firstname, leads.name, phone, comments, assigned_leads.uid, priority
+    $leads = db_query('SELECT leads.lead_id, email, firstname, leads.name, phone, comments, assigned_leads.uid, priority, mail
                         FROM leads
                         INNER JOIN assigned_leads
                         ON leads.lead_id=assigned_leads.lead_id
@@ -68,10 +68,12 @@ function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
     $error_leads = array();
     $success_leads = array();
     $response = null;
+    $owners_map = get_hubspot_owners();
 
     if ($leads->rowCount() > 0) {
         while ($lead = $leads->fetch()) {
-            $lead_array = get_lead_array_for_hubspot($lead);
+            $owner_id = $owners_map[$lead->mail];
+            $lead_array = get_lead_array_for_hubspot($lead, $owner_id);
             $response = create_contact_on_hubspot($lead_array);
             if ($response->status == "error") {
                 $success = false;
@@ -137,7 +139,8 @@ function build_json_lead_object($lead) {
     return $json_object . '}';
 }
 
-function get_lead_array_for_hubspot($lead) {
+function get_lead_array_for_hubspot($lead, $owner_id) {
+
     $arr = array(
         'properties' => array(
             array(
@@ -150,21 +153,44 @@ function get_lead_array_for_hubspot($lead) {
             ),
             array(
                 'property' => 'lastname',
-                'value' => $lead->name
+                'value' => $lead->name,
             ),
             array(
                 'property' => 'phone',
-                'value' => $lead->phone
+                'value' => $lead->phone,
             ),
             array("property" => "lifecyclestage",
-                "value" => "lead"
+                "value" => "lead",
             ),
             array("property" => "message",
-                "value" => $lead->comments
-            )
+                "value" => $lead->comments,
+            ),
+            array("property" => "hubspot_owner_id",
+                "value" => $owner_id,
+            ),
         )
     );
     return $arr;
+}
+
+function get_hubspot_owners() {
+    $endpoint = 'https://api.hubapi.com/owners/v2/owners?hapikey=' . variable_get('api_key');
+    $ch = @curl_init();
+    @curl_setopt($ch, CURLOPT_URL, $endpoint);
+    @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+    @curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response_json = @curl_exec($ch);
+    @curl_close($ch);
+
+    $owners_array = json_decode($response_json);
+
+    $owners_map = array();
+
+    foreach ($owners_array as $owner) {
+        $owners_map[$owner->email] = $owner->ownerId;
+    }
+
+    return $owners_map;
 }
 
 function create_contact_on_hubspot($lead_array) {
