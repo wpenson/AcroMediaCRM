@@ -845,7 +845,7 @@ function acrocrm_leads_get_sales_reps() {
     $filter_bar =
         '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
             <div class="input-group">'
-        . (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == true ? '<button id="commit-leads-button" type="button" class="btn btn-primary" data-url-base-path="' . base_path() . '">Commit Assigned Leads</button>' : '') .
+        . (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == true ? '<button id="commit-leads-button" type="button" class="btn btn-primary" data-module-base-path="' . drupal_get_path('module', 'acrocrm') . '" data-url-base-path="' . base_path() . '">Commit Assigned Leads</button>' : '') .
         // TODO: Add functions for the buttons below.
 //        '<div class="btn-group" role="group" aria-label="...">
 //                    <button type="button" class="btn btn-default">1</button>

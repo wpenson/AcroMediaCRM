@@ -479,7 +479,8 @@ Drupal.behaviors.acrocrm_leads = {
         function commitAssignedLeads() {
             var commit_leads_button = $('#commit-leads-button');
             var url_base_path = commit_leads_button.data('url-base-path');
-            var imgTag = '<img id="commit-loading-gif" alt="loading" src="' + url_base_path + 'acrocrm/templates/assets/images/ajax-loader.gif">';
+            var module_base_path = commit_leads_button.data('module-base-path');
+            var imgTag = '<img id="commit-loading-gif" alt="loading" src="' + url_base_path + module_base_path + '/templates/assets/images/ajax-loader.gif">';
             $(imgTag).insertBefore(commit_leads_button);
             commit_leads_button.hide();
             $.ajax({

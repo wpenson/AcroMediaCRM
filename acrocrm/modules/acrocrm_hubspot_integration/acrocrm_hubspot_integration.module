@@ -206,6 +206,8 @@ function create_contact_on_hubspot($lead_array) {
     $response_json = @curl_exec($ch);
     @curl_close($ch);
 
+    error_log($response_json);
+
     return json_decode($response_json);
 }
 
