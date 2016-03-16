@@ -15,101 +15,101 @@
  *   Array that holds the current path as returned from arg() function
  */
 function acrocrm_help($path, $arg) {
-    switch ($path) {
-        case "admin/help#acrocrm":
-            return '<p>' . t("Establishes basic functionality for all parts of Acro CRM") . '</p>';
-            break;
-    }
+  switch ($path) {
+    case "admin/help#acrocrm":
+      return '<p>' . t("Establishes basic functionality for all parts of Acro CRM") . '</p>';
+      break;
+  }
 }
 
 /**
  * Implements hook_menu().
  */
 function acrocrm_menu() {
-    $items = array();
+  $items = array();
 
-    // Menu items that are basically just menu blocks.
-    $items['admin/acrocrm'] = array(
-        'title' => 'Acro CRM',
-        'description' => 'Acro CRM',
-        'weight' => -8,
-        'page callback' => 'acrocrm_landing_page',
-        'access arguments' => array('access acrocrm'),
-        'file' => 'includes/acrocrm.pages.inc',
-    );
-    $items['acrocrm/default'] = array(
-        'title' => 'Acro CRM',
-        'description' => 'Acro CRM',
-        'weight' => -8,
-        'page callback' => 'acrocrm_default',
-        'access arguments' => array('access acrocrm'),
-        'file' => 'includes/acrocrm.pages.inc',
-    );
-    $items['admin/structure/acrocrm'] = array(
-        'title' => 'Acro CRM',
-        'description' => 'Administer Acro CRM items, such as team members, contacts, etc.',
-        'page callback' => 'system_admin_menu_block_page',
-        'access arguments' => array('administer acrocrm'),
-        'file' => 'system.admin.inc',
-        'file path' => drupal_get_path('module', 'system'),
-    );
-    $items['admin/config/acrocrm'] = array(
-        'title' => 'Acro CRM',
-        'description' => 'Settings for Acro modules.',
-        'position' => 'right',
-        'weight' => -10,
-        'page callback' => 'system_admin_menu_block_page',
-        'access arguments' => array('administer site configuration'),
-        'file' => 'system.admin.inc',
-        'file path' => drupal_get_path('module', 'system'),
-    );
-    $items['admin/config/acrocrm/crm'] = array(
-        'title' => 'Acro CRM settings',
-        'description' => 'Configure Acro CRM.',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('acrocrm_settings'),
-        'access arguments' => array('administer acrocrm'),
-        'file' => 'includes/acrocrm.admin.inc',
-    );
+  // Menu items that are basically just menu blocks.
+  $items['admin/acrocrm'] = array(
+    'title' => 'Acro CRM',
+    'description' => 'Acro CRM',
+    'weight' => -8,
+    'page callback' => 'acrocrm_landing_page',
+    'access arguments' => array('access acrocrm'),
+    'file' => 'includes/acrocrm.pages.inc',
+  );
+  $items['acrocrm/default'] = array(
+    'title' => 'Acro CRM',
+    'description' => 'Acro CRM',
+    'weight' => -8,
+    'page callback' => 'acrocrm_default',
+    'access arguments' => array('access acrocrm'),
+    'file' => 'includes/acrocrm.pages.inc',
+  );
+  $items['admin/structure/acrocrm'] = array(
+    'title' => 'Acro CRM',
+    'description' => 'Administer Acro CRM items, such as team members, contacts, etc.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer acrocrm'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/config/acrocrm'] = array(
+    'title' => 'Acro CRM',
+    'description' => 'Settings for Acro modules.',
+    'position' => 'right',
+    'weight' => -10,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/config/acrocrm/crm'] = array(
+    'title' => 'Acro CRM settings',
+    'description' => 'Configure Acro CRM.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acrocrm_settings'),
+    'access arguments' => array('administer acrocrm'),
+    'file' => 'includes/acrocrm.admin.inc',
+  );
 
-    return $items;
+  return $items;
 }
 
 /**
  * Implements hook_permission().
  */
 function acrocrm_permission() {
-    return array(
-        'administer acrocrm' => array(
-            'title' => t('Administer Acro CRM'),
-            'description' => t('Perform administration tasks for my Acro CRM.'),
-        ),
-        'access acrocrm' => array(
-            'title' => t('Access Acro CRM'),
-            'description' => t('Access Acro CRM.'),
-        ),
-        'sales rep' => array(
-            'title' => t('Sales Representative'),
-            'description' => t('A person who is part of the sales division.'),
-        ),
-    );
+  return array(
+    'administer acrocrm' => array(
+      'title' => t('Administer Acro CRM'),
+      'description' => t('Perform administration tasks for my Acro CRM.'),
+    ),
+    'access acrocrm' => array(
+      'title' => t('Access Acro CRM'),
+      'description' => t('Access Acro CRM.'),
+    ),
+    'sales rep' => array(
+      'title' => t('Sales Representative'),
+      'description' => t('A person who is part of the sales division.'),
+    ),
+  );
 }
 
 /**
  * Implements hook_theme().
  */
 function acrocrm_theme() {
-    return array(
-        'page__acrocrm' => array(
-            'variables' => array('page' => NULL),
-            'preprocess functions' => array('acrocrm_page'),
-        ),
-        'acrocrm_home' => array(
-            'base hook' => 'page__acrocrm',
-            'path' => drupal_get_path('module', 'acrocrm') . '/templates',
-            'template' => 'main--acrocrm',
-        ),
-    );
+  return array(
+    'page__acrocrm' => array(
+      'variables' => array('page' => NULL),
+      'preprocess functions' => array('acrocrm_page'),
+    ),
+    'acrocrm_home' => array(
+      'base hook' => 'page__acrocrm',
+      'path' => drupal_get_path('module', 'acrocrm') . '/templates',
+      'template' => 'main--acrocrm',
+    ),
+  );
 }
 
 /**
@@ -118,102 +118,106 @@ function acrocrm_theme() {
  * @param $variables
  */
 function acrocrm_page(&$variables) {
-    $page = $variables['page'];
-    $module_path = drupal_get_path('module', 'acrocrm');
-    $css_path = $module_path . '/templates/assets/css/';
-    $js_path = $module_path . '/templates/assets/js/';
+  $page = $variables['page'];
+  $module_path = drupal_get_path('module', 'acrocrm');
+  $css_path = $module_path . '/templates/assets/css/';
+  $js_path = $module_path . '/templates/assets/js/';
 
-    // css for header
-    drupal_add_css($css_path . 'acrocrm_reset.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'bootstrap.min.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'metismenu.min.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'timeline.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'sb-admin-2.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'font-awesome.min.css', array('group' => CSS_THEME));
-    drupal_add_css($css_path . 'acrocrm.css', array('group' => CSS_THEME));
+  // css for header
+  drupal_add_css($css_path . 'acrocrm_reset.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'bootstrap.min.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'metismenu.min.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'timeline.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'sb-admin-2.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'font-awesome.min.css', array('group' => CSS_THEME));
+  drupal_add_css($css_path . 'acrocrm.css', array('group' => CSS_THEME));
 
-    // js for header
-    drupal_add_js('var $ = jQuery;', 'inline', array('group' => JS_THEME));
-    drupal_add_js($js_path . 'bootstrap.min.js', array('group' => JS_THEME));
-    drupal_add_js($js_path . 'sb-admin-2.js', array('group' => JS_THEME));
-    drupal_add_js($js_path . 'metismenu.min.js', array('group' => JS_THEME));
+  // js for header
+  drupal_add_js('var $ = jQuery;', 'inline', array('group' => JS_THEME));
+  drupal_add_js($js_path . 'bootstrap.min.js', array('group' => JS_THEME));
+  drupal_add_js($js_path . 'sb-admin-2.js', array('group' => JS_THEME));
+  drupal_add_js($js_path . 'metismenu.min.js', array('group' => JS_THEME));
 
-    // js for footer
-    drupal_add_js('http://code.jquery.com/ui/1.11.4/jquery-ui.js', 'external', array('scope' => 'footer'));
-    drupal_add_js($js_path . 'acrocrm.js', array('scope' => 'footer'));
+  // js for footer
+  drupal_add_js('http://code.jquery.com/ui/1.11.4/jquery-ui.js', 'external', array('scope' => 'footer'));
+  drupal_add_js($js_path . 'acrocrm.js', array('scope' => 'footer'));
 
-    // Add items to sidebar
-    if (module_exists('acrocrm_dashboard')) {
-        $items['dashboard'] = array(
-            'path' => base_path() . 'acrocrm_dashboard',
-            'title' => t('Dashboard'),
-            'permission' => 'administer acrocrm'
-        );
+  // Add items to sidebar
+  if (module_exists('acrocrm_dashboard')) {
+    $items['dashboard'] = array(
+      'path' => base_path() . 'acrocrm_dashboard',
+      'title' => t('Dashboard'),
+      'permission' => 'administer acrocrm'
+    );
+  }
+
+  if (module_exists('acrocrm_leads')) {
+    if (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == TRUE) {
+      $items['leads'] = array(
+        'path' => base_path() . 'acrocrm_leads/overview',
+        'title' => t('Leads'),
+        'permission' => 'administer acrocrm'
+      );
     }
-
-    if (module_exists('acrocrm_leads')) {
-        if (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == true) {
-            $items['leads'] = array(
-                'path' => base_path() . 'acrocrm_leads/overview',
-                'title' => t('Leads'),
-                'permission' => 'administer acrocrm'
-            );
-        } else {
-            $items['leads'] = array(
-                'path' => '#',
-                'title' => t('Leads'),
-                'permission' => 'administer acrocrm',
-                'child_pages' => array(
-                    'overview' => array(
-                        'path' => base_path() . 'acrocrm_leads/overview',
-                        'title' => t('Overview'),
-                        'permission' => 'administer acrocrm',),
-                    'my_leads' => array(
-                        'path' => base_path() . 'acrocrm_leads/my_leads',
-                        'title' => t('My Leads'),
-                        'permission' => 'administer acrocrm',),
-                ),
-            );
-        }
-    }
-    $items['settings'] = array(
-        'path' => base_path() . 'admin/config/acrocrm',
-        'title' => t('Settings'),
+    else {
+      $items['leads'] = array(
+        'path' => '#',
+        'title' => t('Leads'),
         'permission' => 'administer acrocrm',
-    );
+        'child_pages' => array(
+          'overview' => array(
+            'path' => base_path() . 'acrocrm_leads/overview',
+            'title' => t('Overview'),
+            'permission' => 'administer acrocrm',
+          ),
+          'my_leads' => array(
+            'path' => base_path() . 'acrocrm_leads/my_leads',
+            'title' => t('My Leads'),
+            'permission' => 'administer acrocrm',
+          ),
+        ),
+      );
+    }
+  }
+  $items['settings'] = array(
+    'path' => base_path() . 'admin/config/acrocrm',
+    'title' => t('Settings'),
+    'permission' => 'administer acrocrm',
+  );
 
 
-    foreach ($items as $key => $item) {
-        if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
-            unset($items[$key]);
-        }
+  foreach ($items as $key => $item) {
+    if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
+      unset($items[$key]);
+    }
+  }
+
+  $markup = '';
+  foreach ($items as $item) {
+    $markup .= '<li><a href="' . $item['path'] . '"><i class="fa fa-fw"></i>' . $item['title'];
+    if (array_key_exists('child_pages', $item)) {
+      $markup .= '<span class="fa arrow"></span></a>'
+        . '<ul class="nav nav-second-level">';
+      foreach ($item['child_pages'] as $child_item) {
+        $markup .= '<li>'
+          . l($child_item['title'], $child_item['path'])
+          . '</li >';
+      }
+      $markup .= '</ul>';
+    }
+    else {
+      $markup .= '</a>';
     }
 
-    $markup = '';
-    foreach ($items as $item) {
-        $markup .= '<li><a href="' . $item['path'] . '"><i class="fa fa-fw"></i>' . $item['title'];
-        if (array_key_exists('child_pages', $item)) {
-            $markup .= '<span class="fa arrow"></span></a>'
-                . '<ul class="nav nav-second-level">';
-            foreach ($item['child_pages'] as $child_item) {
-                $markup .= '<li>'
-                    . '<a href = "' . $child_item['path'] . '" >' . $child_item['title'] . '</a >'
-                    . '</li >';
-            }
-            $markup .= '</ul>';
-        } else {
-            $markup .= '</a>';
-        }
+    $markup .= '</li>';
+  }
 
-        $markup .= '</li>';
-    }
+  $page['sidebar_first']['links'] = array(
+    '#type' => 'markup',
+    '#markup' => $markup,
+  );
 
-    $page['sidebar_first']['links'] = array(
-        '#type' => 'markup',
-        '#markup' => $markup,
-    );
-
-    $variables['page'] = $page;
+  $variables['page'] = $page;
 }
 
 //TODO - if you just specify your stuff under admin/* then you don't need to do this
@@ -221,33 +225,33 @@ function acrocrm_page(&$variables) {
  * Implements hook_admin_paths().
  */
 function acrocrm_admin_paths() {
-    // Set Acro CRM admin paths based on configuration.
-    if (variable_get('acrocrm_admin_path', FALSE)) {
-        $paths = array(
-            'acrocrm*' => TRUE,
-            'acrocrm/*' => TRUE,
-        );
-        return $paths;
-    }
+  // Set Acro CRM admin paths based on configuration.
+  if (variable_get('acrocrm_admin_path', FALSE)) {
+    $paths = array(
+      'acrocrm*' => TRUE,
+      'acrocrm/*' => TRUE,
+    );
+    return $paths;
+  }
 }
 
 function acrocrm_get_message_markup() {
-    $messages = drupal_get_messages();
-    $markup = '<div class="row"><div class="col-lg-10 col-md-12">';
-    if (isset($messages['error']) && $messages['error']) {
-        $markup .= '<div class="alert alert-danger">';
-        foreach ($messages['error'] as $message) {
-            $markup .= t($message) . '<br>';
-        }
-        $markup .= '</div>';
+  $messages = drupal_get_messages();
+  $markup = '<div class="row"><div class="col-lg-10 col-md-12">';
+  if (isset($messages['error']) && $messages['error']) {
+    $markup .= '<div class="alert alert-danger">';
+    foreach ($messages['error'] as $message) {
+      $markup .= t($message) . '<br>';
     }
-    if (isset($messages['status']) && $messages['status']) {
-        $markup .= '<div class="alert alert-success">';
-        foreach ($messages['status'] as $message) {
-            $markup .= t($message) . '<br>';
-        }
-        $markup .= '</div>';
+    $markup .= '</div>';
+  }
+  if (isset($messages['status']) && $messages['status']) {
+    $markup .= '<div class="alert alert-success">';
+    foreach ($messages['status'] as $message) {
+      $markup .= t($message) . '<br>';
     }
-    $markup .= '</div></div>';
-    return $markup;
+    $markup .= '</div>';
+  }
+  $markup .= '</div></div>';
+  return $markup;
 }

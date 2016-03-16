@@ -10,6 +10,7 @@
  * @see form_test_menu()
  */
 function acrocrm_leads_contact_form_settings_form($form, &$form_state) {
+  // @TODO: system variables should always prefix with module name
   $form['name_field'] = array(
     '#type' => 'radios',
     '#title' => t('Name field type'),

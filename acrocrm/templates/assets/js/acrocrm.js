@@ -547,6 +547,7 @@ Drupal.behaviors.acrocrm_leads = {
     }
 };
 
+// @TODO: Run text through Drupal.t().
 function createHubspotContact(lead_id, url_base_path) {
     var imgTag = '<img id="loading-gif-' + lead_id + '" alt="loading" src="' + url_base_path + 'acrocrm/templates/assets/images/ajax-loader.gif">';
     $(imgTag).insertBefore($("#" + lead_id).parent());

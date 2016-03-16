@@ -13,49 +13,53 @@
  *  Ant HTML string
  */
 function acrocrm_hubspot_integration_help($path, $arg) {
-    switch ($path) {
-        case "admin/help#acrocrm_hubspot_integration":
-            return '<p>' . t("HubSpot integration for the AcroCRM Leads module") . '</p>';
-            break;
-    }
+  switch ($path) {
+    case "admin/help#acrocrm_hubspot_integration":
+      return '<p>' . t("HubSpot integration for the AcroCRM Leads module") . '</p>';
+      break;
+  }
 }
 
 /**
  * Implements hook_menu
+ *
+ * @TODO: JSON returns can use 'delivery callback' in menu hook to product return
+ * see: https://api.drupal.org/api/drupal/includes!common.inc/function/drupal_json_output/7
  */
 function acrocrm_hubspot_integration_menu() {
-    $items = array();
+  $items = array();
 
-    $items['acrocrm_hubspot_integration/create_contact'] = array(
-        'page arguments' => array(2),
-        'access callback' => TRUE,
-        'page callback' => 'acrocrm_hubspot_integration_create_contact_ajax',
-        'type' => MENU_CALLBACK,
-        'access arguments' => array('access acrocrm'),
-    );
+  $items['acrocrm_hubspot_integration/create_contact'] = array(
+    'page arguments' => array(2),
+    'access callback' => TRUE,
+    'page callback' => 'acrocrm_hubspot_integration_create_contact_ajax',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access acrocrm'),
+  );
 
-    $items['acrocrm_hubspot_integration/commit_assigned_leads'] = array(
-        'access callback' => TRUE,
-        'page callback' => 'acrocrm_hubspot_integration_commit_assigned_leads_ajax',
-        'type' => MENU_CALLBACK,
-        'access arguments' => array('access acrocrm'),
-    );
+  $items['acrocrm_hubspot_integration/commit_assigned_leads'] = array(
+    'access callback' => TRUE,
+    'page callback' => 'acrocrm_hubspot_integration_commit_assigned_leads_ajax',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access acrocrm'),
+  );
 
-    $items['admin/config/acrocrm/acrocrm_hubspot_integration'] = array(
-        'title' => 'AcroCRM HubSpot Integration',
-        'description' => 'Configuration for the AcroCRM HubSpot Integration',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('acrocrm_hubspot_integration_settings_form'),
-        'file' => 'includes/acrocrm_hubspot_integration.forms.inc',
-        'access arguments' => array('access administration pages'),
-        'type' => MENU_NORMAL_ITEM
-    );
+  $items['admin/config/acrocrm/acrocrm_hubspot_integration'] = array(
+    'title' => 'AcroCRM HubSpot Integration',
+    'description' => 'Configuration for the AcroCRM HubSpot Integration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acrocrm_hubspot_integration_settings_form'),
+    'file' => 'includes/acrocrm_hubspot_integration.forms.inc',
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM
+  );
 
-    return $items;
+  return $items;
 }
 
+// @TODO: Document
 function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
-    $leads = db_query('SELECT leads.lead_id, email, firstname, leads.name, phone, comments, assigned_leads.uid, priority, mail
+  $leads = db_query('SELECT leads.lead_id, email, firstname, leads.name, phone, comments, assigned_leads.uid, priority, mail
                         FROM leads
                         INNER JOIN assigned_leads
                         ON leads.lead_id=assigned_leads.lead_id
@@ -63,216 +67,237 @@ function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
                         ON users.uid = assigned_leads.uid
                         WHERE leads.status = \'APPROVED\' OR leads.status = \'UNAPPROVED\'');
 
-    $success = true;
-    $leads_to_commit = true;
-    $error_leads = array();
-    $success_leads = array();
-    $response = null;
-    $owners_map = get_hubspot_owners();
+  $success = TRUE;
+  $leads_to_commit = TRUE;
+  $error_leads = array();
+  $success_leads = array();
+  $response = NULL;
+  $owners_map = get_hubspot_owners();
 
-    if ($leads->rowCount() > 0) {
-        while ($lead = $leads->fetch()) {
-            $owner_id = $owners_map[$lead->mail];
-            $lead_array = get_lead_array_for_hubspot($lead, $owner_id);
-            $response = create_contact_on_hubspot($lead_array);
-            if ($response->status == "error") {
-                $success = false;
-                array_push($error_leads, array("lead" => $lead, "response" => $response));
-            } else {
-                array_push($success_leads, $lead);
-                db_update('leads')
-                    ->fields(array('status' => 'CONVERTED'))
-                    ->condition('lead_id', $lead->lead_id)
-                    ->execute();
-            }
-        }
-    } else {
-        $leads_to_commit = false;
+  if ($leads->rowCount() > 0) {
+    while ($lead = $leads->fetch()) {
+      $owner_id = $owners_map[$lead->mail];
+      $lead_array = get_lead_array_for_hubspot($lead, $owner_id);
+      $response = create_contact_on_hubspot($lead_array);
+      if ($response->status == "error") {
+        $success = FALSE;
+        array_push($error_leads, array(
+          "lead" => $lead,
+          "response" => $response
+        ));
+      }
+      else {
+        array_push($success_leads, $lead);
+        db_update('leads')
+          ->fields(array('status' => 'CONVERTED'))
+          ->condition('lead_id', $lead->lead_id)
+          ->execute();
+      }
     }
+  }
+  else {
+    $leads_to_commit = FALSE;
+  }
 
-    if ($success && $leads_to_commit) {
-        print '{"status": "success"}';
-    } elseif (!$leads_to_commit) {
-        print '{"status": "no_leads_to_commit"}';
-    } else {
-        $error_message = '<p>There were errors with some of the leads you tried to send to HubSpot: </p><ul>';
-        foreach ($error_leads as $error_lead) {
-            $error_message .= '<li>';
-            if ($error_lead['response']->message == "Contact already exists") {
-                $error_message .= 'A contact with the email \'' . $error_lead['lead']->email . '\'  already exists, and could not be created.';
-            } elseif (preg_match('/^Email address [A-Za-z@_\-]* is invalid$/', $error_lead['response']->message) == 1) {
-                $error_message .= 'The email \'' . $error_lead['lead']->email . '\' is not valid on HubSpot and the contact could not be created.';
-            } else {
-                $error_message .= $error_lead['response']->message;
-            }
-            $error_message .= '</li>';
-        }
-        $error_message .= '</ul>';
-        print '{"status": "error", "message": "' . $error_message . '"' . (sizeof($success_leads) > 0 ? (', "leads": ' . build_json_leads_array($success_leads)) : '') . '}';
+  if ($success && $leads_to_commit) {
+    print '{"status": "success"}';
+  }
+  elseif (!$leads_to_commit) {
+    print '{"status": "no_leads_to_commit"}';
+  }
+  else {
+    $error_message = '<p>There were errors with some of the leads you tried to send to HubSpot: </p><ul>';
+    foreach ($error_leads as $error_lead) {
+      $error_message .= '<li>';
+      if ($error_lead['response']->message == "Contact already exists") {
+        $error_message .= 'A contact with the email \'' . $error_lead['lead']->email . '\'  already exists, and could not be created.';
+      }
+      elseif (preg_match('/^Email address [A-Za-z@_\-]* is invalid$/', $error_lead['response']->message) == 1) {
+        $error_message .= 'The email \'' . $error_lead['lead']->email . '\' is not valid on HubSpot and the contact could not be created.';
+      }
+      else {
+        $error_message .= $error_lead['response']->message;
+      }
+      $error_message .= '</li>';
     }
+    $error_message .= '</ul>';
+    print '{"status": "error", "message": "' . $error_message . '"' . (sizeof($success_leads) > 0 ? (', "leads": ' . build_json_leads_array($success_leads)) : '') . '}';
+  }
 }
 
 function build_json_leads_array($success_leads) {
-    $json_array = '';
-    if (sizeof($success_leads) > 0) {
-        $json_array .= '[';
-        for ($i = 0; $i < sizeof($success_leads) - 1; $i++) {
-            $json_array .= build_json_lead_object($success_leads[$i]) . ',';
-        }
-
-        // Need to do this to make sure that there is no extra comma at the end of the array.
-        $json_array .= build_json_lead_object($success_leads[sizeof($success_leads) - 1]);
-
-        $json_array .= ']';
+  $json_array = '';
+  if (sizeof($success_leads) > 0) {
+    $json_array .= '[';
+    for ($i = 0; $i < sizeof($success_leads) - 1; $i++) {
+      $json_array .= build_json_lead_object($success_leads[$i]) . ',';
     }
-    return $json_array;
+
+    // Need to do this to make sure that there is no extra comma at the end of the array.
+    $json_array .= build_json_lead_object($success_leads[sizeof($success_leads) - 1]);
+
+    $json_array .= ']';
+  }
+  return $json_array;
 }
 
 function build_json_lead_object($lead) {
-    $json_object = '{';
+  $json_object = '{';
 
-    $json_object .= '"id": ' . $lead->lead_id . ',';
+  $json_object .= '"id": ' . $lead->lead_id . ',';
 
-    $json_object .= '"priority": ' . '"' . ($lead->priority == null ? 'unassigned' : $lead->priority) . '",';
-    $json_object .= '"uid": ' . $lead->uid;
+  $json_object .= '"priority": ' . '"' . ($lead->priority == NULL ? 'unassigned' : $lead->priority) . '",';
+  $json_object .= '"uid": ' . $lead->uid;
 
-    return $json_object . '}';
+  return $json_object . '}';
 }
 
 function get_lead_array_for_hubspot($lead, $owner_id) {
 
-    $arr = array(
-        'properties' => array(
-            array(
-                'property' => 'email',
-                'value' => $lead->email,
-            ),
-            array(
-                'property' => 'firstname',
-                'value' => $lead->firstname,
-            ),
-            array(
-                'property' => 'lastname',
-                'value' => $lead->name,
-            ),
-            array(
-                'property' => 'phone',
-                'value' => $lead->phone,
-            ),
-            array("property" => "lifecyclestage",
-                "value" => "lead",
-            ),
-            array("property" => "message",
-                "value" => $lead->comments,
-            ),
-            array("property" => "hubspot_owner_id",
-                "value" => $owner_id,
-            ),
-        )
-    );
-    return $arr;
+  $arr = array(
+    'properties' => array(
+      array(
+        'property' => 'email',
+        'value' => $lead->email,
+      ),
+      array(
+        'property' => 'firstname',
+        'value' => $lead->firstname,
+      ),
+      array(
+        'property' => 'lastname',
+        'value' => $lead->name,
+      ),
+      array(
+        'property' => 'phone',
+        'value' => $lead->phone,
+      ),
+      array(
+        "property" => "lifecyclestage",
+        "value" => "lead",
+      ),
+      array(
+        "property" => "message",
+        "value" => $lead->comments,
+      ),
+      array(
+        "property" => "hubspot_owner_id",
+        "value" => $owner_id,
+      ),
+    )
+  );
+  return $arr;
 }
 
+// @TODO: Document
 function get_hubspot_owners() {
-    $endpoint = 'https://api.hubapi.com/owners/v2/owners?hapikey=' . variable_get('api_key');
-    $ch = @curl_init();
-    @curl_setopt($ch, CURLOPT_URL, $endpoint);
-    @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-    @curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response_json = @curl_exec($ch);
-    @curl_close($ch);
+  // @TODO: Make base URL and ENDPOINTS defines
+  $endpoint = 'https://api.hubapi.com/owners/v2/owners?hapikey=' . variable_get('api_key');
+  // @TODO: Curl call is same everytime, why not a function?
+  $ch = @curl_init();
+  @curl_setopt($ch, CURLOPT_URL, $endpoint);
+  @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+  @curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+  $response_json = @curl_exec($ch);
+  @curl_close($ch);
 
-    $owners_array = json_decode($response_json);
+  $owners_array = json_decode($response_json);
 
-    $owners_map = array();
+  $owners_map = array();
 
-    foreach ($owners_array as $owner) {
-        $owners_map[$owner->email] = $owner->ownerId;
-    }
+  foreach ($owners_array as $owner) {
+    $owners_map[$owner->email] = $owner->ownerId;
+  }
 
-    return $owners_map;
+  return $owners_map;
 }
 
 function create_contact_on_hubspot($lead_array) {
-    $post_json = json_encode($lead_array);
+  $post_json = json_encode($lead_array);
 //        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-    $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . variable_get('api_key');
-    $ch = @curl_init();
-    @curl_setopt($ch, CURLOPT_POST, true);
-    @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_json);
-    @curl_setopt($ch, CURLOPT_URL, $endpoint);
-    @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-    @curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response_json = @curl_exec($ch);
-    @curl_close($ch);
+  $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . variable_get('api_key');
+  $ch = @curl_init();
+  @curl_setopt($ch, CURLOPT_POST, TRUE);
+  @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_json);
+  @curl_setopt($ch, CURLOPT_URL, $endpoint);
+  @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+  @curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+  $response_json = @curl_exec($ch);
+  @curl_close($ch);
 
-    error_log($response_json);
+  error_log($response_json);
 
-    return json_decode($response_json);
+  return json_decode($response_json);
 }
 
 function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {
-    $leads = db_query('SELECT email, firstname, name, phone, comments  FROM leads WHERE lead_id=:id LIMIT 1', array(':id' => $lead_id));
-    $lead = $leads->fetch();
+  $leads = db_query('SELECT email, firstname, name, phone, comments  FROM leads WHERE lead_id=:id LIMIT 1', array(':id' => $lead_id));
+  $lead = $leads->fetch();
 
-    if ($lead) {
-        $arr = array(
-            'properties' => array(
-                array(
-                    'property' => 'email',
-                    'value' => $lead->email,
-                ),
-                array(
-                    'property' => 'firstname',
-                    'value' => $lead->firstname,
-                ),
-                array(
-                    'property' => 'lastname',
-                    'value' => $lead->name
-                ),
-                array(
-                    'property' => 'phone',
-                    'value' => $lead->phone
-                ),
-                array("property" => "lifecyclestage",
-                    "value" => "lead"
-                ),
-                array("property" => "message",
-                    "value" => $lead->comments
-                )
-            )
-        );
+  if ($lead) {
+    $arr = array(
+      'properties' => array(
+        array(
+          'property' => 'email',
+          'value' => $lead->email,
+        ),
+        array(
+          'property' => 'firstname',
+          'value' => $lead->firstname,
+        ),
+        array(
+          'property' => 'lastname',
+          'value' => $lead->name
+        ),
+        array(
+          'property' => 'phone',
+          'value' => $lead->phone
+        ),
+        array(
+          "property" => "lifecyclestage",
+          "value" => "lead"
+        ),
+        array(
+          "property" => "message",
+          "value" => $lead->comments
+        )
+      )
+    );
 
-        $post_json = json_encode($arr);
+    $post_json = json_encode($arr);
 //        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-        $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . variable_get('api_key');
-        $ch = @curl_init();
-        @curl_setopt($ch, CURLOPT_POST, true);
-        @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_json);
-        @curl_setopt($ch, CURLOPT_URL, $endpoint);
-        @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-        @curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response_json = @curl_exec($ch);
-        @curl_close($ch);
+    $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . variable_get('api_key');
+    $ch = @curl_init();
+    @curl_setopt($ch, CURLOPT_POST, TRUE);
+    @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_json);
+    @curl_setopt($ch, CURLOPT_URL, $endpoint);
+    @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+    @curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    $response_json = @curl_exec($ch);
+    @curl_close($ch);
 
-        $response = json_decode($response_json);
+    $response = json_decode($response_json);
 
-        if ($response->status == "error") {
-            if ($response->message == "Contact already exists") {
-                print 'contact_already_exists';
-            } elseif (preg_match('/^Email address [A-Za-z@_\-]* is invalid$/', $response->message) == 1) {
-                print 'email_invalid';
-            } else {
-                print $response->message;
-            }
-        } else {
-            db_update('leads')
-                ->fields(array('status' => 'CONVERTED'))
-                ->condition('lead_id', $lead_id)
-                ->execute();
-            print 'success';
-        }
-    } else {
-        print "lead_not_found";
+    if ($response->status == "error") {
+      if ($response->message == "Contact already exists") {
+        print 'contact_already_exists';
+      }
+      elseif (preg_match('/^Email address [A-Za-z@_\-]* is invalid$/', $response->message) == 1) {
+        print 'email_invalid';
+      }
+      else {
+        print $response->message;
+      }
     }
+    else {
+      db_update('leads')
+        ->fields(array('status' => 'CONVERTED'))
+        ->condition('lead_id', $lead_id)
+        ->execute();
+      print 'success';
+    }
+  }
+  else {
+    print "lead_not_found";
+  }
 }
