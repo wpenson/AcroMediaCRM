@@ -525,7 +525,7 @@ function acrocrm_leads_generate_leads_html($leads) {
                 <input type="text" class="form-control" aria-label="..." placeholder="">
                 <div class="input-group-btn">
                     <button type="button" id="lead-search-button" class="btn btn-default">
-                        <img class="search-spinner" src="' . base_path() . drupal_get_path('module', 'acrocrm') . '/templates/assets/images/spinner.gif"><i class="glyphicon glyphicon-search"></i>
+                        <i class="glyphicon glyphicon-search"></i>
                     </button>
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="caret"></span>
@@ -598,7 +598,6 @@ function acrocrm_leads_generate_leads_html($leads) {
                     $("ul li a[data-group=\'sort\'][data-value=\'' . $_SESSION['lead_sort_pref'] . '\']").prepend("<i class=\'lead-search-dropdown-check glyphicon glyphicon-ok\'></i>");
                     $("[data-group=\'sort-order\'][data-value=\'' . $_SESSION['lead_sort_order_pref'] . '\']").addClass("active");
                     $("#lead-search input").attr("placeholder", "Search by ' . $_SESSION['lead_search_pref'] . '");
-                    $("#leads-list img").hide();
 
                     $("#temporary-lead-dropdown-setup-script").remove();
                 });
@@ -643,8 +642,8 @@ function acrocrm_leads_generate_leads_html($leads) {
 			</div>
 		</div>';
 
-  $leads_list = '<ul id="leads-list" class="list-group"></ul>';
-  $leads_div = '<div class="col-md-6" style="margin-top: 15px;">' . $search_div . $lead_create_modal . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
+    $leads_list = '<ul id="leads-list" class="list-group"></ul><div class="leads-list-spinner"><img src="' . base_path() . drupal_get_path('module', 'acrocrm') . '/templates/assets/images/spinner.gif"></div>';
+    $leads_div = '<div class="col-md-6" style="margin-top: 15px;">' . $search_div . $lead_create_modal . $leads_edit_modal . $delete_lead_confirmation_modal . $leads_list . '</div>';
 
   return $leads_div;
 }
@@ -907,15 +906,15 @@ function acrocrm_leads_get_sales_reps() {
       $leads_list = '';
       $priorities = acrocrm_leads_generate_sales_rep_lead_list($user->uid, $leads_list);
 
-      $rep_div .= '<li data-rep-id="' . $user->uid . '" class="list-group-item sales-rep">';
-      $rep_div .= '    <h4 class="list-group-item-heading  sorting-disabled sales-rep-closed">' . $user->name;
-      $rep_div .= '        <span class="pull-right">';
-      $rep_div .= '           <span data-tooltip="tooltip" title="High Priority" id="high-' . $user->uid . '" class="high-priority priority-indicator">' . $priorities['high'] . '</span>';
-      $rep_div .= '           <span data-tooltip="tooltip" title="Medium Priority" id="med-' . $user->uid . '" class="med-priority priority-indicator">' . $priorities['med'] . '</span>';
-      $rep_div .= '           <span data-tooltip="tooltip" title="Low Priority" id="low-' . $user->uid . '" class="low-priority priority-indicator">' . $priorities['low'] . '</span>';
-      $rep_div .= '           <span data-tooltip="tooltip" title="Undefined Priority" id="unassigned-' . $user->uid . '" class="priority-indicator">' . $priorities['unassigned'] . '</span>';
-      $rep_div .= '        </span>';
-      $rep_div .= '    </h4>';
+            $rep_div .= '<li data-rep-id="' . $user->uid . '" class="list-group-item sales-rep">';
+            $rep_div .= '    <h4 class="list-group-item-heading  sorting-disabled sales-rep-closed"><img class="sales-rep-spinner" style="margin-right:5px;" src="' . base_path() . drupal_get_path('module', 'acrocrm') . '/templates/assets/images/spinner.gif">' . $user->name;
+            $rep_div .= '        <span class="pull-right">';
+            $rep_div .= '           <span data-tooltip="tooltip" title="High Priority" id="high-' . $user->uid .'" class="high-priority priority-indicator">' . $priorities['high'] . '</span>';
+            $rep_div .= '           <span data-tooltip="tooltip" title="Medium Priority" id="med-' . $user->uid .'" class="med-priority priority-indicator">' . $priorities['med'] . '</span>';
+            $rep_div .= '           <span data-tooltip="tooltip" title="Low Priority" id="low-' . $user->uid .'" class="low-priority priority-indicator">' . $priorities['low'] . '</span>';
+            $rep_div .= '           <span data-tooltip="tooltip" title="Undefined Priority" id="unassigned-' . $user->uid .'" class="priority-indicator">' . $priorities['unassigned'] . '</span>';
+            $rep_div .= '        </span>';
+            $rep_div .= '    </h4>';
 
       $rep_div .= '    <div>';
       $rep_div .= '        <ul class="list-group sales-rep-lead-list">';

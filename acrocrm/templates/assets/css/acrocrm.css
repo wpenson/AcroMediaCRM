@@ -157,10 +157,26 @@ input.form-submit {
     pointer-events: all;
 }
 
-.search-spinner {
-    width: 14px;
-    height: 14px;
+.sales-rep-spinner {
+     width: 14px;
+     height: 14px;
+     display: none;
+}
+
+.leads-list-spinner {
     display: none;
+    width: 100%;
+    height: 110px;
+    text-align: center;
+    line-height: 110px;
+    border: 1px solid #ddd;
+    border-top: none;
+}
+
+.leads-list-spinner img {
+    vertical-align: middle;
+    width: 64px;
+    height: 64px;
 }
 
 .ball-indicator {

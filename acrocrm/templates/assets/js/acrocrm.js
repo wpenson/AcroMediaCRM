@@ -35,11 +35,6 @@ Drupal.behaviors.acrocrm_leads = {
 
                     sales_rep.find("> h4").removeClass("sales-rep-hover").bind('mouseenter mouseleave');
 
-                    sales_rep.data("accordion-hovering", "false");
-                    if (sales_rep.data("accordion-prev-active") === "false") {
-                        sales_rep.accordion("option", "active", false); // Close accordion
-                    }
-
                     var original_rep_id = (lead_draggable.data('assigned-rep-id') != undefined) ? lead_draggable.data('assigned-rep-id') : null;
 
                     if (original_rep_id != null && original_rep_id == sales_rep.data('rep-id')) {
@@ -49,7 +44,8 @@ Drupal.behaviors.acrocrm_leads = {
                     var url = lead_draggable.data("url") + 'assign_lead/';
                     var params = sales_rep.data('rep-id') + '/' + lead_draggable.data('lead-id');
 
-                    // TODO: Show loading indicator in the sales-rep-lead-list
+                    sales_rep.find("> h4 img").show();
+
                     sales_rep.find(".sales-rep-lead-list").load(url + params, function (response, status, xhr) {
                         if (status == "success") {
                             if (original_rep_id == null) {
@@ -119,9 +115,14 @@ Drupal.behaviors.acrocrm_leads = {
                         else if (status == "error") {
                             event.preventDefault();
                             displayAlertMsg("error", "Unable to assign lead.");
+
+                            sales_rep.data("accordion-hovering", "false");
+                            if (sales_rep.data("accordion-prev-active") === "false") {
+                                sales_rep.accordion("option", "active", false); // Close accordion
+                            }
                         }
 
-                        // TODO: Hide the loading indicator in the sales-rep-lead-list
+                        sales_rep.find("> h4 img").hide();
                     });
                 },
                 over: function (event, ui) {
@@ -167,8 +168,6 @@ Drupal.behaviors.acrocrm_leads = {
                     var url = lead_draggable.data("url") + 'unassign_lead/';
                     var params = lead_draggable.data('lead-id');
 
-                    // TODO: Show loading indicator for the leads-list
-
                     leads_list.load(url + params, function (response, status, xhr) {
                         if (status == "success") {
                             lead_draggable.remove();
@@ -212,8 +211,6 @@ Drupal.behaviors.acrocrm_leads = {
                             lead_draggable.show();
                             displayAlertMsg("error", "Unable to assign lead.");
                         }
-
-                        // TODO: Hide loading indicator for the leads-list
                     });
                 }
             });
@@ -227,10 +224,10 @@ Drupal.behaviors.acrocrm_leads = {
                 collapsedHeight: 18
             });
 
+            $(".sales-rep-lead-list img").hide();
+
             $('[data-tooltip="tooltip"]').tooltip({container: 'body'});
 
-            // TODO: Need to fix the issue when the edit or delete lead button is pressed where the click event also triggers the accordion
-            // TODO: The accordion slightly jumps on close. This is caused by a margin or something and can be fixed.
             $(".sales-rep-lead").accordion({
                 header: "> h5",
                 collapsible: true,
@@ -407,10 +404,13 @@ Drupal.behaviors.acrocrm_leads = {
             }
 
             var lead_list = $('#leads-list');
-            lead_search.find('img').show();
-            lead_search.find('.glyphicon-search').hide();
+            lead_list.hide();
+            lead_list.next('.leads-list-spinner').show();
 
             lead_list.load(url + params, function (response, status, xhr) {
+                lead_list.next('.leads-list-spinner').hide();
+                lead_list.show();
+
                 if (status == "success") {
                     loadLeadsListInteractions();
 
@@ -440,9 +440,6 @@ Drupal.behaviors.acrocrm_leads = {
                 else if (status == "error") {
                     $('#leads-list').html("<div class='lead-list-message-div'>Sorry but there was an error: " + xhr.status + " " + xhr.statusText + "</div>");
                 }
-
-                lead_search.find('img').hide();
-                lead_search.find('.glyphicon-search').show();
             });
         }
 
