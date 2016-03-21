@@ -1,10 +1,9 @@
 <?php
 function acrocrm_hubspot_integration_settings_form() {
-  // @TODO: system variables should always prefix with module name
-  $form['api_key'] = array(
+  $form['acrocrm_hubspot_integration_api_key'] = array(
     '#type' => 'textfield',
     '#title' => t('HubSpot API key'),
-    '#default_value' => variable_get('api_key'),
+    '#default_value' => variable_get('acrocrm_hubspot_integration_api_key'),
     '#description' => t('The HubSpot API key for the developer account used for testing.')
   );
 

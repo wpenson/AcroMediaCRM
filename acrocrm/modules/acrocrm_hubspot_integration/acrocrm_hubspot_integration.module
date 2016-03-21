@@ -1,5 +1,14 @@
 <?php
 
+// The base url for api calls
+define("HUBSPOT_BASE_URL", "https://api.hubapi.com");
+
+// The endpoint for dealing with HubSpot owners
+define("OWNERS_ENDPOINT", "/owners/v2/owners");
+
+// The endpoint for dealing with HubSpot contacts
+define("CONTACTS_ENDPOINT", "/contacts/v1/contact");
+
 /**
  * Implements hook_help().
  *
@@ -10,7 +19,7 @@
  * @param $arg
  *  Array that holds the current path returned by the arg() function.
  * @return string
- *  Ant HTML string
+ *  An HTML string which describes the option.
  */
 function acrocrm_hubspot_integration_help($path, $arg) {
   switch ($path) {
@@ -57,8 +66,13 @@ function acrocrm_hubspot_integration_menu() {
   return $items;
 }
 
-// @TODO: Document
+/**
+ * Tries to turn all the assigned leads in the database into contacts on HubSpot. If a lead is successfully added,
+ * its status is updated to CONVERTED. If a lead fails to update on HubSpot, its error response is saved and the
+ * user is notified.
+ */
 function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
+  // Get all the assigned leads from the DB.
   $leads = db_query('SELECT leads.lead_id, email, firstname, leads.name, phone, comments, assigned_leads.uid, priority, mail
                         FROM leads
                         INNER JOIN assigned_leads
@@ -74,6 +88,8 @@ function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
   $response = NULL;
   $owners_map = get_hubspot_owners();
 
+  // For each of the assigned leads, try and create it on hubspot.
+  // If success, update its status, otherwise save its error.
   if ($leads->rowCount() > 0) {
     while ($lead = $leads->fetch()) {
       $owner_id = $owners_map[$lead->mail];
@@ -99,12 +115,15 @@ function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
     $leads_to_commit = FALSE;
   }
 
+  // Everything succeeded.
   if ($success && $leads_to_commit) {
     print '{"status": "success"}';
   }
+  // No leads to commit.
   elseif (!$leads_to_commit) {
     print '{"status": "no_leads_to_commit"}';
   }
+  // There was one or more errors. Build and return the error message.
   else {
     $error_message = '<p>There were errors with some of the leads you tried to send to HubSpot: </p><ul>';
     foreach ($error_leads as $error_lead) {
@@ -125,6 +144,11 @@ function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
   }
 }
 
+/**
+ * Creates a json string that represents the leads that were created successfully on HubSpot.
+ * @param $success_leads array An array of the leads that were created successfully on HubSpot.
+ * @return string A json string representing the leads that were created.
+ */
 function build_json_leads_array($success_leads) {
   $json_array = '';
   if (sizeof($success_leads) > 0) {
@@ -141,6 +165,11 @@ function build_json_leads_array($success_leads) {
   return $json_array;
 }
 
+/**
+ * Builds a json object that represents a lead.
+ * @param $lead object The lead object.
+ * @return string A json string object.
+ */
 function build_json_lead_object($lead) {
   $json_object = '{';
 
@@ -152,6 +181,12 @@ function build_json_lead_object($lead) {
   return $json_object . '}';
 }
 
+/**
+ * Gets the array of the lead properties to send to HubSpot.
+ * @param $lead object A lead object.
+ * @param $owner_id int The id of the owner that the lead will be assigned to.
+ * @return array An array representing the lead to send to HubSpot.
+ */
 function get_lead_array_for_hubspot($lead, $owner_id) {
 
   $arr = array(
@@ -189,17 +224,14 @@ function get_lead_array_for_hubspot($lead, $owner_id) {
   return $arr;
 }
 
-// @TODO: Document
+/**
+ * Queries HubSpot and returns all the contact owners and their owner ids. This is needed to assign the contact being
+ * created through this module to the correct owner on HubSpot.
+ * @return array
+ */
 function get_hubspot_owners() {
-  // @TODO: Make base URL and ENDPOINTS defines
-  $endpoint = 'https://api.hubapi.com/owners/v2/owners?hapikey=' . variable_get('api_key');
-  // @TODO: Curl call is same everytime, why not a function?
-  $ch = @curl_init();
-  @curl_setopt($ch, CURLOPT_URL, $endpoint);
-  @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-  @curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-  $response_json = @curl_exec($ch);
-  @curl_close($ch);
+  $endpoint = HUBSPOT_BASE_URL . OWNERS_ENDPOINT . get_hubspot_api_key_argument();
+  $response_json = query_hubspot($endpoint, null);
 
   $owners_array = json_decode($response_json);
 
@@ -212,24 +244,55 @@ function get_hubspot_owners() {
   return $owners_map;
 }
 
-function create_contact_on_hubspot($lead_array) {
-  $post_json = json_encode($lead_array);
-//        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-  $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . variable_get('api_key');
+/**
+ * Submits a query to the Hubspot api.
+ * @param $endpoint String The endpoint url to send the query to.
+ * @param $post_parameter String The json string post argument to send to Hubspot.
+ * @return String The json string response from HubSpot.
+ */
+function query_hubspot($endpoint, $post_parameter) {
   $ch = @curl_init();
-  @curl_setopt($ch, CURLOPT_POST, TRUE);
-  @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_json);
+
+  if ($post_parameter != null) {
+    @curl_setopt($ch, CURLOPT_POST, TRUE);
+    @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_parameter);
+  }
+
   @curl_setopt($ch, CURLOPT_URL, $endpoint);
   @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
   @curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
   $response_json = @curl_exec($ch);
   @curl_close($ch);
+  return $response_json;
+}
 
-  error_log($response_json);
+/**
+ * Returns the api key argment for the url.
+ * @return string The api key argument.
+ */
+function get_hubspot_api_key_argument() {
+  return '?hapikey=' . variable_get('acrocrm_hubspot_integration_api_key');
+}
+
+/**
+ * Creates the given lead as a contact on HubSpot.
+ * @param $lead_array array The array that represents the lead.
+ * @return mixed The response from HubSpot.
+ */
+function create_contact_on_hubspot($lead_array) {
+  $post_json = json_encode($lead_array);
+//        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
+  $endpoint = HUBSPOT_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_api_key_argument();
+
+  $response_json = query_hubspot($endpoint, $post_json);
 
   return json_decode($response_json);
 }
 
+/**
+ * Creates a single contact on HubSpot. This is used for the my leads page.
+ * @param $lead_id
+ */
 function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {
   $leads = db_query('SELECT email, firstname, name, phone, comments  FROM leads WHERE lead_id=:id LIMIT 1', array(':id' => $lead_id));
   $lead = $leads->fetch();
@@ -266,15 +329,8 @@ function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {
 
     $post_json = json_encode($arr);
 //        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-    $endpoint = 'https://api.hubapi.com/contacts/v1/contact?hapikey=' . variable_get('api_key');
-    $ch = @curl_init();
-    @curl_setopt($ch, CURLOPT_POST, TRUE);
-    @curl_setopt($ch, CURLOPT_POSTFIELDS, $post_json);
-    @curl_setopt($ch, CURLOPT_URL, $endpoint);
-    @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-    @curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-    $response_json = @curl_exec($ch);
-    @curl_close($ch);
+    $endpoint = HUBSPOT_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_api_key_argument();
+    $response_json = query_hubspot($endpoint, $post_json);
 
     $response = json_decode($response_json);
 
