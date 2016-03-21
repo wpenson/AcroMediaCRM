@@ -496,6 +496,8 @@ Drupal.behaviors.acrocrm_leads = {
                         displayAlertMsg('success', 'Leads created on HubSpot successfully.');
                     } else if (returnObj.status === 'no_leads_to_commit') {
                         displayAlertMsg('info', 'There are no leads to send to HubSpot.');
+                    } else if (returnObj.status === 'get_oauth_token') {
+                        window.location.replace(returnObj.url);
                     } else {
                         if (returnObj.leads) {
                             for (var i = 0; i < returnObj.leads.length; i++) {

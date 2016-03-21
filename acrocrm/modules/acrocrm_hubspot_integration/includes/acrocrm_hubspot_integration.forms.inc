@@ -1,10 +1,10 @@
 <?php
 function acrocrm_hubspot_integration_settings_form() {
-  $form['acrocrm_hubspot_integration_api_key'] = array(
+  $form['acrocrm_hubspot_integration_hub_id'] = array(
     '#type' => 'textfield',
-    '#title' => t('HubSpot API key'),
-    '#default_value' => variable_get('acrocrm_hubspot_integration_api_key'),
-    '#description' => t('The HubSpot API key for the developer account used for testing.')
+    '#title' => t('HubSpot Hub ID'),
+    '#default_value' => variable_get('acrocrm_hubspot_integration_hub_id'),
+    '#description' => t('The HubSpot Hub ID of the account that you want to integrate with.')
   );
 
   $form['automatic_creation'] = array(

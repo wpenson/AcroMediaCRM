@@ -9,6 +9,12 @@ define("OWNERS_ENDPOINT", "/owners/v2/owners");
 // The endpoint for dealing with HubSpot contacts
 define("CONTACTS_ENDPOINT", "/contacts/v1/contact");
 
+// The client id of the hubspot app
+define("CLIENT_ID", "2b2bcdc7-c3a1-11e5-a2bf-bd028721085c");
+
+// The endpoint for requesting an access token.
+define("AUTHENTICATE_ENDPOINT", "/auth/authenticate");
+
 /**
  * Implements hook_help().
  *
@@ -53,6 +59,13 @@ function acrocrm_hubspot_integration_menu() {
     'access arguments' => array('access acrocrm'),
   );
 
+  $items['acrocrm_hubspot_integration/oauth_token'] = array(
+    'access callback' => TRUE,
+    'page callback' => 'acrocrm_hubspot_integration_oauth_token',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access acrocrm'),
+  );
+
   $items['admin/config/acrocrm/acrocrm_hubspot_integration'] = array(
     'title' => 'AcroCRM HubSpot Integration',
     'description' => 'Configuration for the AcroCRM HubSpot Integration',
@@ -64,6 +77,30 @@ function acrocrm_hubspot_integration_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Saves the access and refresh tokens then redirects to the overview page.
+ */
+function acrocrm_hubspot_integration_oauth_token() {
+  $access_token = $_GET['access_token'];
+  $refresh_token = $_GET['refresh_token'];
+
+  variable_set('acrocrm_hubspot_integration_oauth_access_token', $access_token);
+  variable_set('acrocrm_hubspot_integration_oauth_refresh_token', $refresh_token);
+
+  drupal_goto(base_path() . 'acrocrm_leads/overview');
+}
+
+/**
+ * Builds the request url to get the HubSpot oauth token
+ * @return string The request url to get the HubSpot oauth token.
+ */
+function get_oauth_request_url() {
+  global $base_url;
+  $redirect_uri = $base_url . base_path() . 'acrocrm_hubspot_integration/oauth_token';
+  $scope = 'offline';
+  return HUBSPOT_BASE_URL . AUTHENTICATE_ENDPOINT . '?client_id=' . CLIENT_ID . '&portalId=' . variable_get('acrocrm_hubspot_integration_hub_id') . '&redirect_uri=' . $redirect_uri . '&scope=' . $scope;
 }
 
 /**
@@ -81,66 +118,89 @@ function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
                         ON users.uid = assigned_leads.uid
                         WHERE leads.status = \'APPROVED\' OR leads.status = \'UNAPPROVED\'');
 
-  $success = TRUE;
-  $leads_to_commit = TRUE;
-  $error_leads = array();
-  $success_leads = array();
-  $response = NULL;
-  $owners_map = get_hubspot_owners();
+  if (variable_get('acrocrm_hubspot_integration_oauth_access_token') === NULL) {
+    print '{"status": "get_oauth_token", "url": "' . get_oauth_request_url() . '"}';
+  } else {
 
-  // For each of the assigned leads, try and create it on hubspot.
-  // If success, update its status, otherwise save its error.
-  if ($leads->rowCount() > 0) {
-    while ($lead = $leads->fetch()) {
-      $owner_id = $owners_map[$lead->mail];
-      $lead_array = get_lead_array_for_hubspot($lead, $owner_id);
-      $response = create_contact_on_hubspot($lead_array);
-      if ($response->status == "error") {
-        $success = FALSE;
-        array_push($error_leads, array(
-          "lead" => $lead,
-          "response" => $response
-        ));
-      }
-      else {
-        array_push($success_leads, $lead);
-        db_update('leads')
-          ->fields(array('status' => 'CONVERTED'))
-          ->condition('lead_id', $lead->lead_id)
-          ->execute();
-      }
-    }
-  }
-  else {
-    $leads_to_commit = FALSE;
-  }
+    // Try and refresh the access token
+    $endpoint = 'https://api.hubapi.com/auth/v1/refresh';
+    $data = 'refresh_token=' . variable_get('acrocrm_hubspot_integration_oauth_refresh_token') .
+      '&client_id=' . CLIENT_ID .
+      '&grant_type=refresh_token';
 
-  // Everything succeeded.
-  if ($success && $leads_to_commit) {
-    print '{"status": "success"}';
-  }
-  // No leads to commit.
-  elseif (!$leads_to_commit) {
-    print '{"status": "no_leads_to_commit"}';
-  }
-  // There was one or more errors. Build and return the error message.
-  else {
-    $error_message = '<p>There were errors with some of the leads you tried to send to HubSpot: </p><ul>';
-    foreach ($error_leads as $error_lead) {
-      $error_message .= '<li>';
-      if ($error_lead['response']->message == "Contact already exists") {
-        $error_message .= 'A contact with the email \'' . $error_lead['lead']->email . '\'  already exists, and could not be created.';
+    $ch = @curl_init();
+    @curl_setopt($ch, CURLOPT_URL, $endpoint);
+    @curl_setopt($ch, CURLOPT_POST, TRUE);
+    @curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    @curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+    @curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    $response_json = @curl_exec($ch);
+    $response = json_decode($response_json);
+    $status = @curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    @curl_close($ch);
+
+    // If the refresh request succeeded
+    if ($status == 200) {
+      variable_set('acrocrm_hubspot_integration_oauth_access_token', $response->access_token);
+      variable_set('acrocrm_hubspot_integration_oauth_refresh_token', $response->refresh_token);
+
+      $success = TRUE;
+      $leads_to_commit = TRUE;
+      $error_leads = array();
+      $success_leads = array();
+      $owners_map = get_hubspot_owners();
+
+      // For each of the assigned leads, try and create it on hubspot.
+      // If success, update its status, otherwise save its error.
+      if ($leads->rowCount() > 0) {
+        while ($lead = $leads->fetch()) {
+          $owner_id = $owners_map[$lead->mail];
+          $lead_array = get_lead_array_for_hubspot($lead, $owner_id);
+          $response = create_contact_on_hubspot($lead_array);
+          if ($response->status == "error") {
+            $success = FALSE;
+            array_push($error_leads, array(
+              "lead" => $lead,
+              "response" => $response
+            ));
+          } else {
+            array_push($success_leads, $lead);
+            db_update('leads')
+              ->fields(array('status' => 'CONVERTED'))
+              ->condition('lead_id', $lead->lead_id)
+              ->execute();
+          }
+        }
+      } else {
+        $leads_to_commit = FALSE;
       }
-      elseif (preg_match('/^Email address [A-Za-z@_\-]* is invalid$/', $error_lead['response']->message) == 1) {
-        $error_message .= 'The email \'' . $error_lead['lead']->email . '\' is not valid on HubSpot and the contact could not be created.';
-      }
+
+      // Everything succeeded.
+      if ($success && $leads_to_commit) {
+        print '{"status": "success"}';
+      } // No leads to commit.
+      elseif (!$leads_to_commit) {
+        print '{"status": "no_leads_to_commit"}';
+      } // There was one or more errors. Build and return the error message.
       else {
-        $error_message .= $error_lead['response']->message;
+        $error_message = '<p>There were errors with some of the leads you tried to send to HubSpot: </p><ul>';
+        foreach ($error_leads as $error_lead) {
+          $error_message .= '<li>';
+          if ($error_lead['response']->message == "Contact already exists") {
+            $error_message .= 'A contact with the email \'' . $error_lead['lead']->email . '\'  already exists, and could not be created.';
+          } elseif (preg_match('/^Email address [A-Za-z@_\-]* is invalid$/', $error_lead['response']->message) == 1) {
+            $error_message .= 'The email \'' . $error_lead['lead']->email . '\' is not valid on HubSpot and the contact could not be created.';
+          } else {
+            $error_message .= $error_lead['response']->message;
+          }
+          $error_message .= '</li>';
+        }
+        $error_message .= '</ul>';
+        print '{"status": "error", "message": "' . $error_message . '"' . (sizeof($success_leads) > 0 ? (', "leads": ' . build_json_leads_array($success_leads)) : '') . '}';
       }
-      $error_message .= '</li>';
+    } else {
+      print '{"status": "get_oauth_token", "url": "' . get_oauth_request_url() . '"}';
     }
-    $error_message .= '</ul>';
-    print '{"status": "error", "message": "' . $error_message . '"' . (sizeof($success_leads) > 0 ? (', "leads": ' . build_json_leads_array($success_leads)) : '') . '}';
   }
 }
 
@@ -230,7 +290,7 @@ function get_lead_array_for_hubspot($lead, $owner_id) {
  * @return array
  */
 function get_hubspot_owners() {
-  $endpoint = HUBSPOT_BASE_URL . OWNERS_ENDPOINT . get_hubspot_api_key_argument();
+  $endpoint = HUBSPOT_BASE_URL . OWNERS_ENDPOINT . get_hubspot_access_token_argument();
   $response_json = query_hubspot($endpoint, null);
 
   $owners_array = json_decode($response_json);
@@ -274,6 +334,10 @@ function get_hubspot_api_key_argument() {
   return '?hapikey=' . variable_get('acrocrm_hubspot_integration_api_key');
 }
 
+function get_hubspot_access_token_argument() {
+  return '&access_token=' . variable_get('acrocrm_hubspot_integration_oauth_access_token');
+}
+
 /**
  * Creates the given lead as a contact on HubSpot.
  * @param $lead_array array The array that represents the lead.
@@ -282,7 +346,7 @@ function get_hubspot_api_key_argument() {
 function create_contact_on_hubspot($lead_array) {
   $post_json = json_encode($lead_array);
 //        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-  $endpoint = HUBSPOT_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_api_key_argument();
+  $endpoint = HUBSPOT_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_access_token_argument();
 
   $response_json = query_hubspot($endpoint, $post_json);
 
@@ -329,7 +393,7 @@ function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {
 
     $post_json = json_encode($arr);
 //        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-    $endpoint = HUBSPOT_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_api_key_argument();
+    $endpoint = HUBSPOT_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_access_token_argument();
     $response_json = query_hubspot($endpoint, $post_json);
 
     $response = json_decode($response_json);
