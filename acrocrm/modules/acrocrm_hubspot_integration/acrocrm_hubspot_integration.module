@@ -1,7 +1,9 @@
 <?php
 
 // The base url for api calls
-define("HUBSPOT_BASE_URL", "https://api.hubapi.com");
+define("HUBSPOT_API_BASE_URL", "https://api.hubapi.com");
+
+define("HUBSPOT_APP_BASE_URL", "https://app.hubspot.com");
 
 // The endpoint for dealing with HubSpot owners
 define("OWNERS_ENDPOINT", "/owners/v2/owners");
@@ -100,7 +102,7 @@ function get_oauth_request_url() {
   global $base_url;
   $redirect_uri = $base_url . base_path() . 'acrocrm_hubspot_integration/oauth_token';
   $scope = 'offline';
-  return HUBSPOT_BASE_URL . AUTHENTICATE_ENDPOINT . '?client_id=' . CLIENT_ID . '&portalId=' . variable_get('acrocrm_hubspot_integration_hub_id') . '&redirect_uri=' . $redirect_uri . '&scope=' . $scope;
+  return HUBSPOT_APP_BASE_URL . AUTHENTICATE_ENDPOINT . '?client_id=' . CLIENT_ID . '&portalId=' . variable_get('acrocrm_hubspot_integration_hub_id') . '&redirect_uri=' . $redirect_uri . '&scope=' . $scope;
 }
 
 /**
@@ -290,7 +292,7 @@ function get_lead_array_for_hubspot($lead, $owner_id) {
  * @return array
  */
 function get_hubspot_owners() {
-  $endpoint = HUBSPOT_BASE_URL . OWNERS_ENDPOINT . get_hubspot_access_token_argument();
+  $endpoint = HUBSPOT_API_BASE_URL . OWNERS_ENDPOINT . get_hubspot_access_token_argument();
   $response_json = query_hubspot($endpoint, null);
 
   $owners_array = json_decode($response_json);
@@ -346,7 +348,7 @@ function get_hubspot_access_token_argument() {
 function create_contact_on_hubspot($lead_array) {
   $post_json = json_encode($lead_array);
 //        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-  $endpoint = HUBSPOT_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_access_token_argument();
+  $endpoint = HUBSPOT_API_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_access_token_argument();
 
   $response_json = query_hubspot($endpoint, $post_json);
 
@@ -393,7 +395,7 @@ function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {
 
     $post_json = json_encode($arr);
 //        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-    $endpoint = HUBSPOT_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_access_token_argument();
+    $endpoint = HUBSPOT_API_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_access_token_argument();
     $response_json = query_hubspot($endpoint, $post_json);
 
     $response = json_decode($response_json);
