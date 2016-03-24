@@ -222,7 +222,7 @@ function acrocrm_leads_assigned_leads($uid) {
                     INNER JOIN users
                     ON assigned_leads.uid = users.uid
                     WHERE users.uid = :uid
-                    AND leads.status != 'CONVERTED'
+                    AND leads.status != 'COMMITTED'
                     AND leads.status != 'DELETED'",
     array(":uid" => $uid));
 
@@ -953,8 +953,7 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
     $leads = db_select('leads', 'l')
       ->fields('l')
       ->condition('lead_id', $lead_ids, 'IN')
-      // TODO: Might need to do this a better way
-      ->condition('status', array('APPROVED', 'UNAPPROVED'), 'IN')
+      ->condition('status', 'UNCOMMITTED', '=')
       ->orderBy('priority', 'ASC')
       ->execute();
 
