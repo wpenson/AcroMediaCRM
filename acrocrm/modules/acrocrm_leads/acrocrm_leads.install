@@ -51,7 +51,7 @@ function acrocrm_leads_schema() {
         'type' => 'varchar',
         'length' => 16,
         'not null' => TRUE,
-        'default' => 'UNAPPROVED'
+        'default' => 'UNCOMMITTED'
       ),
       'created_time' => array(
         'description' => 'The time the lead was created.',
@@ -98,7 +98,7 @@ function acrocrm_leads_schema() {
         'type' => 'varchar',
         'length' => 16,
         'not null' => TRUE,
-        'default' => 'UNAPPROVED',
+        'default' => 'UNCOMMITTED',
       ),
     ),
     'primary key' => array('status')
@@ -137,11 +137,7 @@ function acrocrm_leads_schema() {
 
 function acrocrm_leads_install() {
   db_insert('lead_status')
-    ->fields(array('status' => 'UNAPPROVED'))
-    ->execute();
-
-  db_insert('lead_status')
-    ->fields(array('status' => 'APPROVED'))
+    ->fields(array('status' => 'UNCOMMITTED'))
     ->execute();
 
   db_insert('lead_status')
@@ -149,6 +145,6 @@ function acrocrm_leads_install() {
     ->execute();
 
   db_insert('lead_status')
-    ->fields(array('status' => 'CONVERTED'))
+    ->fields(array('status' => 'COMMITTED'))
     ->execute();
 }

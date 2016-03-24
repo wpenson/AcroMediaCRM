@@ -107,7 +107,7 @@ function get_oauth_request_url() {
 
 /**
  * Tries to turn all the assigned leads in the database into contacts on HubSpot. If a lead is successfully added,
- * its status is updated to CONVERTED. If a lead fails to update on HubSpot, its error response is saved and the
+ * its status is updated to COMMITTED. If a lead fails to update on HubSpot, its error response is saved and the
  * user is notified.
  */
 function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
@@ -118,7 +118,7 @@ function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
                         ON leads.lead_id=assigned_leads.lead_id
                         INNER JOIN users
                         ON users.uid = assigned_leads.uid
-                        WHERE leads.status = \'APPROVED\' OR leads.status = \'UNAPPROVED\'');
+                        WHERE leads.status = \'UNCOMMITTED\'');
 
   if (variable_get('acrocrm_hubspot_integration_oauth_access_token') === NULL) {
     print '{"status": "get_oauth_token", "url": "' . get_oauth_request_url() . '"}';
@@ -168,7 +168,7 @@ function acrocrm_hubspot_integration_commit_assigned_leads_ajax() {
           } else {
             array_push($success_leads, $lead);
             db_update('leads')
-              ->fields(array('status' => 'CONVERTED'))
+              ->fields(array('status' => 'COMMITTED'))
               ->condition('lead_id', $lead->lead_id)
               ->execute();
           }
@@ -413,7 +413,7 @@ function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {
     }
     else {
       db_update('leads')
-        ->fields(array('status' => 'CONVERTED'))
+        ->fields(array('status' => 'COMMITTED'))
         ->condition('lead_id', $lead_id)
         ->execute();
       print 'success';
