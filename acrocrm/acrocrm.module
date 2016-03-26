@@ -147,15 +147,20 @@ function acrocrm_page(&$variables) {
     $items['dashboard'] = array(
       'path' => base_path() . 'acrocrm_dashboard',
       'title' => t('Dashboard'),
+      'icon' => 'glyphicon-th',
       'permission' => 'administer acrocrm'
     );
   }
 
   if (module_exists('acrocrm_leads')) {
-    if (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == TRUE) {
+    $role = user_role_load_by_name('sales rep');
+    $role_id = $role ? $role->rid : NULL;
+
+    if ((module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == TRUE) || !user_has_role($role_id)) {
       $items['leads'] = array(
         'path' => base_path() . 'acrocrm_leads/overview',
         'title' => t('Leads'),
+        'icon' => 'glyphicon-user',
         'permission' => 'administer acrocrm'
       );
     }
@@ -163,15 +168,16 @@ function acrocrm_page(&$variables) {
       $items['leads'] = array(
         'path' => '#',
         'title' => t('Leads'),
+        'icon' => 'glyphicon-user',
         'permission' => 'administer acrocrm',
         'child_pages' => array(
           'overview' => array(
-            'path' => base_path() . 'acrocrm_leads/overview',
+            'path' => 'acrocrm_leads/overview',
             'title' => t('Overview'),
             'permission' => 'administer acrocrm',
           ),
           'my_leads' => array(
-            'path' => base_path() . 'acrocrm_leads/my_leads',
+            'path' => 'acrocrm_leads/my_leads',
             'title' => t('My Leads'),
             'permission' => 'administer acrocrm',
           ),
@@ -182,10 +188,10 @@ function acrocrm_page(&$variables) {
   $items['settings'] = array(
     'path' => base_path() . 'admin/config/acrocrm',
     'title' => t('Settings'),
+    'icon' => 'glyphicon-cog',
     'permission' => 'administer acrocrm',
   );
-
-
+  
   foreach ($items as $key => $item) {
     if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
       unset($items[$key]);
@@ -194,7 +200,9 @@ function acrocrm_page(&$variables) {
 
   $markup = '';
   foreach ($items as $item) {
-    $markup .= '<li><a href="' . $item['path'] . '"><i class="fa fa-fw"></i>' . $item['title'];
+    $markup .= '<li><a href="' . $item['path'] . '">';
+    $markup .= '<i class="glyphicon ' . $item['icon'] . '"></i>';
+    $markup .= '<i class="fa fa-fw"></i>' . $item['title'];
     if (array_key_exists('child_pages', $item)) {
       $markup .= '<span class="fa arrow"></span></a>'
         . '<ul class="nav nav-second-level">';

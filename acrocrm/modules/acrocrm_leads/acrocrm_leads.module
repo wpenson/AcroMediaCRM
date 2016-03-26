@@ -25,10 +25,12 @@ function acrocrm_leads_help($path, $arg) {
 }
 
 /**
- * Implements hook_menu
+ * Implements hook_menu().
  */
 function acrocrm_leads_menu() {
   $items = array();
+
+  // Page callbacks:
 
   $items['acrocrm_leads/overview'] = array(
     'title' => 'AcroCRM Leads Overview',
@@ -46,17 +48,20 @@ function acrocrm_leads_menu() {
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
-  $items['acrocrm_leads/new_lead'] = array(
-    'page callback' => 'acrocrm_leads_new_lead_ajax',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
-    'file' => 'includes/acrocrm_leads.pages.inc',
+  $items['admin/config/acrocrm/acrocrm_leads'] = array(
+    'title' => 'AcroCRM Leads Contact form',
+    'description' => 'Configuration for the AcroCRM Leads Contact form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acrocrm_leads_contact_form_settings_form'),
+    'type' => MENU_NORMAL_ITEM,
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/acrocrm_leads.forms.inc'
   );
 
-  $items['acrocrm_leads/filter_leads'] = array(
-    'page callback' => 'acrocrm_leads_filter_leads_ajax',
-    'page arguments' => array(2, 3),
+  // Ajax callbacks:
+
+  $items['acrocrm_leads/new_lead'] = array(
+    'page callback' => 'acrocrm_leads_new_lead_ajax',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
     'access arguments' => array('access acrocrm'),
@@ -72,9 +77,27 @@ function acrocrm_leads_menu() {
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
+  $items['acrocrm_leads/filter_leads'] = array(
+    'page callback' => 'acrocrm_leads_filter_leads_ajax',
+    'page arguments' => array(2, 3, 4, 5),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access acrocrm'),
+    'file' => 'includes/acrocrm_leads.pages.inc',
+  );
+
   $items['acrocrm_leads/delete_lead'] = array(
     'page callback' => 'acrocrm_leads_delete_lead_ajax',
-    'page arguments' => array(2, 3),
+    'page arguments' => array(2),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access acrocrm'),
+    'file' => 'includes/acrocrm_leads.pages.inc',
+  );
+
+  $items['acrocrm_leads/recover_lead'] = array(
+    'page callback' => 'acrocrm_leads_recover_lead_ajax',
+    'page arguments' => array(2),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
     'access arguments' => array('access acrocrm'),
@@ -91,9 +114,9 @@ function acrocrm_leads_menu() {
   );
 
   $items['acrocrm_leads/get_lead_priority'] = array(
-    'page callback' => 'acrocrm_leads_get_lead_priority',
+    'page callback' => 'acrocrm_leads_get_lead_priority_ajax',
     'access callback' => TRUE,
-    'page arguments' => array(2, 3),
+    'page arguments' => array(2),
     'type' => MENU_CALLBACK,
     'access arguments' => array('access acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
@@ -109,22 +132,12 @@ function acrocrm_leads_menu() {
   );
 
   $items['acrocrm_leads/assign_lead_priority'] = array(
-    'page callback' => 'acrocrm_leads_priority_get_ajax',
+    'page callback' => 'acrocrm_leads_set_lead_priority_ajax',
     'page arguments' => array(3),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
     'access arguments' => array('access acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
-  );
-
-  $items['admin/config/acrocrm/acrocrm_leads'] = array(
-    'title' => 'AcroCRM Leads Contact form',
-    'description' => 'Configuration for the AcroCRM Leads Contact form',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('acrocrm_leads_contact_form_settings_form'),
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/acrocrm_leads.forms.inc',
-    'type' => MENU_NORMAL_ITEM
   );
 
   return $items;
@@ -177,6 +190,28 @@ function acrocrm_leads_block_view($delta = '') {
       $form = drupal_get_form('acrocrm_leads_contact_form');
       $block['content'] = drupal_render($form);
       return $block;
+  }
+}
+
+/**
+ * When the role 'sales rep' for a user is unselected, this un-assigns leads for that user.
+ *
+ * @param $edit
+ * @param $account
+ * @param $category
+ */
+function acrocrm_user_update(&$edit, $account, $category) {
+  if (isset($edit['roles'])) {
+    $role = user_role_load_by_name('sales rep');
+    $role_id = $role ? $role->rid : NULL;
+
+    if ($role_id != NULL) {
+      if (!isset($edit['roles'][$role_id]) && isset($edit['original']->roles[$role_id])) {
+        // Un-assign uncommitted leads from user
+        db_query("DELETE al FROM assigned_leads al INNER JOIN leads l ON l.lead_id = al.lead_id WHERE l.status <> 'COMMITTED' AND al.uid = " . $edit['original']->uid)
+          ->execute();
+      }
+    }
   }
 }
 
@@ -278,7 +313,7 @@ function acrocrm_leads_contact_form_submit($form, $form_state) {
       'phone' => $form_state['values']['contact_phone'],
       'comments' => $form_state['values']['contact_comments'],
       'created_time' => date('Y-m-d H:i:s'),
-               'status' => 'UNCOMMITTED'
+      'status' => 'UNCOMMITTED'
     ))
     ->execute();
   drupal_set_message(t('Your comment has been sent successfully.'));

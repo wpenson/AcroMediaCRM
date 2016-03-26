@@ -6,12 +6,8 @@ html, body {
     overflow: auto;
 }
 
-textarea:focus, input:focus{
-    outline: none;
-}
-
 *:focus {
-    outline: none;
+    outline: 0 !important;
 }
 
 .tooltip {
@@ -37,10 +33,18 @@ h1, h2, h3 {
     padding: 0;
 }
 
+#alert-msg-div .alert {
+    margin: 15px 0 0 0;
+}
+
+.close {
+    font-size: 18px;
+}
+
 /* --- Leads overview page --- */
 
 .page-acrocrm-leads-overview #page-wrapper {
-    padding: 10px 10px 0px 10px;
+    padding: 0;
 }
 
 .filter-header {
@@ -94,11 +98,10 @@ input.form-submit {
     -ms-user-select: none;
     user-select: none;
     background-image: none;
-    border: 1px solid transparent;
+    border: 1px solid #2e6da4;
     border-radius: 4px;
     color: #fff;
     background-color: #337ab7;
-    border-color: #2e6da4;
 }
 
 #leads-list .list-group-item, .sales-rep-list .list-group-item {
@@ -186,23 +189,37 @@ input.form-submit {
     display: inline-block;
 }
 
-.grey-ball {
-    background-image: url("../images/grey-ball.png");
-}
-
 .green-ball {
     background-image: url("../images/green-ball.png");
 }
 
-.yellow-ball {
-    background-image: url("../images/yellow-ball.png");
+.corner-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 10px 10px 0 0;
 }
 
-.red-ball {
-    background-image: url("../images/red-ball.png");
+.grey-indicator {
+    border-color: #bcbcbc transparent transparent transparent;
 }
 
-.unassigned-lead, .unapproved-lead, .unapproved-lead > h5 {
+.green-indicator {
+    border-color: #10b000 transparent transparent transparent;
+}
+
+.yellow-indicator {
+    border-color: #ffde00 transparent transparent transparent;
+}
+
+.red-indicator {
+    border-color: #ff0b00 transparent transparent transparent;
+}
+
+.unassigned-lead, .uncommitted-lead, .uncommitted-lead > h5 {
     cursor: move;
 }
 
@@ -210,15 +227,27 @@ input.form-submit {
     margin-bottom: 15px;
 }
 
+#leads-list {
+    margin-bottom: 10px;
+}
+
+.pager li {
+    margin-right: 10px;
+}
+
 #leads-list > .list-group-item {
     background-color: transparent;
+}
+
+#my-leads-list > .list-group-item {
+    border-radius: 0;
 }
 
 .sales-rep > h4 {
     display: inline-block;
     padding: 10px 15px;
     width: 100%;
-    margin: 0px;
+    margin: 0;
 }
 
 .sales-rep > h4:hover, .sales-rep-open {
@@ -234,16 +263,22 @@ input.form-submit {
 }
 
 .sales-rep-list > .list-group-item {
-    padding: 0px;
+    padding: 0;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+}
+
+.sales-rep-list > .list-group-item:last-child {
+    border-bottom: 1px solid #ddd !important;
 }
 
 .sales-rep-lead-list {
-    margin: 0px 15px 5px 15px !important;
+    margin: 0 15px 5px 15px !important;
     padding-top: 15px !important;
 }
 
 .sales-rep-lead-list > .list-group-item .ui-accordion-header {
-    margin: 0px;
+    margin: 0;
     padding-bottom: 10px;
 }
 
@@ -253,7 +288,7 @@ input.form-submit {
 
 .sales-rep-lead-list > .list-group-item {
     border: none;
-    padding: 0px 0px 0px 10px;
+    padding: 0 0 0 10px;
     background-color: transparent;
 }
 
@@ -283,7 +318,8 @@ input.form-submit {
 
 .priority-indicator {
     background-color: #71bfe8;
-    padding: 0px 10px;
+    padding: 0 10px;
+    margin-left: 5px;
     -webkit-border-radius: 25px;
     -moz-border-radius: 25px;
     border-radius: 25px;
@@ -295,14 +331,38 @@ input.form-submit {
     line-height: 20px;
 }
 
-.high-priority {
+.high-priority, .c-input>.high-priority:checked~.c-indicator, .c-input>.high-priority~.c-indicator:hover {
     background-color: #e3574d;
 }
 
-.med-priority {
+.med-priority, .c-input>.med-priority:checked~.c-indicator, .c-input>.med-priority~.c-indicator:hover {
     background-color: #f6bf19;
 }
 
-.low-priority {
+.low-priority, .c-input>.low-priority:checked~.c-indicator, .c-input>.low-priority~.c-indicator:hover {
     background-color: #84c46b;
+}
+
+.no-priority, .c-input>.no-priority:checked~.c-indicator, .c-input>.no-priority~.c-indicator:hover {
+    background-color: #71bfe8;
+}
+
+.c-radio input {
+    display:none;
+}
+
+label.c-input {
+    margin: 0 !important;
+}
+
+.c-indicator {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin: 0 4px 0 0;
+    vertical-align: middle;
+    cursor: pointer;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    background-color: #ddd;
 }
