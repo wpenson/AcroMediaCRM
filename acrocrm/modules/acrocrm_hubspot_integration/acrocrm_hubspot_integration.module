@@ -337,7 +337,7 @@ function get_hubspot_api_key_argument() {
 }
 
 function get_hubspot_access_token_argument() {
-  return '&access_token=' . variable_get('acrocrm_hubspot_integration_oauth_access_token');
+  return '?access_token=' . variable_get('acrocrm_hubspot_integration_oauth_access_token');
 }
 
 /**
