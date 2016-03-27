@@ -1069,6 +1069,8 @@ function generate_lead_form(&$form, &$form_state) {
  * Submit callback for acrocrm_leads_edit_lead_form().
  */
 function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
+  global $user;
+
   db_update('leads')
     ->fields(array(
       'name' => $form_state['values']['name'],
@@ -1076,7 +1078,8 @@ function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
       'email' => $form_state['values']['email'],
       'phone' => $form_state['values']['phone'],
       'comments' => $form_state['values']['comments'],
-      'priority' => $form_state['values']['priority']
+               'priority' => $form_state['values']['priority'],
+               'modified_by' => $user->uid,
     ))
     ->condition('lead_id', $form_state['values']['lead_id'], '=')
     ->execute();
@@ -1119,6 +1122,8 @@ function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
  * Submit callback for acrocrm_leads_new_lead_form().
  */
 function acrocrm_leads_new_lead_form_submit($form, $form_state) {
+  global $user;
+
   $lead_id = db_insert('leads')
     ->fields(array(
       'name' => $form_state['values']['name'],
@@ -1126,7 +1131,9 @@ function acrocrm_leads_new_lead_form_submit($form, $form_state) {
       'email' => $form_state['values']['email'],
       'phone' => $form_state['values']['phone'],
       'comments' => $form_state['values']['comments'],
-      'priority' => $form_state['values']['priority']
+               'priority' => $form_state['values']['priority'],
+               'created_time' => date("Y-m-d H:i:s"),
+               'created_by' => $user->uid,
     ))
     ->execute();
 
