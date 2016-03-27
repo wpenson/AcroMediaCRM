@@ -662,12 +662,16 @@ function acrocrm_leads_generate_leads_list_html(&$leads, $page = 'overview') {
     $leads_list .= '<div class="pull-right text-right">';
     $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
 
-    if ($lead['status'] !== 'DELETED' || $page === 'my_leads') {
+
+    if (($lead['status'] !== 'DELETED' &&  $lead['status'] !== 'COMMITTED') || $page === 'my_leads') {
       $leads_list .= '<button data-tooltip="tooltip" title="' . t('Edit Lead') . '" type="button" class="edit-lead-button btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
       $leads_list .= '<button data-tooltip="tooltip" title="' . t('Delete Lead') . '" type="button" class="delete-lead-button btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
     }
-    else {
+    else if ($lead['status'] == 'DELETED') {
       $leads_list .= '<button data-tooltip="tooltip" title="' . t('Recover Lead') . '" type="button" class="recover-lead-button btn btn-success" data-url="' . base_path() . 'acrocrm_leads/recover_lead/' . $lead['lead_id'] . '"><span class="glyphicon glyphicon-repeat"></span></button>';
+    }
+    else {
+      $leads_list .= '<button data-tooltip="tooltip" title="' . t('Delete Lead') . '" type="button" class="delete-lead-button btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
     }
 
     $leads_list .= '</div>';
