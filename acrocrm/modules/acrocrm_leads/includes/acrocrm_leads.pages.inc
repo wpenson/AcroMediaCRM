@@ -733,10 +733,11 @@ function acrocrm_leads_get_sales_reps() {
   // TODO: Add buttons/dropdowns and functionality to the filter bar. Need date range, collapse all, open all, send to hubspot, email, etc.
   $filter_bar =
     '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
-      <div class="input-group">'
-        . (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == TRUE ? '<button id="commit-leads-button" type="button" class="btn btn-primary" data-module-base-path="' . drupal_get_path('module', 'acrocrm') . '" data-url-base-path="' . base_path() . '">' . t('Commit Leads') . '</button>' : '') .
+      <div class="input-group input-group-btns">'
+        . (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == TRUE ? '<button id="commit-leads-button" type="button" class="btn btn-primary" data-module-base-path="' . drupal_get_path('module', 'acrocrm') . '" data-url-base-path="' . base_path() . '">' . t('Commit Leads') . '</button>' : '')
+        . '<button id="expand-all" type="button" class="btn btn-primary pull-right expand-repdiv">' . t('Expand All') . '</button>'
     // TODO: Add more functions.
-    '  </div>
+    . '  </div>
     </div>';
 
   $users = entity_load('user');
@@ -757,7 +758,7 @@ function acrocrm_leads_get_sales_reps() {
       $priorities = acrocrm_leads_generate_sales_rep_lead_list($user->uid, $leads_list);
 
       $rep_div .= '<li data-rep-id="' . $user->uid . '" class="list-group-item sales-rep">';
-      $rep_div .= '<h4 class="list-group-item-heading  sorting-disabled sales-rep-closed"><img class="sales-rep-spinner" style="margin-right:5px;" src="' . base_path() . drupal_get_path('module', 'acrocrm') . '/templates/assets/images/spinner.gif">' . $user->name;
+      $rep_div .= '<h4 class="list-group-item-heading sorting-disabled sales-rep-closed"><i class="fa fa-angle-right fa-fw"></i><img class="sales-rep-spinner" style="margin-right:5px;" src="' . base_path() . drupal_get_path('module', 'acrocrm') . '/templates/assets/images/spinner.gif">' . $user->name;
       $rep_div .= '<span class="pull-right">';
       $rep_div .= '<span data-tooltip="tooltip" title="' . t('High Priority') . '" id="high-' . $user->uid .'" class="high-priority priority-indicator">' . $priorities['high'] . '</span>';
       $rep_div .= '<span data-tooltip="tooltip" title="' . t('Medium Priority') . '" id="med-' . $user->uid .'" class="med-priority priority-indicator">' . $priorities['med'] . '</span>';

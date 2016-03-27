@@ -366,3 +366,7 @@ label.c-input {
     border-radius: 50%;
     background-color: #ddd;
 }
+
+.input-group-btns {
+    width: 100%;
+}
