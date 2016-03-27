@@ -113,15 +113,6 @@ function acrocrm_leads_menu() {
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
-  $items['acrocrm_leads/get_lead_priority'] = array(
-    'page callback' => 'acrocrm_leads_get_lead_priority_ajax',
-    'access callback' => TRUE,
-    'page arguments' => array(2),
-    'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
-    'file' => 'includes/acrocrm_leads.pages.inc',
-  );
-
   $items['acrocrm_leads/unassign_lead'] = array(
     'page callback' => 'acrocrm_leads_unassign_lead_ajax',
     'access callback' => TRUE,
@@ -131,9 +122,18 @@ function acrocrm_leads_menu() {
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
-  $items['acrocrm_leads/assign_lead_priority'] = array(
+  $items['acrocrm_leads/get_lead_priority'] = array(
+    'page callback' => 'acrocrm_leads_get_lead_priority_ajax',
+    'access callback' => TRUE,
+    'page arguments' => array(2),
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access acrocrm'),
+    'file' => 'includes/acrocrm_leads.pages.inc',
+  );
+
+  $items['acrocrm_leads/set_lead_priority'] = array(
     'page callback' => 'acrocrm_leads_set_lead_priority_ajax',
-    'page arguments' => array(3),
+    'page arguments' => array(2, 3),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
     'access arguments' => array('access acrocrm'),

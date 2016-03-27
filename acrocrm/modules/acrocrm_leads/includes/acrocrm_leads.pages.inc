@@ -126,23 +126,26 @@ function acrocrm_leads_get_lead_priority_ajax($lead_id) {
  * @param $lead_id  int     ID of the lead
  */
 function acrocrm_leads_set_lead_priority_ajax($priority, $lead_id) {
-  $check_exists = db_select('leads', 'l')
-    ->fields('l')
-    ->condition('lead_id', $lead_id, '=')
-    ->execute();
+//  $check_exists = db_select('leads', 'l')
+//    ->fields('l')
+//    ->condition('lead_id', $lead_id, '=')
+//    ->execute();
+
+  error_log($priority);
+  error_log($lead_id);
 
   if ($priority === 'unassigned') {
     $priority = '';
   }
 
-  if ($check_exists->rowCount() > 0) {
-    db_update('leads')
-      ->fields(array(
-        'priority' => $priority
-      ))
-      ->condition('lead_id', $lead_id, '=')
-      ->execute();
-  }
+//  if ($check_exists->rowCount() > 0) {
+  $query = db_update('leads');
+  $query->fields(array(
+    'priority' => $priority,
+  ));
+  $query->condition('lead_id', $lead_id);
+  $query->execute();
+//  }
 }
 
 /**
@@ -693,28 +696,28 @@ function acrocrm_leads_generate_leads_list_html(&$leads, $page = 'overview') {
     }
 
     $priority = $lead['priority'];
-    $leads_list .= '<p class="priority-radio-btn list-group-item-text"><strong>' . t('Priority') . ': </strong>';
+    $leads_list .= '<p class="priority-radio-btn list-group-item-text" data-url-base-path="' . base_path() . '"><strong>' . t('Priority') . ': </strong>';
     if ($priority === '') {
       $priority = 'none';
     }
     $leads_list .=
       '<label class="c-input c-radio">
-        <input class="high-priority" type="radio" value="high-priority" name="' . $lead['lead_id'] . '" ' . (($priority === 'high') ? 'checked' : '') . '>
+        <input class="high-priority" type="radio" value="high" name="unassigned-' . $lead['lead_id'] . '" ' . (($priority === 'high') ? 'checked' : '') . '>
         <span data-tooltip="tooltip" title="' . t('High Priority') . '" class="c-indicator"></span>
       </label>';
     $leads_list .=
       '<label class="c-input c-radio">
-        <input class="med-priority" type="radio" value="med-priority" name="' . $lead['lead_id'] . '" ' . (($priority === 'medium') ? 'checked' : '') . '>
+        <input class="med-priority" type="radio" value="medium" name="unassigned-' . $lead['lead_id'] . '" ' . (($priority === 'medium') ? 'checked' : '') . '>
         <span data-tooltip="tooltip" title="' . t('Medium Priority') . '" class="c-indicator"></span>
       </label>';
     $leads_list .=
       '<label class="c-input c-radio">
-        <input class="low-priority" type="radio" value="low-priority" name="' . $lead['lead_id'] . '" ' . (($priority === 'low') ? 'checked' : '') . '>
+        <input class="low-priority" type="radio" value="low" name="unassigned-' . $lead['lead_id'] . '" ' . (($priority === 'low') ? 'checked' : '') . '>
         <span data-tooltip="tooltip" title="' . t('Low Priority') . '" class="c-indicator"></span>
       </label>';
     $leads_list .=
       '<label class="c-input c-radio">
-        <input class="no-priority" type="radio" value="no-priority" name="' . $lead['lead_id'] . '" ' . (($priority === 'none') ? 'checked' : '') . '>
+        <input class="no-priority" type="radio" value="unassigned" name="unassigned-' . $lead['lead_id'] . '" ' . (($priority === 'none') ? 'checked' : '') . '>
         <span data-tooltip="tooltip" title="' . t('No Priority') . '" class="c-indicator"></span>
       </label>';
     $leads_list .= '</p>';
@@ -871,12 +874,31 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
           }
         }
 
-        // TODO: Make priority dropdown into 4 styled radio buttons instead
-        $leads_list .= '<p class="list-group-item-text"><strong>' . t('Priority') . ': </strong>';
+        $leads_list .= '<p class="priority-radio-btn list-group-item-text" data-url-base-path="' . base_path() . '"><strong>' . t('Priority') . ': </strong>';
         if ($priority === '') {
-          $priority = 'unassigned';
+          $priority = 'none';
         }
-        $leads_list .= $priority . '</p>';
+        $leads_list .=
+          '<label class="c-input c-radio">
+            <input class="high-priority" type="radio" value="high" name="assigned-' . $lead['lead_id'] . '" ' . (($priority === 'high') ? 'checked' : '') . '>
+            <span data-tooltip="tooltip" title="' . t('High Priority') . '" class="c-indicator"></span>
+          </label>';
+        $leads_list .=
+          '<label class="c-input c-radio">
+            <input class="med-priority" type="radio" value="medium" name="assigned-' . $lead['lead_id'] . '" ' . (($priority === 'medium') ? 'checked' : '') . '>
+            <span data-tooltip="tooltip" title="' . t('Medium Priority') . '" class="c-indicator"></span>
+          </label>';
+        $leads_list .=
+          '<label class="c-input c-radio">
+            <input class="low-priority" type="radio" value="low" name="assigned-' . $lead['lead_id'] . '" ' . (($priority === 'low') ? 'checked' : '') . '>
+            <span data-tooltip="tooltip" title="' . t('Low Priority') . '" class="c-indicator"></span>
+          </label>';
+        $leads_list .=
+          '<label class="c-input c-radio">
+            <input class="no-priority" type="radio" value="unassigned" name="assigned-' . $lead['lead_id'] . '" ' . (($priority === 'none') ? 'checked' : '') . '>
+            <span data-tooltip="tooltip" title="' . t('No Priority') . '" class="c-indicator"></span>
+          </label>';
+        $leads_list .= '</p>';
 
         if (isset($lead['comments']) && $lead['comments'] != '') {
           $leads_list .= '<p class="list-group-item-text readmore"><strong>' . t('Comments') . ': </strong>' . $lead['comments'] . '</p>';

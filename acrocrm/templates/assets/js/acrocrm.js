@@ -323,6 +323,10 @@ Drupal.behaviors.acrocrm_leads = {
           original_sales_rep.find('.no-assigned-leads').remove();
         }
       });
+
+      $('.priority-radio-btn').change(function (event) {
+        updatePriorityRadio(this);
+      });
     }
 
     // loads all interactions for leads on leads overview page
@@ -375,11 +379,36 @@ Drupal.behaviors.acrocrm_leads = {
           }
         });
       });
+
+      $('.priority-radio-btn').change(function (event) {
+        return updatePriorityRadio(this);
+      });
     }
 
-    // function updatePriorityRadio() {
-    //
-    // }
+    function updatePriorityRadio(priority_radio_buttons) {
+      var radio_button = $(priority_radio_buttons).find('input[type=radio]:checked');
+      var name = radio_button.attr('name').split('-');
+      var is_assigned = (name[0] === 'assigned');
+      var lead_id = name[1];
+      var priority = radio_button.attr('value');
+
+      $.ajax({
+        url: $(priority_radio_buttons).data('url-base-path') + "acrocrm_leads/set_lead_priority/" + priority + "/" + lead_id,
+        success: function () {
+          if (is_assigned) {
+            $('.priority-radio-btn input[type=radio][name="unassigned-' + lead_id + '"][value="' + priority + '"]').prop("checked", true);
+          }
+          else {
+            $('.priority-radio-btn input[type=radio][name="assigned-' + lead_id + '"][value="' + priority + '"]').prop("checked", true);
+          }
+
+          return true;
+        },
+        error: function () {
+          return false;
+        }
+      });
+    }
 
     function updatePriorityText(rep_id, priority) {
       if (priority === '') {
@@ -684,12 +713,5 @@ function createHubspotContact(lead_id, url_base_path) {
       }
     },
     dataType: 'text'
-  });
-}
-
-// update a lead's priority
-function assignPriority(lead_id, element) {
-  $.ajax({
-    url: '/acrocrm_leads/assign_lead_priority/' + lead_id + '/' + $(element).val()
   });
 }
