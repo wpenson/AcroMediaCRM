@@ -227,10 +227,6 @@ input.form-submit {
     margin-bottom: 15px;
 }
 
-#leads-list {
-    margin-bottom: 10px;
-}
-
 .pager li {
     margin-right: 10px;
 }
@@ -369,4 +365,8 @@ label.c-input {
 
 .input-group-btns {
     width: 100%;
+}
+
+#leads-list-pager {
+    margin-top: 10px !important;
 }

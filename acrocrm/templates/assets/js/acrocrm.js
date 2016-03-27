@@ -20,20 +20,22 @@ Drupal.behaviors.acrocrm_leads = {
           // determine how many accordions are open, if they all are open change "Expand All" to "Collapse All"
           // if none are open change "Collapse All" to "Expand All"
           var numOpen = 0;
-          $('.sales-rep').each(function () {
+          var sales_rep = $('.sales-rep');
+          var expand_all = $('#expand-all');
+          sales_rep.each(function () {
             if ($(this).accordion( 'option', 'active' ) !== false) {
               numOpen += 1;
             }
           });
-          if (numOpen == $('.sales-rep').length) {
-            $('#expand-all').removeClass('expand-repdiv');
-            $('#expand-all').addClass('collapse-repdiv');
-            $('#expand-all').html('Collapse All');
+          if (numOpen == sales_rep.length) {
+            expand_all.removeClass('expand-repdiv');
+            expand_all.addClass('collapse-repdiv');
+            expand_all.html('Collapse All');
           }
           else if (numOpen == 0) {
-            $('#expand-all').removeClass('collapse-repdiv');
-            $('#expand-all').addClass('expand-repdiv');
-            $('#expand-all').html('Expand All');
+            expand_all.removeClass('collapse-repdiv');
+            expand_all.addClass('expand-repdiv');
+            expand_all.html('Expand All');
           }
         }
       }).droppable({
@@ -62,7 +64,7 @@ Drupal.behaviors.acrocrm_leads = {
             return;
           }
 
-          var url = lead_draggable.data('url') + 'assign_lead/';
+          var url = Drupal.settings.basePath + 'acrocrm_leads/assign_lead/';
           var params = sales_rep.data('rep-id') + '/' + lead_draggable.data('lead-id');
 
           sales_rep.find('> h4 img').show();
@@ -91,36 +93,22 @@ Drupal.behaviors.acrocrm_leads = {
                 }
               }
 
-              loadSalesRepInteractions();
+              loadSalesRepInteractions(sales_rep);
 
               // update priority counts for the rep that the lead was assigned to and if applicable the rep
               // that the lead was taken from
-              var url = lead_draggable.data('url') + 'get_lead_priority/';
+              var url = Drupal.settings.basePath + 'acrocrm_leads/get_lead_priority/';
               var params = lead_draggable.data('lead-id');
               $.get(url + params, function (response, status, xhr) {
                 var message = response.trim();
-                if (message == 'low') {
-                  $('#low-' + sales_rep.data('rep-id')).html(parseInt($('#low-' + sales_rep.data('rep-id')).html()) + 1);
+
+                if (message === 'low' || message === 'medium' || message === 'high' || message === 'unassigned') {
+                  var sales_rep_priority_indicator = $('#' + message + '-' + sales_rep.data('rep-id'));
+                  sales_rep_priority_indicator.html(parseInt(sales_rep_priority_indicator.html()) + 1);
+
                   if (original_rep_id != null) {
-                    $('#low-' + original_rep_id).html(parseInt($('#low-' + original_rep_id).html()) - 1);
-                  }
-                }
-                else if (message == 'medium') {
-                  $('#med-' + sales_rep.data('rep-id')).html(parseInt($('#med-' + sales_rep.data('rep-id')).html()) + 1);
-                  if (original_rep_id != null) {
-                    $('#med-' + original_rep_id).html(parseInt($('#med-' + original_rep_id).html()) - 1);
-                  }
-                }
-                else if (message == 'high') {
-                  $('#high-' + sales_rep.data('rep-id')).html(parseInt($('#high-' + sales_rep.data('rep-id')).html()) + 1);
-                  if (original_rep_id != null) {
-                    $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) - 1);
-                  }
-                }
-                else if (message == 'unassigned') {
-                  $('#unassigned-' + sales_rep.data('rep-id')).html(parseInt($('#unassigned-' + sales_rep.data('rep-id')).html()) + 1);
-                  if (original_rep_id != null) {
-                    $('#unassigned-' + original_rep_id).html(parseInt($('#unassigned-' + original_rep_id).html()) - 1);
+                    var original_rep_priority_indicator = $('#' + message + '-' + original_rep_id);
+                    original_rep_priority_indicator.html(parseInt(original_rep_priority_indicator.html()) - 1);
                   }
                 }
                 else {
@@ -158,6 +146,13 @@ Drupal.behaviors.acrocrm_leads = {
                 sales_rep.accordion('option', 'active', 0); // Expand accordion
                 sales_rep.data('accordion-prev-active', 'false'); // Accordion was not previously active
                 sales_rep.data('accordion-hovering', 'false');
+
+                if (sales_rep.find($('.fa.fa-angle-down')).length > 0) {
+                  sales_rep.find($('.fa')).removeClass('fa-angle-down').addClass('fa-angle-right');
+                }
+                else {
+                  sales_rep.find($('.fa')).removeClass('fa-angle-right').addClass('fa-angle-down');
+                }
               }
             }, 750);
           }
@@ -183,7 +178,7 @@ Drupal.behaviors.acrocrm_leads = {
           var lead_draggable = $(ui.draggable);
 
           lead_draggable.hide();
-          var url = lead_draggable.data('url') + 'unassign_lead/';
+          var url = Drupal.settings.basePath + 'acrocrm_leads/unassign_lead/';
           var params = lead_draggable.data('lead-id');
 
           leads_list.load(url + params, function (response, status, xhr) {
@@ -199,22 +194,15 @@ Drupal.behaviors.acrocrm_leads = {
 
               // update priority counts for the rep that the lead was assigned to and if applicable the rep
               // that the lead was taken from
-              var url = lead_draggable.data('url') + 'get_lead_priority/';
+              var url = Drupal.settings.basePath + 'acrocrm_leads/get_lead_priority/';
               var params = lead_draggable.data('lead-id');
               $.get(url + params,
                 function (response, status, xhr) {
                   var message = response.trim();
-                  if (response == 'low') {
-                    $('#low-' + original_rep_id).html(parseInt($('#low-' + original_rep_id).html()) - 1);
-                  }
-                  else if (message === 'medium') {
-                    $('#med-' + original_rep_id).html(parseInt($('#med-' + original_rep_id).html()) - 1);
-                  }
-                  else if (message === 'high') {
-                    $('#high-' + original_rep_id).html(parseInt($('#high-' + original_rep_id).html()) - 1);
-                  }
-                  else if (message === 'unassigned') {
-                    $('#unassigned-' + original_rep_id).html(parseInt($('#unassigned-' + original_rep_id).html()) - 1);
+
+                  if (message === 'low' || message === 'medium' || message === 'high' || message === 'unassigned') {
+                    var priority_indicator = $('#' + message + '-' + original_rep_id);
+                    priority_indicator.html(parseInt(priority_indicator.html()) - 1);
                   }
                   else {
                     console.log('An error occurred when trying to get lead priority');
@@ -232,9 +220,6 @@ Drupal.behaviors.acrocrm_leads = {
           });
         }
       });
-
-      loadLeadList(event);
-      loadSalesRepInteractions();
 
       $('.list-group-item-heading.ui-accordion-header').on('click', function () {
         if ($(this).find($('.fa.fa-angle-down')).length > 0) {
@@ -269,18 +254,22 @@ Drupal.behaviors.acrocrm_leads = {
         }
       });
 
+      loadLeadList(event);
+      loadSalesRepInteractions();
     }); // end document.ready
 
-    function loadSalesRepInteractions() {
-      $('.readmore').readmore({
+    function loadSalesRepInteractions(sales_reps) {
+      sales_reps = typeof sales_reps !== 'undefined' ? sales_reps : $('.sales-rep-list');
+
+      sales_reps.find('.readmore').readmore({
         collapsedHeight: 18
       });
 
-      $('.sales-rep-lead-list img').hide();
+      sales_reps.find('.sales-rep-lead-list img').hide();
 
-      $('[data-tooltip="tooltip"]').tooltip({container: 'body'});
+      sales_reps.find('[data-tooltip="tooltip"]').tooltip({container: 'body'});
 
-      $('.sales-rep-lead').accordion({
+      sales_reps.find('.sales-rep-lead').accordion({
         header: '> h5',
         collapsible: true,
         active: false,
@@ -294,7 +283,7 @@ Drupal.behaviors.acrocrm_leads = {
       });
 
       // Uncommitted leads are the leads that have been assigned but are not sent to hubspot, etc.
-      $('.uncommitted-lead').draggable({
+      sales_reps.find('.uncommitted-lead').draggable({
         appendTo: 'body',
         zIndex: 100,
         helper: 'clone',
@@ -324,14 +313,16 @@ Drupal.behaviors.acrocrm_leads = {
         }
       });
 
-      $('.priority-radio-btn').change(function (event) {
-        updatePriorityRadio(this);
+      sales_reps.find('.priority-radio-btn').mouseup(function() {
+        old_priority = $(this).find('input[type=radio]:checked').attr('value');
+      }).change(function (event) {
+        updatePriorityRadio(event, this);
       });
     }
 
     // loads all interactions for leads on leads overview page
     function loadLeadsListInteractions() {
-      $('.readmore').readmore({
+      $('#leads-list .readmore').readmore({
         collapsedHeight: 18
       });
 
@@ -344,12 +335,23 @@ Drupal.behaviors.acrocrm_leads = {
         cursorAt: {top: 0, left: 0},
         refreshPositions: true,
         start: function (event, ui) {
-          if ($('.lead-filter[data-group="show"][data-value="all"] .glyphicon-ok').length == 0) {
+          var leads_list = $('#leads-list');
+          var has_no_leads = false;
+
+          if ($('.lead-filter[data-group=show][data-value=all] .glyphicon-ok').length === 0) {
             $(this).hide();
+
+            if (leads_list.find('li').length <= 1) {
+              has_no_leads = true;
+            }
+          }
+          else {
+            if (leads_list.find('li').length === 0) {
+              has_no_leads = true;
+            }
           }
 
-          var leads_list = $('#leads-list');
-          if (leads_list.find('li').length <= 1) {
+          if (has_no_leads) {
             leads_list.append('<li class="list-group-item lead-list-error-box">' + Drupal.t('No Leads Found') + '</li>');
           }
 
@@ -366,13 +368,14 @@ Drupal.behaviors.acrocrm_leads = {
       });
 
       $('.recover-lead-button').click(function (event) {
-        var url = $(this).data('url');
+        var url = Drupal.settings.basePath + 'acrocrm_leads/recover_lead/';
+        var params = $(this).data('lead-id');
 
         $.ajax({
           type: 'GET',
-          url: url,
+          url: url + params,
           success: function (data, textStatus) {
-            window.location.replace(url);
+            window.location.replace(url + params);
           },
           error: function (xhr, textStatus, errorThrown) {
             displayAlertMsg('error', Drupal.t('Error recovering lead.'));
@@ -380,12 +383,16 @@ Drupal.behaviors.acrocrm_leads = {
         });
       });
 
-      $('.priority-radio-btn').change(function (event) {
-        return updatePriorityRadio(this);
+      $('#leads-list .priority-radio-btn').mouseup(function() {
+        old_priority = $(this).find('input[type=radio]:checked').attr('value');
+      }).change(function (event) {
+        return updatePriorityRadio(event, this);
       });
     }
 
-    function updatePriorityRadio(priority_radio_buttons) {
+    var old_priority = null;
+
+    function updatePriorityRadio(event, priority_radio_buttons) {
       var radio_button = $(priority_radio_buttons).find('input[type=radio]:checked');
       var name = radio_button.attr('name').split('-');
       var is_assigned = (name[0] === 'assigned');
@@ -393,7 +400,7 @@ Drupal.behaviors.acrocrm_leads = {
       var priority = radio_button.attr('value');
 
       $.ajax({
-        url: $(priority_radio_buttons).data('url-base-path') + "acrocrm_leads/set_lead_priority/" + priority + "/" + lead_id,
+        url: Drupal.settings.basePath + "acrocrm_leads/set_lead_priority/" + priority + "/" + lead_id,
         success: function () {
           if (is_assigned) {
             $('.priority-radio-btn input[type=radio][name="unassigned-' + lead_id + '"][value="' + priority + '"]').prop("checked", true);
@@ -401,6 +408,14 @@ Drupal.behaviors.acrocrm_leads = {
           else {
             $('.priority-radio-btn input[type=radio][name="assigned-' + lead_id + '"][value="' + priority + '"]').prop("checked", true);
           }
+
+          var sales_rep_id = $('.sales-rep-lead[data-lead-id=' + lead_id + ']').data('assigned-rep-id');
+
+          var priority_indicator = $('#' + priority + '-' + sales_rep_id);
+          priority_indicator.html(parseInt(priority_indicator.html()) + 1);
+
+          var old_priority_indicator = $('#' + old_priority + '-' + sales_rep_id);
+          old_priority_indicator.html(parseInt(old_priority_indicator.html()) - 1);
 
           return true;
         },
@@ -410,59 +425,32 @@ Drupal.behaviors.acrocrm_leads = {
       });
     }
 
-    function updatePriorityText(rep_id, priority) {
-      if (priority === '') {
-        var text = $('#unassigned-' + rep_id).text();
-        text = text.split(' ');
-        var new_priority = parseInt(text[1]) + 1;
-        $('#unassigned-' + rep_id).text('Unassigned: ' + new_priority);
-      }
-
-      else if (priority === 'low') {
-        var text = $('#low-' + rep_id).text();
-        text = text.split(' ');
-        var new_priority = parseInt(text[1]) + 1;
-        $('#low-' + rep_id).text('Low: ' + new_priority);
-      }
-
-      else if (priority === 'medium') {
-        var text = $('#med-' + rep_id).text();
-        text = text.split(' ');
-        var new_priority = parseInt(text[1]) + 1;
-        $('#med-' + rep_id).text('Medium: ' + new_priority);
-      }
-
-      else if (priority === 'high') {
-        var text = $('#high-' + rep_id).text();
-        text = text.split(' ');
-        var new_priority = parseInt(text[1]) + 1;
-        $('#high-' + rep_id).text('High: ' + new_priority);
-      }
-    }
-
     $('#lead-create-modal').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget);
-      var url = button.data('url');
+      var url = Drupal.settings.basePath + 'acrocrm_leads/new_lead/';
+      var params = button.data('lead-id');
 
       var modal = $(this);
-      modal.find('.modal-content').load(url);
+      modal.find('.modal-content').load(url + params);
     });
 
     $('#lead-edit-modal').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget);
-      var url = button.data('url');
+      var url = Drupal.settings.basePath + 'acrocrm_leads/edit_lead/';
+      var params = button.data('lead-id');
 
       var modal = $(this);
-      modal.find('.modal-content').load(url);
+      modal.find('.modal-content').load(url + params);
     });
 
     $('#delete-lead-confirmation-modal').on('show.bs.modal', function (event) {
       var trigger_button = $(event.relatedTarget);
-      var url = trigger_button.data('url');
+      var url = Drupal.settings.basePath + 'acrocrm_leads/delete_lead/';
+      var params = trigger_button.data('lead-id');
 
       var modal = $(this);
       modal.find('#delete-lead-confirmation-button').click(function () {
-        window.location.replace(url);
+        window.location.replace(url + params);
       });
     });
 
@@ -471,14 +459,15 @@ Drupal.behaviors.acrocrm_leads = {
     var num_of_records_to_show = 4;
 
     function insertPagination(list) {
-      var leads_pager_string = '<nav><ul class="pager">';
+      $('#leads-list-pager').remove();
+      var leads_pager_string = '<nav id="leads-list-pager"><ul class="pager">';
 
       if (leads_list_index != 0) {
         leads_pager_string += '<li><a id="pg-previous" href="#">' + Drupal.t('Previous') + '</a></li>';
       }
 
       if (list.find('> li').length > num_of_records_to_show) {
-        leads_pager_string += '<li><a id="pg-next" href="#">Next</a></li>';
+        leads_pager_string += '<li><a id="pg-next" href="#">' + Drupal.t('Next') + '</a></li>';
         list.find('> li:last-child:not(.lead-list-error-box)').remove();
       }
 
@@ -499,11 +488,9 @@ Drupal.behaviors.acrocrm_leads = {
     }
 
     function loadLeadList(event) {
-      $('.pager').parent().remove();
-
       var target = $(event.currentTarget);
       var lead_search = $('#lead-search');
-      var url = lead_search.data('url');
+      var url = Drupal.settings.basePath + 'acrocrm_leads/filter_leads/';
       var group = target.data('group');
       var lead_search_box = lead_search.find('input');
       var value = '';
@@ -540,8 +527,8 @@ Drupal.behaviors.acrocrm_leads = {
 
           if (group != null) {
             if (group != 'sort-order') {
-              $('ul li a[data-group=" + group + "] .lead-search-dropdown-check').remove();
-              $('ul li a[data-group=" + group + "][data-value=" + value + "]').prepend('<i class="lead-search-dropdown-check glyphicon glyphicon-ok"></i>');
+              $('ul li a[data-group="' + group + '"] .lead-search-dropdown-check').remove();
+              $('ul li a[data-group="' + group + '"][data-value="' + value + '"]').prepend('<i class="lead-search-dropdown-check glyphicon glyphicon-ok"></i>');
             }
             else {
               if (value == 'asc') {
@@ -570,6 +557,8 @@ Drupal.behaviors.acrocrm_leads = {
     var timeout_thread = null;
     var previous_val = '';
     $('#lead-search input').on('keyup', function (event) {
+      leads_list_index = 0;
+
       if (event.keyCode == '13') {
         loadLeadList(event);
         return;
@@ -588,6 +577,7 @@ Drupal.behaviors.acrocrm_leads = {
     });
 
     $('.lead-filter, #lead-search-button').click(function (event) {
+      leads_list_index = 0;
       loadLeadList(event);
       event.stopPropagation();
     });
@@ -599,13 +589,12 @@ Drupal.behaviors.acrocrm_leads = {
     // Commits all the currently assigned leads in the database to hubspot.
     function commitAssignedLeads() {
       var commit_leads_button = $('#commit-leads-button');
-      var url_base_path = commit_leads_button.data('url-base-path');
       var module_base_path = commit_leads_button.data('module-base-path');
-      var imgTag = '<img id="commit-loading-gif" alt="loading" src="' + url_base_path + module_base_path + '/templates/assets/images/ajax-loader.gif">';
+      var imgTag = '<img id="commit-loading-gif" alt="loading" src="' + Drupal.settings.basePath + module_base_path + '/templates/assets/images/ajax-loader.gif">';
       $(imgTag).insertBefore(commit_leads_button);
       commit_leads_button.hide();
       $.ajax({
-        url: url_base_path + 'acrocrm_hubspot_integration/commit_assigned_leads',
+        url: Drupal.settings.basePath + 'acrocrm_hubspot_integration/commit_assigned_leads',
         dataType: 'text',
         success: function (data) {
           var returnObj = $.parseJSON(data.trim());

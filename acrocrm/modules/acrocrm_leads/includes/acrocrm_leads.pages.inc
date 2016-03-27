@@ -126,26 +126,16 @@ function acrocrm_leads_get_lead_priority_ajax($lead_id) {
  * @param $lead_id  int     ID of the lead
  */
 function acrocrm_leads_set_lead_priority_ajax($priority, $lead_id) {
-//  $check_exists = db_select('leads', 'l')
-//    ->fields('l')
-//    ->condition('lead_id', $lead_id, '=')
-//    ->execute();
-
-  error_log($priority);
-  error_log($lead_id);
-
   if ($priority === 'unassigned') {
     $priority = '';
   }
 
-//  if ($check_exists->rowCount() > 0) {
   $query = db_update('leads');
   $query->fields(array(
     'priority' => $priority,
   ));
   $query->condition('lead_id', $lead_id);
   $query->execute();
-//  }
 }
 
 /**
@@ -416,8 +406,6 @@ function acrocrm_leads_recover_lead_ajax($lead_id) {
 /**
  * Creates the container for the leads list.
  *
- * @TODO: This would warrant a template...
- *
  * @return string HTML container
  */
 function acrocrm_leads_generate_leads_list_container_html($page = 'overview') {
@@ -425,8 +413,8 @@ function acrocrm_leads_generate_leads_list_container_html($page = 'overview') {
   $lead_create_modal = '';
   if ($page === 'overview') {
     $search_div .=
-      '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
-        <button type="button" id="create-new-lead-button" class="btn btn-default" data-tooltip="tooltip" title="' . t('Create New Lead') . '" data-url="' . base_path() . 'acrocrm_leads/new_lead/" data-toggle="modal" data-target="#lead-create-modal">
+      '<div id="lead-search" class="filter-header">
+        <button type="button" id="create-new-lead-button" class="btn btn-default" data-tooltip="tooltip" title="' . t('Create New Lead') . '" data-toggle="modal" data-target="#lead-create-modal">
           <i class="glyphicon glyphicon-plus" style="color:#009900;"></i>
         </button>
         <div class="input-group">
@@ -660,21 +648,21 @@ function acrocrm_leads_generate_leads_list_html(&$leads, $page = 'overview') {
       }
     }
 
-    $leads_list .= '<li data-lead-id="' . $lead['lead_id'] . '" class="list-group-item' . (($page === 'overview' && $assigned !== TRUE && $lead['status'] !== 'DELETED') ? ' unassigned-lead' : '') . '" data-url="' . base_path() . 'acrocrm_leads/" href="javascript:void(0)">';
+    $leads_list .= '<li data-lead-id="' . $lead['lead_id'] . '" class="list-group-item' . (($page === 'overview' && $assigned !== TRUE && $lead['status'] !== 'DELETED') ? ' unassigned-lead' : '') . '" href="javascript:void(0)">';
 
     $leads_list .= '<div class="pull-right text-right">';
     $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
 
 
     if (($lead['status'] !== 'DELETED' &&  $lead['status'] !== 'COMMITTED') || $page === 'my_leads') {
-      $leads_list .= '<button data-tooltip="tooltip" title="' . t('Edit Lead') . '" type="button" class="edit-lead-button btn btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
-      $leads_list .= '<button data-tooltip="tooltip" title="' . t('Delete Lead') . '" type="button" class="delete-lead-button btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+      $leads_list .= '<button data-tooltip="tooltip" title="' . t('Edit Lead') . '" type="button" class="edit-lead-button btn btn-primary" data-lead-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
+      $leads_list .= '<button data-tooltip="tooltip" title="' . t('Delete Lead') . '" type="button" class="delete-lead-button btn btn-danger" data-lead-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
     }
     else if ($lead['status'] == 'DELETED') {
-      $leads_list .= '<button data-tooltip="tooltip" title="' . t('Recover Lead') . '" type="button" class="recover-lead-button btn btn-success" data-url="' . base_path() . 'acrocrm_leads/recover_lead/' . $lead['lead_id'] . '"><span class="glyphicon glyphicon-repeat"></span></button>';
+      $leads_list .= '<button data-tooltip="tooltip" title="' . t('Recover Lead') . '" type="button" class="recover-lead-button btn btn-success" data-lead-id="' . $lead['lead_id'] . '"><span class="glyphicon glyphicon-repeat"></span></button>';
     }
     else {
-      $leads_list .= '<button data-tooltip="tooltip" title="' . t('Delete Lead') . '" type="button" class="delete-lead-button btn btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+      $leads_list .= '<button data-tooltip="tooltip" title="' . t('Delete Lead') . '" type="button" class="delete-lead-button btn btn-danger" data-lead-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
     }
 
     $leads_list .= '</div>';
@@ -696,7 +684,7 @@ function acrocrm_leads_generate_leads_list_html(&$leads, $page = 'overview') {
     }
 
     $priority = $lead['priority'];
-    $leads_list .= '<p class="priority-radio-btn list-group-item-text" data-url-base-path="' . base_path() . '"><strong>' . t('Priority') . ': </strong>';
+    $leads_list .= '<p class="priority-radio-btn list-group-item-text"><strong>' . t('Priority') . ': </strong>';
     if ($priority === '') {
       $priority = 'none';
     }
@@ -737,13 +725,11 @@ function acrocrm_leads_generate_leads_list_html(&$leads, $page = 'overview') {
  * @return string
  */
 function acrocrm_leads_get_sales_reps() {
-  // TODO: Add buttons/dropdowns and functionality to the filter bar. Need date range, collapse all, open all, send to hubspot, email, etc.
   $filter_bar =
-    '<div id="lead-search" class="filter-header" data-url="' . base_path() . 'acrocrm_leads/filter_leads/">
+    '<div id="lead-search" class="filter-header">
       <div class="input-group input-group-btns">'
-        . (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == TRUE ? '<button id="commit-leads-button" type="button" class="btn btn-primary" data-module-base-path="' . drupal_get_path('module', 'acrocrm') . '" data-url-base-path="' . base_path() . '">' . t('Commit Leads') . '</button>' : '')
-        . '<button id="expand-all" type="button" class="btn btn-primary pull-right expand-repdiv">' . t('Expand All') . '</button>'
-    // TODO: Add more functions.
+        . (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == TRUE ? '<button id="commit-leads-button" type="button" class="btn btn-primary" data-module-base-path="' . drupal_get_path('module', 'acrocrm') . '">' . t('Commit Leads') . '</button>' : '')
+        . '<button id="expand-all" type="button" class="btn btn-default pull-right expand-repdiv">' . t('Expand All') . '</button>'
     . '  </div>
     </div>';
 
@@ -768,7 +754,7 @@ function acrocrm_leads_get_sales_reps() {
       $rep_div .= '<h4 class="list-group-item-heading sorting-disabled sales-rep-closed"><i class="fa fa-angle-right fa-fw"></i><img class="sales-rep-spinner" style="margin-right:5px;" src="' . base_path() . drupal_get_path('module', 'acrocrm') . '/templates/assets/images/spinner.gif">' . $user->name;
       $rep_div .= '<span class="pull-right">';
       $rep_div .= '<span data-tooltip="tooltip" title="' . t('High Priority') . '" id="high-' . $user->uid .'" class="high-priority priority-indicator">' . $priorities['high'] . '</span>';
-      $rep_div .= '<span data-tooltip="tooltip" title="' . t('Medium Priority') . '" id="med-' . $user->uid .'" class="med-priority priority-indicator">' . $priorities['med'] . '</span>';
+      $rep_div .= '<span data-tooltip="tooltip" title="' . t('Medium Priority') . '" id="medium-' . $user->uid .'" class="med-priority priority-indicator">' . $priorities['med'] . '</span>';
       $rep_div .= '<span data-tooltip="tooltip" title="' . t('Low Priority') . '" id="low-' . $user->uid .'" class="low-priority priority-indicator">' . $priorities['low'] . '</span>';
       $rep_div .= '<span data-tooltip="tooltip" title="' . t('No Priority') . '" id="unassigned-' . $user->uid .'" class="priority-indicator">' . $priorities['unassigned'] . '</span>';
       $rep_div .= '</span>';
@@ -819,14 +805,14 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
 
     if ($leads->rowCount() > 0) {
       while ($lead = $leads->fetchAssoc()) {
-        $leads_list .= '<li data-lead-id="' . $lead['lead_id'] . '" data-assigned-rep-id="' . $sales_rep_user_id . '" class="' . (($lead['status'] !== 'COMMITTED') ? 'uncommitted-lead ' : '') . 'list-group-item sales-rep-lead" data-url="' . base_path() . 'acrocrm_leads/">';
+        $leads_list .= '<li data-lead-id="' . $lead['lead_id'] . '" data-assigned-rep-id="' . $sales_rep_user_id . '" class="' . (($lead['status'] !== 'COMMITTED') ? 'uncommitted-lead ' : '') . 'list-group-item sales-rep-lead">';
 
         $leads_list .= '<div class="pull-right text-right">';
 
         if ($lead['status'] !== 'COMMITTED') {
           $leads_list .= '<div class="btn-group" role="group" aria-label="...">';
-          $leads_list .= '<button data-tooltip="tooltip" title="' . t('Edit Lead') . '" type="button" class="edit-lead-button btn btn-xs btn-primary" data-url="' . base_path() . 'acrocrm_leads/edit_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
-          $leads_list .= '<button data-tooltip="tooltip" title="' . t('Delete Lead') . '" type="button" class="delete-lead-button btn btn-xs btn-danger" data-url="' . base_path() . 'acrocrm_leads/delete_lead/' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
+          $leads_list .= '<button data-tooltip="tooltip" title="' . t('Edit Lead') . '" type="button" class="edit-lead-button btn btn-xs btn-primary" data-lead-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#lead-edit-modal"><span class="glyphicon glyphicon-pencil"></span></button>';
+          $leads_list .= '<button data-tooltip="tooltip" title="' . t('Delete Lead') . '" type="button" class="delete-lead-button btn btn-xs btn-danger" data-lead-id="' . $lead['lead_id'] . '" data-toggle="modal" data-target="#delete-lead-confirmation-modal"><span class="glyphicon glyphicon-trash"></span></button>';
           $leads_list .= '</div>';
         }
         else {
@@ -874,7 +860,7 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
           }
         }
 
-        $leads_list .= '<p class="priority-radio-btn list-group-item-text" data-url-base-path="' . base_path() . '"><strong>' . t('Priority') . ': </strong>';
+        $leads_list .= '<p class="priority-radio-btn list-group-item-text"><strong>' . t('Priority') . ': </strong>';
         if ($priority === '') {
           $priority = 'none';
         }
