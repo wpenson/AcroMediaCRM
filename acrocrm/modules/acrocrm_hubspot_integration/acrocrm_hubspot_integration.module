@@ -45,15 +45,7 @@ function acrocrm_hubspot_integration_help($path, $arg) {
  */
 function acrocrm_hubspot_integration_menu() {
   $items = array();
-
-  $items['acrocrm_hubspot_integration/create_contact'] = array(
-    'page arguments' => array(2),
-    'access callback' => TRUE,
-    'page callback' => 'acrocrm_hubspot_integration_create_contact_ajax',
-    'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
-  );
-
+  
   $items['acrocrm_hubspot_integration/commit_assigned_leads'] = array(
     'access callback' => TRUE,
     'page callback' => 'acrocrm_hubspot_integration_commit_assigned_leads_ajax',
@@ -353,73 +345,4 @@ function create_contact_on_hubspot($lead_array) {
   $response_json = query_hubspot($endpoint, $post_json);
 
   return json_decode($response_json);
-}
-
-/**
- * Creates a single contact on HubSpot. This is used for the my leads page.
- * @param $lead_id
- */
-function acrocrm_hubspot_integration_create_contact_ajax($lead_id) {
-  $leads = db_query('SELECT email, firstname, name, phone, comments  FROM leads WHERE lead_id=:id LIMIT 1', array(':id' => $lead_id));
-  $lead = $leads->fetch();
-
-  if ($lead) {
-    $arr = array(
-      'properties' => array(
-        array(
-          'property' => 'email',
-          'value' => $lead->email,
-        ),
-        array(
-          'property' => 'firstname',
-          'value' => $lead->firstname,
-        ),
-        array(
-          'property' => 'lastname',
-          'value' => $lead->name
-        ),
-        array(
-          'property' => 'phone',
-          'value' => $lead->phone
-        ),
-        array(
-          "property" => "lifecyclestage",
-          "value" => "lead"
-        ),
-        array(
-          "property" => "message",
-          "value" => $lead->comments
-        )
-      )
-    );
-
-    $post_json = json_encode($arr);
-//        $hapikey = '957057dc-bced-43ed-8b64-c08dc88c3974';
-    $endpoint = HUBSPOT_API_BASE_URL . CONTACTS_ENDPOINT . get_hubspot_access_token_argument();
-    $response_json = query_hubspot($endpoint, $post_json);
-
-    $response = json_decode($response_json);
-
-    if ($response->status == "error") {
-      if ($response->message == "Contact already exists") {
-        print 'contact_already_exists';
-      }
-      elseif (preg_match('/^Email address [A-Za-z@_\-]* is invalid$/', $response->message) == 1) {
-        print 'email_invalid';
-      }
-      else {
-        print $response->message;
-      }
-    }
-    else {
-      db_update('leads')
-        ->fields(array('status' => 'COMMITTED'))
-        ->condition('lead_id', $lead_id)
-        ->execute();
-      print 'success';
-    }
-  }
-  else {
-    print "lead_not_found";
-  }
 }

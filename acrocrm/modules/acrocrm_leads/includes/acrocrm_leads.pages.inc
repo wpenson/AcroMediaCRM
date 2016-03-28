@@ -40,102 +40,86 @@ function acrocrm_leads_my_leads_page() {
 }
 
 /**
- * Ajax callback that assigns a lead to a sales representative.
- *
- * @param $rep_id   int   ID of the sales representative
- * @param $lead_id  int   ID of the lead
+ * Ajax call that echoes the rendered new leads form.
  */
-function acrocrm_leads_assign_lead_ajax($rep_id, $lead_id) {
-  // Check to see if the lead is already assigned to someone
-  $check_exists = db_select('assigned_leads', 'al')
-    ->fields('al')
-    ->condition('lead_id', $lead_id, '=')
-    ->execute();
+function acrocrm_leads_new_lead_ajax() {
+  $form = drupal_get_form('acrocrm_leads_new_lead_form');
 
-  // If lead exists just update assignment
-  if ($check_exists->rowCount() > 0) {
-    db_update('assigned_leads')
-      ->fields(array(
-        'uid' => $rep_id
-      ))
-      ->condition('lead_id', $lead_id, '=')
-      ->execute();
-  }
-  // Else insert the assigned lead and assign to correct sales rep
-  else {
-    db_insert('assigned_leads')
-      ->fields(array(
-        'uid' => $rep_id,
-        'lead_id' => $lead_id
-      ))
-      ->execute();
-  }
+  $form["#prefix"] =
+    '<div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="editLead">' . t('Create New Lead') . '</h4>
+      </div>
+      <div class="modal-body">';
 
-  // Regenerate leads list and print it out
-  $leads_list = '';
-  acrocrm_leads_generate_sales_rep_lead_list($rep_id, $leads_list);
-  echo $leads_list;
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Create Lead'),
+    '#prefix' => '</div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">' . t('Close') . '</button>',
+    '#suffix' => '</div>',
+    '#weight' => 7,
+    '#attributes' => array(
+      'class' => array('btn', 'btn-primary'),
+    ),
+  );
+
+  echo drupal_render($form);
 }
 
 /**
- * Ajax callback that un-assigns a lead [from a sales representative].
+ * Ajax callback that creates the lead edit modal/pop-up with the lead edit form.
  *
- * @param $lead_id  int  ID of the lead
+ * @param $lead_id        int     ID of the lead to edit
+ * @param $redirect_page  string  The page to redirect to after editing the lead
  */
-function acrocrm_leads_unassign_lead_ajax($lead_id) {
-  // Delete the lead assignments from the assignment table
-  db_delete('assigned_leads')
-    ->condition('lead_id', $lead_id)
-    ->execute();
-}
+function acrocrm_leads_edit_lead_ajax($lead_id, $redirect_page) {
+  $form = drupal_get_form('acrocrm_leads_edit_lead_form');
 
-/**
- * Ajax callback that gets the priority of a lead.
- *
- * @param $lead_id  int  ID of the Lead
- */
-function acrocrm_leads_get_lead_priority_ajax($lead_id) {
-  $check_exists = db_select('leads', 'l')
+  $lead = db_select('leads', 'l')
     ->fields('l')
     ->condition('lead_id', $lead_id, '=')
-    ->execute();
+    ->execute()
+    ->fetchAssoc();
 
-  if ($check_exists->rowCount() > 0) {
-    $get_priority = db_select('leads', 'l')
-      ->fields('l', array('priority'))
-      ->condition('lead_id', $lead_id, '=')
-      ->execute();
+  $form['firstname']['#value'] = $lead['firstname'];
+  $form['name']['#value'] = $lead['name'];
+  $form['email']['#value'] = $lead['email'];
+  $form['phone']['#value'] = $lead['phone'];
+  $form['comments']['#value'] = $lead['comments'];
+  $form['priority']['#value'] = $lead['priority'];
+  $form['redirect_page']['#value'] = $redirect_page;
 
-    $priority = $get_priority->fetchAssoc();
-    if (strlen($priority['priority']) == 0) {
-      echo 'unassigned';
-    }
-    else {
-      echo $priority['priority'];
-    }
-  }
-  else {
-    echo 'error'; // TODO: What does this do?
-  }
-}
+  $assigned_salesrep = db_select('assigned_leads', 'al')
+    ->fields('al', array('uid'))
+    ->condition('lead_id', $lead_id, '=')
+    ->execute()
+    ->fetchAssoc();
 
-/**
- * Ajax callback that sets the priority of a lead.
- *
- * @param $priority string  Priority of a lead. Can be either 'high', 'medium', 'low', or 'unassigned'
- * @param $lead_id  int     ID of the lead
- */
-function acrocrm_leads_set_lead_priority_ajax($priority, $lead_id) {
-  if ($priority === 'unassigned') {
-    $priority = '';
+  if (isset($assigned_salesrep['uid'])) {
+    $form['assign']['#value'] = $assigned_salesrep['uid'];
   }
 
-  $query = db_update('leads');
-  $query->fields(array(
-    'priority' => $priority,
-  ));
-  $query->condition('lead_id', $lead_id);
-  $query->execute();
+  $form['lead_id']['#value'] = $lead_id;
+
+  $form["#prefix"] =
+    '<div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <h4 class="modal-title" id="editLead">' . t('Edit Lead') . '</h4>
+    </div>
+    <div class="modal-body">';
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save Changes'),
+    '#prefix' => '</div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">' . t('Close') . '</button>',
+    '#suffix' => '</div>',
+    '#weight' => 7,
+    '#attributes' => array(
+      'class' => array('btn', 'btn-primary'),
+    ),
+  );
+
+  echo drupal_render($form);
 }
 
 /**
@@ -165,10 +149,12 @@ function acrocrm_leads_set_lead_priority_ajax($priority, $lead_id) {
  * -'search' = Search value
  *  -Any string
  *
- * @param $group string The group of the filter option to change.
- * @param $value string The option in the filter group to change to.
+ * @param $record_offset  int     The offset of the range
+ * @param $record_limit   int     The number of records
+ * @param $group          string  The group of the filter option to change.
+ * @param $value          string  The option in the filter group to change to.
  */
-function acrocrm_leads_filter_leads_ajax($first_record = 0, $last_record = 6, $group = NULL, $value = NULL) {
+function acrocrm_leads_filter_leads_ajax($record_offset = 0, $record_limit = 4, $group = NULL, $value = NULL) {
   // Allowed values used for validation
   $valid_search_field_values = ['name', 'email', 'comments', 'phone'];
   $valid_show_values = ['all', 'committed', 'unassigned', 'assigned', 'deleted'];
@@ -274,7 +260,7 @@ function acrocrm_leads_filter_leads_ajax($first_record = 0, $last_record = 6, $g
                                       WHEN l.priority = 'low' THEN 3
                                       WHEN l.priority = '' THEN 4
                                       ELSE l.priority END",
-                                'order_col');
+      'order_col');
 
     $leads_query->orderBy('order_col', strtoupper($_SESSION['lead_sort_order_pref']));
   }
@@ -282,7 +268,9 @@ function acrocrm_leads_filter_leads_ajax($first_record = 0, $last_record = 6, $g
     $leads_query->orderBy('l.' . $_SESSION['lead_sort_pref'], strtoupper($_SESSION['lead_sort_order_pref']));
   }
 
-  $leads_query->range($first_record, $last_record);
+  error_log($record_offset);
+  error_log($record_limit);
+  $leads_query->range($record_offset, $record_limit);
   $leads_query = $leads_query->execute();
   $leads = array();
 
@@ -311,62 +299,6 @@ function acrocrm_leads_filter_leads_ajax($first_record = 0, $last_record = 6, $g
   else {
     echo '<li class="list-group-item lead-list-error-box">' . t('No Leads Found') . '</li>';
   }
-}
-
-/**
- * Ajax callback that creates the lead edit modal/pop-up with the lead edit form.
- *
- * @param $lead_id        int     ID of the lead to edit
- * @param $redirect_page  string  The page to redirect to after editing the lead
- */
-function acrocrm_leads_edit_lead_ajax($lead_id, $redirect_page) {
-  $form = drupal_get_form('acrocrm_leads_edit_lead_form');
-
-  $lead = db_select('leads', 'l')
-    ->fields('l')
-    ->condition('lead_id', $lead_id, '=')
-    ->execute()
-    ->fetchAssoc();
-
-  $form['firstname']['#value'] = $lead['firstname'];
-  $form['name']['#value'] = $lead['name'];
-  $form['email']['#value'] = $lead['email'];
-  $form['phone']['#value'] = $lead['phone'];
-  $form['comments']['#value'] = $lead['comments'];
-  $form['priority']['#value'] = $lead['priority'];
-  $form['redirect_page']['#value'] = $redirect_page;
-
-  $assigned_salesrep = db_select('assigned_leads', 'al')
-    ->fields('al', array('uid'))
-    ->condition('lead_id', $lead_id, '=')
-    ->execute()
-    ->fetchAssoc();
-
-  if (isset($assigned_salesrep['uid'])) {
-    $form['assign']['#value'] = $assigned_salesrep['uid'];
-  }
-
-  $form['lead_id']['#value'] = $lead_id;
-
-  $form["#prefix"] =
-    '<div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      <h4 class="modal-title" id="editLead">' . t('Edit Lead') . '</h4>
-    </div>
-    <div class="modal-body">';
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save Changes'),
-    '#prefix' => '</div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">' . t('Close') . '</button>',
-    '#suffix' => '</div>',
-    '#weight' => 7,
-    '#attributes' => array(
-      'class' => array('btn', 'btn-primary'),
-    ),
-  );
-
-  echo drupal_render($form);
 }
 
 /**
@@ -401,6 +333,105 @@ function acrocrm_leads_recover_lead_ajax($lead_id) {
     ->execute();
 
   drupal_goto($path = '/acrocrm_leads/overview');
+}
+
+/**
+ * Ajax callback that assigns a lead to a sales representative.
+ *
+ * @param $rep_id   int   ID of the sales representative
+ * @param $lead_id  int   ID of the lead
+ */
+function acrocrm_leads_assign_lead_ajax($rep_id, $lead_id) {
+  // Check to see if the lead is already assigned to someone
+  $check_exists = db_select('assigned_leads', 'al')
+    ->fields('al')
+    ->condition('lead_id', $lead_id, '=')
+    ->execute();
+
+  // If lead exists just update assignment
+  if ($check_exists->rowCount() > 0) {
+    db_update('assigned_leads')
+      ->fields(array(
+        'uid' => $rep_id
+      ))
+      ->condition('lead_id', $lead_id, '=')
+      ->execute();
+  }
+  // Else insert the assigned lead and assign to correct sales rep
+  else {
+    db_insert('assigned_leads')
+      ->fields(array(
+        'uid' => $rep_id,
+        'lead_id' => $lead_id
+      ))
+      ->execute();
+  }
+
+  // Regenerate leads list and print it out
+  $leads_list = '';
+  acrocrm_leads_generate_sales_rep_lead_list($rep_id, $leads_list);
+  echo $leads_list;
+}
+
+/**
+ * Ajax callback that un-assigns a lead [from a sales representative].
+ *
+ * @param $lead_id  int  ID of the lead
+ */
+function acrocrm_leads_unassign_lead_ajax($lead_id) {
+  // Delete the lead assignments from the assignment table
+  db_delete('assigned_leads')
+    ->condition('lead_id', $lead_id)
+    ->execute();
+}
+
+/**
+ * Ajax callback that gets the priority of a lead.
+ *
+ * @param $lead_id  int  ID of the Lead
+ */
+function acrocrm_leads_get_lead_priority_ajax($lead_id) {
+  $check_exists = db_select('leads', 'l')
+    ->fields('l')
+    ->condition('lead_id', $lead_id, '=')
+    ->execute();
+
+  if ($check_exists->rowCount() > 0) {
+    $get_priority = db_select('leads', 'l')
+      ->fields('l', array('priority'))
+      ->condition('lead_id', $lead_id, '=')
+      ->execute();
+
+    $priority = $get_priority->fetchAssoc();
+    if (strlen($priority['priority']) == 0) {
+      echo 'unassigned';
+    }
+    else {
+      echo $priority['priority'];
+    }
+  }
+  else {
+    echo 'error';
+  }
+}
+
+/**
+ * Ajax callback that sets the priority of a lead.
+ *
+ * @param $priority string  Priority of a lead. Can be either 'high', 'medium', 'low', or 'unassigned'
+ * @param $lead_id  int     ID of the lead
+ */
+function acrocrm_leads_set_lead_priority_ajax($priority, $lead_id) {
+  if ($priority === 'unassigned') {
+    $priority = '';
+  }
+
+  $query = db_update('leads');
+  $query->fields(array(
+    'priority' => $priority,
+  ));
+  $query->condition('lead_id', $lead_id);
+  $query->execute();
 }
 
 /**
@@ -542,8 +573,7 @@ function acrocrm_leads_generate_leads_list_container_html($page = 'overview') {
 
   if ($page === 'overview') {
     $leads_list =
-      '
-      <div class="leads-list-spinner">
+      '<div class="leads-list-spinner">
         <img src="' . base_path() . drupal_get_path('module', 'acrocrm') . '/templates/assets/images/spinner.gif">
       </div><ul id="leads-list" class="list-group"></ul>';
 
@@ -720,15 +750,15 @@ function acrocrm_leads_generate_leads_list_html(&$leads, $page = 'overview') {
 }
 
 /**
- * Get a list of all sales reps and create html to display sales reps
+ * Creates the HTML of list of all the sales representatives with their assigned leads.
  *
- * @return string
+ * @return string The list of sales reps and leads.
  */
 function acrocrm_leads_get_sales_reps() {
   $filter_bar =
     '<div id="lead-search" class="filter-header">
       <div class="input-group input-group-btns">'
-        . (module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == TRUE ? '<button id="commit-leads-button" type="button" class="btn btn-primary" data-module-base-path="' . drupal_get_path('module', 'acrocrm') . '">' . t('Commit Leads') . '</button>' : '')
+        . (module_exists('acrocrm_hubspot_integration') ? '<button id="commit-leads-button" type="button" class="btn btn-primary" data-module-base-path="' . drupal_get_path('module', 'acrocrm') . '">' . t('Commit Leads') . '</button>' : '')
         . '<button id="expand-all" type="button" class="btn btn-default pull-right expand-repdiv">' . t('Expand All') . '</button>'
     . '  </div>
     </div>';
@@ -777,6 +807,13 @@ function acrocrm_leads_get_sales_reps() {
   return $sales_reps;
 }
 
+/**
+ * Creates the list of leads for a sales representative.
+ * 
+ * @param $sales_rep_user_id  int     The user ID of the sales rep
+ * @param $leads_list         string  An empty initialized string that will be populated with the leads HTML
+ * @return                    mixed   An array of priority counts for the sales rep
+ */
 function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_list) {
   $assigned_leads = db_select('assigned_leads', 'lead_id')
     ->fields('lead_id')
@@ -905,40 +942,25 @@ function acrocrm_leads_generate_sales_rep_lead_list($sales_rep_user_id, &$leads_
   return $priorities;
 }
 
-function acrocrm_leads_new_lead_ajax() {
-  $form = drupal_get_form('acrocrm_leads_new_lead_form');
-
-  $form["#prefix"] =
-    '<div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="editLead">' . t('Create New Lead') . '</h4>
-      </div>
-      <div class="modal-body">';
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Create Lead'),
-    '#prefix' => '</div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">' . t('Close') . '</button>',
-    '#suffix' => '</div>',
-    '#weight' => 7,
-    '#attributes' => array(
-      'class' => array('btn', 'btn-primary'),
-    ),
-  );
-
-  echo drupal_render($form);
-}
-
-function acrocrm_leads_edit_lead_form($form, &$form_state) {
-  generate_lead_form($form, $form_state);
-  return $form;
-}
-
+/**
+ * Creates the new leads form render array.
+ */
 function acrocrm_leads_new_lead_form($form, &$form_state) {
   generate_lead_form($form, $form_state);
   return $form;
 }
 
+/**
+ * Creates the edit leads form render array.
+ */
+function acrocrm_leads_edit_lead_form($form, &$form_state) {
+  generate_lead_form($form, $form_state);
+  return $form;
+}
+
+/**
+ * Create the new and edit form for leads.
+ */
 function generate_lead_form(&$form, &$form_state) {
   $form['priority'] = array(
     '#type' => 'select',
@@ -963,8 +985,17 @@ function generate_lead_form(&$form, &$form_state) {
   $users = entity_load('user');
   $sales_reps = array();
 
+  $role = user_role_load_by_name('sales rep');
+  $role_id = $role ? $role->rid : NULL;
+  $result = db_select('users_roles', 'ur')
+    ->fields('ur')
+    ->condition('uid', 1, '=')
+    ->condition('rid', $role_id, '=')
+    ->execute()
+    ->fetchAssoc();
+
   foreach ($users as $user) {
-    if (user_access('sales rep', $user)) {
+    if (($user->uid != 1 && user_access('sales rep', $user)) || ($user->uid == 1 && $result > 0)) {
       $sales_reps[$user->uid] = $user->name;
     }
   }
@@ -1074,6 +1105,37 @@ function generate_lead_form(&$form, &$form_state) {
 }
 
 /**
+ * Submit callback for acrocrm_leads_new_lead_form().
+ */
+function acrocrm_leads_new_lead_form_submit($form, $form_state) {
+  global $user;
+
+  $lead_id = db_insert('leads')
+    ->fields(array(
+      'name' => $form_state['values']['name'],
+      'firstname' => $form_state['values']['firstname'],
+      'email' => $form_state['values']['email'],
+      'phone' => $form_state['values']['phone'],
+      'comments' => $form_state['values']['comments'],
+      'priority' => $form_state['values']['priority'],
+      'created_time' => date("Y-m-d H:i:s"),
+      'created_by' => $user->uid,
+    ))
+    ->execute();
+
+  if ($form_state['values']['assign'] != '') {
+    db_insert('assigned_leads')
+      ->fields(array(
+        'uid' => $form_state['values']['assign'],
+        'lead_id' => $lead_id,
+      ))
+      ->execute();
+  }
+
+  drupal_set_message(t('The new lead has been created successfully.'));
+}
+
+/**
  * Submit callback for acrocrm_leads_edit_lead_form().
  */
 function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
@@ -1086,8 +1148,8 @@ function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
       'email' => $form_state['values']['email'],
       'phone' => $form_state['values']['phone'],
       'comments' => $form_state['values']['comments'],
-               'priority' => $form_state['values']['priority'],
-               'modified_by' => $user->uid,
+      'priority' => $form_state['values']['priority'],
+      'modified_by' => $user->uid,
     ))
     ->condition('lead_id', $form_state['values']['lead_id'], '=')
     ->execute();
@@ -1127,37 +1189,6 @@ function acrocrm_leads_edit_lead_form_submit($form, $form_state) {
 }
 
 /**
- * Submit callback for acrocrm_leads_new_lead_form().
- */
-function acrocrm_leads_new_lead_form_submit($form, $form_state) {
-  global $user;
-
-  $lead_id = db_insert('leads')
-    ->fields(array(
-      'name' => $form_state['values']['name'],
-      'firstname' => $form_state['values']['firstname'],
-      'email' => $form_state['values']['email'],
-      'phone' => $form_state['values']['phone'],
-      'comments' => $form_state['values']['comments'],
-               'priority' => $form_state['values']['priority'],
-               'created_time' => date("Y-m-d H:i:s"),
-               'created_by' => $user->uid,
-    ))
-    ->execute();
-
-  if ($form_state['values']['assign'] != '') {
-    db_insert('assigned_leads')
-      ->fields(array(
-        'uid' => $form_state['values']['assign'],
-        'lead_id' => $lead_id,
-      ))
-      ->execute();
-  }
-
-  drupal_set_message(t('The new lead has been created successfully.'));
-}
-
-/**
  * Implements validation from the Form API for the new lead form.
  *
  * @param $form
@@ -1183,6 +1214,9 @@ function acrocrm_leads_edit_lead_form_validate($form, &$form_state) {
   generate_lead_validation($form, $form_state);
 }
 
+/**
+ * Validates the data in the new or edit leads form.
+ */
 function generate_lead_validation(&$form, &$form_state) {
   $email = $form_state['values']['email'];
   $email_pattern = '/^[^@]*@[^@]*/';

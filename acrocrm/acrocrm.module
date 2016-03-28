@@ -156,7 +156,7 @@ function acrocrm_page(&$variables) {
     $role = user_role_load_by_name('sales rep');
     $role_id = $role ? $role->rid : NULL;
 
-    if ((module_exists('acrocrm_hubspot_integration') && variable_get('automatic_creation') == TRUE) || !user_has_role($role_id)) {
+    if (module_exists('acrocrm_hubspot_integration') || !user_has_role($role_id)) {
       $items['leads'] = array(
         'path' => base_path() . 'acrocrm_leads/overview',
         'title' => t('Leads'),
@@ -228,7 +228,6 @@ function acrocrm_page(&$variables) {
   $variables['page'] = $page;
 }
 
-//TODO - if you just specify your stuff under admin/* then you don't need to do this
 /**
  * Implements hook_admin_paths().
  */

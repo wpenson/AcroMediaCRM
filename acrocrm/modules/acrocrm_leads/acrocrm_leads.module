@@ -143,6 +143,9 @@ function acrocrm_leads_menu() {
   return $items;
 }
 
+/**
+ * Implements hook_theme().
+ */
 function acrocrm_leads_theme() {
   return array(
     'page__acrocrm_leads' => array(
@@ -157,11 +160,13 @@ function acrocrm_leads_theme() {
   );
 }
 
+/**
+ * Implements hook_page().
+ */
 function acrocrm_leads_page(&$variables) {
   acrocrm_page($variables);
 
   $module_path = drupal_get_path('module', 'acrocrm');
-//  $css_path = $module_path . '/templates/assets/css/';
   $js_path = $module_path . '/templates/assets/js/';
 
   drupal_add_js($js_path . 'spin.min.js', array('group' => JS_THEME));
@@ -182,7 +187,10 @@ function acrocrm_leads_block_info() {
   return $blocks;
 }
 
-// @TODO: Document.
+
+/**
+ * Implements hook_block_view().
+ */
 function acrocrm_leads_block_view($delta = '') {
   switch ($delta) {
     case 'acrocrm_leads_contact':
@@ -194,11 +202,9 @@ function acrocrm_leads_block_view($delta = '') {
 }
 
 /**
- * When the role 'sales rep' for a user is unselected, this un-assigns leads for that user.
+ * Implements hook_update().
  *
- * @param $edit
- * @param $account
- * @param $category
+ * When the role 'sales rep' for a user is unselected, this un-assigns leads for that user.
  */
 function acrocrm_user_update(&$edit, $account, $category) {
   if (isset($edit['roles'])) {
@@ -215,12 +221,29 @@ function acrocrm_user_update(&$edit, $account, $category) {
   }
 }
 
-// @TODO: Document.
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * This is needed for form submit redirection.
+ */
 function acrocrm_leads_form_acrocrm_leads_edit_lead_form_alter(&$form, &$form_state, $form_id) {
   $form['#submit'][] = 'acrocrm_leads_edit_lead_custom_form_submit';
 }
 
-// @TODO: Document.
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * This is needed for form submit redirection.
+ */
+function acrocrm_leads_form_acrocrm_leads_new_lead_form_alter(&$form, &$form_state, $form_id) {
+  $form['#submit'][] = 'acrocrm_leads_new_lead_custom_form_submit';
+}
+
+/**
+ * Implements hook_form_submit().
+ *
+ * This handles form submit redirection on the lead overview page and my leads page for the edit lead form.
+ */
 function acrocrm_leads_edit_lead_custom_form_submit(&$form, &$form_state) {
   $redirect_page = $form['redirect_page']['#value'];
 
@@ -232,12 +255,11 @@ function acrocrm_leads_edit_lead_custom_form_submit(&$form, &$form_state) {
   }
 }
 
-// @TODO: Document.
-function acrocrm_leads_form_acrocrm_leads_new_lead_form_alter(&$form, &$form_state, $form_id) {
-  $form['#submit'][] = 'acrocrm_leads_new_lead_custom_form_submit';
-}
-
-// @TODO: Document.
+/**
+ * Implements hook_form_submit().
+ *
+ * This handles form submit redirection on the lead overview page for the new lead form.
+ */
 function acrocrm_leads_new_lead_custom_form_submit(&$form, &$form_state) {
   $form_state['redirect'] = 'acrocrm_leads/overview';
 }

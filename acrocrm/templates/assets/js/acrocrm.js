@@ -5,7 +5,7 @@ Drupal.behaviors.acrocrm_leads = {
       // initiate tool tips
       $('[data-tooltip="tooltip"]').tooltip({container: 'body'});
 
-      // create sales rep accordion
+      // create sales rep accordion and sets the sales rep as a drop-able area
       $('.sales-rep').accordion({
         header: '> h4',
         collapsible: true,
@@ -13,17 +13,18 @@ Drupal.behaviors.acrocrm_leads = {
         heightStyle: 'content',
         cursor: 'move',
         beforeActivate: function (event, ui) {
+          // changes the background color for the accordion header when it is opened and closed
           ui.newHeader.addClass('sales-rep-open').removeClass('sales-rep-closed');
           ui.oldHeader.addClass('sales-rep-closed').removeClass('sales-rep-open');
         },
-        activate: function(event, ui) {
+        activate: function (event, ui) {
           // determine how many accordions are open, if they all are open change "Expand All" to "Collapse All"
           // if none are open change "Collapse All" to "Expand All"
           var numOpen = 0;
           var sales_rep = $('.sales-rep');
           var expand_all = $('#expand-all');
           sales_rep.each(function () {
-            if ($(this).accordion( 'option', 'active' ) !== false) {
+            if ($(this).accordion('option', 'active') !== false) {
               numOpen += 1;
             }
           });
@@ -44,21 +45,29 @@ Drupal.behaviors.acrocrm_leads = {
         hoverClass: 'ui-state-highlight',
         tolerance: 'pointer',
         activate: function (event, ui) {
+          // fixes a glitchy issue with the cursor when a lead is being dropped
           $('.ui-accordion-header, .btn').css('cursor', 'move');
           $('.accordion').accordion('option', 'cursor', 'move');
+
+          // prevents tooltips from showing when cursor is hovering over sales rep
           $('[data-tooltip="tooltip"]').tooltip('disable');
         },
         deactivate: function (event, ui) {
+          // fixes a glitchy issue with the cursor when a lead is being dropped
           $('.ui-accordion-header, .btn').css('cursor', 'pointer');
           $('.accordion').accordion('option', 'cursor', 'pointer');
+
+          // re-enables tooltips
           $('[data-tooltip="tooltip"]').tooltip('enable');
         },
         drop: function (event, ui) {
           var sales_rep = $(this);
           var lead_draggable = $(ui.draggable);
 
+          // removes the white background that is needed when a lead is hovering over a sales rep to show the highlighting
           sales_rep.find('> h4').removeClass('sales-rep-hover').bind('mouseenter mouseleave');
 
+          // check if the lead was dropped on an appropriate target
           var original_rep_id = (lead_draggable.data('assigned-rep-id') != undefined) ? lead_draggable.data('assigned-rep-id') : null;
           if (original_rep_id != null && original_rep_id == sales_rep.data('rep-id')) {
             return;
@@ -67,18 +76,24 @@ Drupal.behaviors.acrocrm_leads = {
           var url = Drupal.settings.basePath + 'acrocrm_leads/assign_lead/';
           var params = sales_rep.data('rep-id') + '/' + lead_draggable.data('lead-id');
 
+          // show the throbber for the sales rep
           sales_rep.find('> h4 img').show();
 
+          // get the leads list for the sales rep
           sales_rep.find('.sales-rep-lead-list').load(url + params, function (response, status, xhr) {
             if (status == 'success') {
+              // check if the lead is from the leads list or a different sales rep
               if (original_rep_id == null) {
+                // check if show all is selected in the filter options
                 if ($('.lead-filter[data-group="show"][data-value="all"] .glyphicon-ok').length != 0) {
+                  // the lead isn't removed so it's easiest to refresh the list to update it's information
                   loadLeadList(event);
                 }
                 else {
                   lead_draggable.remove();
                 }
 
+                // display 'no leads found' for the leads list if there are none left
                 var leads_list = $('#leads-list');
                 if (leads_list.find('li').length == 0) {
                   leads_list.html('<li class="list-group-item lead-list-error-box">' + Drupal.t('No Leads Found') + '</li>');
@@ -87,6 +102,7 @@ Drupal.behaviors.acrocrm_leads = {
               else {
                 lead_draggable.remove();
 
+                // display 'no assigned leads' for the sales rep if there are none left
                 var original_sales_rep = $('.sales-rep[data-rep-id="' + original_rep_id + '"]');
                 if (original_sales_rep.find('li').length == 0) {
                   original_sales_rep.find('ul').html('<li class="list-group-item no-assigned-leads">' + Drupal.t('No Assigned Leads') + '</li>');
@@ -128,11 +144,15 @@ Drupal.behaviors.acrocrm_leads = {
               }
             }
 
+            // hides the loading indicator for the sales rep
             sales_rep.find('> h4 img').hide();
           });
         },
         over: function (event, ui) {
           var sales_rep = $(this);
+
+          // adds a white background that is needed when a lead is hovering over a sales rep to show the highlighting
+          // and the unbinding fixes and issue with the cursor
           sales_rep.find('> h4').addClass('sales-rep-hover').unbind('mouseenter mouseleave');
 
           if (sales_rep.accordion('option', 'active') === 0) {
@@ -147,6 +167,7 @@ Drupal.behaviors.acrocrm_leads = {
                 sales_rep.data('accordion-prev-active', 'false'); // Accordion was not previously active
                 sales_rep.data('accordion-hovering', 'false');
 
+                // modifies the arrows used to indicate if the accordion is open or closed
                 if (sales_rep.find($('.fa.fa-angle-down')).length > 0) {
                   sales_rep.find($('.fa')).removeClass('fa-angle-down').addClass('fa-angle-right');
                 }
@@ -159,15 +180,19 @@ Drupal.behaviors.acrocrm_leads = {
         },
         out: function (event, ui) {
           var sales_rep = $(this);
+
+          // removes the white background that is needed when a lead is hovering over a sales rep to show the highlighting
           sales_rep.find('> h4').removeClass('sales-rep-hover').bind('mouseenter mouseleave');
 
+          // close accordion if it is open
           sales_rep.data('accordion-hovering', 'false');
           if (sales_rep.data('accordion-prev-active') === 'false') {
-            sales_rep.accordion('option', 'active', false); // Close accordion
+            sales_rep.accordion('option', 'active', false);
           }
         }
       });
 
+      // sets the leads list as a drop-able area
       $('#leads-list').droppable({
         accept: '.uncommitted-lead',
         refreshPositions: true,
@@ -176,18 +201,22 @@ Drupal.behaviors.acrocrm_leads = {
         drop: function (event, ui) {
           var leads_list = $(this);
           var lead_draggable = $(ui.draggable);
-
           lead_draggable.hide();
+
           var url = Drupal.settings.basePath + 'acrocrm_leads/unassign_lead/';
           var params = lead_draggable.data('lead-id');
 
+          // un-assigns a lead then reloads the list of updated leads
           leads_list.load(url + params, function (response, status, xhr) {
             if (status == 'success') {
               lead_draggable.remove();
               loadLeadList(event);
+
+              // gets the sales rep that the lead came from
               var original_rep_id = (lead_draggable.data('assigned-rep-id') != undefined) ? lead_draggable.data('assigned-rep-id') : null;
               var original_sales_rep = $('.sales-rep[data-rep-id="' + original_rep_id + '"]');
 
+              // display 'no assigned leads' for the sales rep if there are none left
               if (original_sales_rep.find('li').length == 0) {
                 original_sales_rep.find('ul').html('<li class="list-group-item no-assigned-leads">' + Drupal.t('No Assigned Leads') + '</li>');
               }
@@ -221,6 +250,7 @@ Drupal.behaviors.acrocrm_leads = {
         }
       });
 
+      // when the accordion is clicked, update the arrow that indicates that indicates if it is opened or closed
       $('.list-group-item-heading.ui-accordion-header').on('click', function () {
         if ($(this).find($('.fa.fa-angle-down')).length > 0) {
           $(this).find($('.fa')).removeClass('fa-angle-down').addClass('fa-angle-right');
@@ -230,6 +260,7 @@ Drupal.behaviors.acrocrm_leads = {
         }
       });
 
+      // handles the expand all/collapse all button
       $('#expand-all').on('click', function () {
         if ($('#expand-all').hasClass('expand-repdiv')) {
           $('.sales-rep').each(function () {
@@ -254,21 +285,26 @@ Drupal.behaviors.acrocrm_leads = {
         }
       });
 
+      // loads the leads list and interactions for the leads list and sales reps when the page is first loaded
       loadLeadList(event);
       loadSalesRepInteractions();
     }); // end document.ready
 
     function loadSalesRepInteractions(sales_reps) {
+      // this scope prevents targeting the existing sales representatives multiple times
       sales_reps = typeof sales_reps !== 'undefined' ? sales_reps : $('.sales-rep-list');
 
       sales_reps.find('.readmore').readmore({
         collapsedHeight: 18
       });
 
+      // hides the loading indicator for the sales rep
       sales_reps.find('.sales-rep-lead-list img').hide();
 
+      // enables the tooltips
       sales_reps.find('[data-tooltip="tooltip"]').tooltip({container: 'body'});
 
+      // sets up the accordions for the leads
       sales_reps.find('.sales-rep-lead').accordion({
         header: '> h5',
         collapsible: true,
@@ -276,13 +312,14 @@ Drupal.behaviors.acrocrm_leads = {
         heightStyle: 'content',
         cursor: 'move',
         activate: function (event, ui) {
-          $('.readmore').readmore({
+          sales_reps.find('.readmore').readmore({
             collapsedHeight: 18
           });
         }
       });
 
-      // Uncommitted leads are the leads that have been assigned but are not sent to hubspot, etc.
+      // uncommitted leads are the leads that have been assigned but are not sent to hubspot, etc.
+      var uncommitted_lead_priority = ''; // used to preserve selected radio button
       sales_reps.find('.uncommitted-lead').draggable({
         appendTo: 'body',
         zIndex: 100,
@@ -292,28 +329,37 @@ Drupal.behaviors.acrocrm_leads = {
         cursorAt: {top: 0, left: 0},
         refreshPositions: true,
         start: function (event, ui) {
-          $(this).hide();
+          $(this).hide(); // hide the original lead since a clone is created
+          uncommitted_lead_priority = $(ui.helper).find('input[type=radio]:checked').attr('value');
 
+          // if the lead dragged from it's sales rep is the last one, display 'no assigned leads'
           var original_rep_id = ($(this).data('assigned-rep-id') != undefined) ? $(this).data('assigned-rep-id') : null;
           var original_sales_rep = $('.sales-rep[data-rep-id="' + original_rep_id + '"]');
           if (original_sales_rep.find('li').length <= 1) {
             original_sales_rep.find('ul').append('<li class="list-group-item no-assigned-leads">' + Drupal.t('No Assigned Leads') + '</li>');
           }
 
+          // just show the name of the lead when it is being dragged
           var lead_clone = $(ui.helper);
           lead_clone.html('<h4>' + lead_clone.find('h5').text() + '</h4>');
           lead_clone.addClass('dragging-lead');
         },
         stop: function (event, ui) {
-          $(this).show();
+          $(this).show(); // show the original lead. this is removed if it has been dropped to the appropriate target
 
+          // preserves selected radio button
+          $(this).find('input[type=radio][value=' + uncommitted_lead_priority + ']').prop("checked", true);
+
+          // removes the 'no assigned leads' dialog if it exists
           var original_rep_id = ($(this).data('assigned-rep-id') != undefined) ? $(this).data('assigned-rep-id') : null;
           var original_sales_rep = $('.sales-rep[data-rep-id="' + original_rep_id + '"]');
           original_sales_rep.find('.no-assigned-leads').remove();
         }
       });
 
-      sales_reps.find('.priority-radio-btn').mouseup(function() {
+      // this listens for clicks on the priority radio buttons of leads.
+      // the mouseup listener is needed to get the before selected value as where change can only get the after selected value
+      sales_reps.find('.priority-radio-btn').mouseup(function () {
         old_priority = $(this).find('input[type=radio]:checked').attr('value');
       }).change(function (event) {
         updatePriorityRadio(event, this);
@@ -326,6 +372,7 @@ Drupal.behaviors.acrocrm_leads = {
         collapsedHeight: 18
       });
 
+      var unassigned_lead_priority = ''; // used to preserve selected radio button
       $('.unassigned-lead').draggable({
         appendTo: 'body',
         zIndex: 100,
@@ -335,17 +382,24 @@ Drupal.behaviors.acrocrm_leads = {
         cursorAt: {top: 0, left: 0},
         refreshPositions: true,
         start: function (event, ui) {
+          // preserves selected radio button
+          unassigned_lead_priority = $(ui.helper).find('input[type=radio]:checked').attr('value');
+          $(this).find('input[type=radio][value=' + unassigned_lead_priority + ']').prop("checked", true);
+
           var leads_list = $('#leads-list');
           var has_no_leads = false;
 
+          // check if show all is selected in the filter options
           if ($('.lead-filter[data-group=show][data-value=all] .glyphicon-ok').length === 0) {
-            $(this).hide();
+            $(this).hide(); // hides the lead in the list while dragging
 
+            // determines if to show the 'no leads' message
             if (leads_list.find('li').length <= 1) {
               has_no_leads = true;
             }
           }
           else {
+            // determines if to show the 'no leads' message
             if (leads_list.find('li').length === 0) {
               has_no_leads = true;
             }
@@ -355,18 +409,24 @@ Drupal.behaviors.acrocrm_leads = {
             leads_list.append('<li class="list-group-item lead-list-error-box">' + Drupal.t('No Leads Found') + '</li>');
           }
 
+          // just show the name of the lead when it is being dragged
           var lead_clone = $(ui.helper);
           lead_clone.html('<h4>' + lead_clone.find('h4').text() + '</h4>');
           lead_clone.addClass('dragging-lead');
         },
         stop: function (event, ui) {
-          $(this).show();
+          $(this).show(); // show the original lead. this is removed if it has been dropped to the appropriate target
 
+          // preserves selected radio button
+          $(this).find('input[type=radio][value=' + unassigned_lead_priority + ']').prop("checked", true);
+
+          // removes the 'no leads' dialog if it exists
           var leads_list = $('#leads-list');
           leads_list.find('.lead-list-error-box').remove();
         }
       });
 
+      // button listener for recovering a lead
       $('.recover-lead-button').click(function (event) {
         var url = Drupal.settings.basePath + 'acrocrm_leads/recover_lead/';
         var params = $(this).data('lead-id');
@@ -383,15 +443,19 @@ Drupal.behaviors.acrocrm_leads = {
         });
       });
 
-      $('#leads-list .priority-radio-btn').mouseup(function() {
+      // this listens for clicks on the priority radio buttons of leads.
+      // the mouseup listener is needed to get the before selected value as where change can only get the after selected value
+      $('#leads-list .priority-radio-btn').mouseup(function () {
         old_priority = $(this).find('input[type=radio]:checked').attr('value');
       }).change(function (event) {
         return updatePriorityRadio(event, this);
       });
+
+      // enable tooltips
+      $(this).find('[data-tooltip="tooltip"]').tooltip({container: 'body'});
     }
 
-    var old_priority = null;
-
+    var old_priority = null; // keeps track of the old selected priority for a lead
     function updatePriorityRadio(event, priority_radio_buttons) {
       var radio_button = $(priority_radio_buttons).find('input[type=radio]:checked');
       var name = radio_button.attr('name').split('-');
@@ -402,6 +466,7 @@ Drupal.behaviors.acrocrm_leads = {
       $.ajax({
         url: Drupal.settings.basePath + "acrocrm_leads/set_lead_priority/" + priority + "/" + lead_id,
         success: function () {
+          // when the same lead is shown in both the leads list and the sales rep list, update the priority of the opposite one to reflect the change
           if (is_assigned) {
             $('.priority-radio-btn input[type=radio][name="unassigned-' + lead_id + '"][value="' + priority + '"]').prop("checked", true);
           }
@@ -409,6 +474,7 @@ Drupal.behaviors.acrocrm_leads = {
             $('.priority-radio-btn input[type=radio][name="assigned-' + lead_id + '"][value="' + priority + '"]').prop("checked", true);
           }
 
+          // update priority counters
           var sales_rep_id = $('.sales-rep-lead[data-lead-id=' + lead_id + ']').data('assigned-rep-id');
 
           var priority_indicator = $('#' + priority + '-' + sales_rep_id);
@@ -454,18 +520,21 @@ Drupal.behaviors.acrocrm_leads = {
       });
     });
 
-    // Keeps track of the start of the range for the leads query
-    var leads_list_index = 0;
+    // keeps track of the start of the range for the leads query
+    var leads_list_offset = 0;
     var num_of_records_to_show = 4;
 
+    // this inserts the pagination navigation at the bottom of the leads list
     function insertPagination(list) {
-      $('#leads-list-pager').remove();
+      $('#leads-list-pager').remove(); // remove existing pagination links
       var leads_pager_string = '<nav id="leads-list-pager"><ul class="pager">';
 
-      if (leads_list_index != 0) {
+      // don't show the previous button on the first page
+      if (leads_list_offset != 0) {
         leads_pager_string += '<li><a id="pg-previous" href="#">' + Drupal.t('Previous') + '</a></li>';
       }
 
+      // only show next if there are more leads
       if (list.find('> li').length > num_of_records_to_show) {
         leads_pager_string += '<li><a id="pg-next" href="#">' + Drupal.t('Next') + '</a></li>';
         list.find('> li:last-child:not(.lead-list-error-box)').remove();
@@ -475,13 +544,13 @@ Drupal.behaviors.acrocrm_leads = {
       list.after(leads_pager_string);
 
       $('#pg-previous').click(function (event) {
-        leads_list_index -= num_of_records_to_show;
+        leads_list_offset -= num_of_records_to_show;
         loadLeadList(event);
         event.preventDefault();
       });
 
       $('#pg-next').click(function (event) {
-        leads_list_index += num_of_records_to_show;
+        leads_list_offset += num_of_records_to_show;
         loadLeadList(event);
         event.preventDefault();
       });
@@ -495,11 +564,10 @@ Drupal.behaviors.acrocrm_leads = {
       var lead_search_box = lead_search.find('input');
       var value = '';
       var params = '';
-      var lower_index_of_range = leads_list_index;
-      var upper_index_of_range = lower_index_of_range + num_of_records_to_show + 1; // We load an extra record so that we can check if we are at the end of the query results.
 
-      params += lower_index_of_range + '/' + upper_index_of_range + '/';
+      params += leads_list_offset + '/' + (num_of_records_to_show + 1) + '/';
 
+      // determines if any group is specified, otherwise just do a general search with the string that is in the search box
       if (group != null) {
         value = target.data('value');
         params += group + '/' + value;
@@ -509,7 +577,7 @@ Drupal.behaviors.acrocrm_leads = {
         params += 'search';
 
         if (search_term != '') {
-          params += '/' + $.trim(search_term).replace(/ /g, '+');
+          params += '/' + $.trim(search_term).replace(/ /g, '+'); // spaces must be changes to '+' symbols for the URL
         }
       }
 
@@ -517,6 +585,7 @@ Drupal.behaviors.acrocrm_leads = {
       lead_list.hide();
       lead_list.prev('.leads-list-spinner').show();
 
+      console.log(url + params);
       lead_list.load(url + params, function (response, status, xhr) {
         lead_list.prev('.leads-list-spinner').hide();
         lead_list.show();
@@ -525,6 +594,7 @@ Drupal.behaviors.acrocrm_leads = {
           insertPagination(lead_list);
           loadLeadsListInteractions();
 
+          // change the check marks in the filter dropdown menu
           if (group != null) {
             if (group != 'sort-order') {
               $('ul li a[data-group="' + group + '"] .lead-search-dropdown-check').remove();
@@ -541,15 +611,14 @@ Drupal.behaviors.acrocrm_leads = {
               }
             }
 
+            // changes the default text in the search box to match what type of data is being searched
             if (group == 'search-field') {
               lead_search_box.attr('placeholder', 'Search by ' + value);
             }
           }
-
-          $(this).find('[data-tooltip="tooltip"]').tooltip({container: 'body'});
         }
         else if (status == 'error') {
-          $('#leads-list').html('<div class="lead-list-message-div">' + Drupal.t('Sorry, but there was an error: ' + xhr.status + ' ' + xhr.statusText) + '</div>');
+          $('#leads-list').html('<li class="list-group-item lead-list-error-box">' + Drupal.t('Sorry, but there was an error: ' + xhr.status + ' ' + xhr.statusText) + '</li>');
         }
       });
     }
@@ -557,19 +626,22 @@ Drupal.behaviors.acrocrm_leads = {
     var timeout_thread = null;
     var previous_val = '';
     $('#lead-search input').on('keyup', function (event) {
-      leads_list_index = 0;
+      leads_list_offset = 0;
 
+      // checks if the enter key was pressed
       if (event.keyCode == '13') {
         loadLeadList(event);
         return;
       }
 
+      // get seach value and clean it
       if ($.trim($(this).val()) == '' && $.trim(previous_val) == '') {
         previous_val = $(this).val();
         return;
       }
       previous_val = $(this).val();
 
+      // prevent multiple request in a row
       clearTimeout(timeout_thread);
       timeout_thread = setTimeout(function () {
         loadLeadList(event);
@@ -577,7 +649,7 @@ Drupal.behaviors.acrocrm_leads = {
     });
 
     $('.lead-filter, #lead-search-button').click(function (event) {
-      leads_list_index = 0;
+      leads_list_offset = 0; // sets it back to the first page
       loadLeadList(event);
       event.stopPropagation();
     });
@@ -593,11 +665,13 @@ Drupal.behaviors.acrocrm_leads = {
       var imgTag = '<img id="commit-loading-gif" alt="loading" src="' + Drupal.settings.basePath + module_base_path + '/templates/assets/images/ajax-loader.gif">';
       $(imgTag).insertBefore(commit_leads_button);
       commit_leads_button.hide();
+
       $.ajax({
         url: Drupal.settings.basePath + 'acrocrm_hubspot_integration/commit_assigned_leads',
         dataType: 'text',
         success: function (data) {
           var returnObj = $.parseJSON(data.trim());
+
           if (returnObj.status === 'success') {
             $('.sales-rep-lead-list').each(function () {
               $(this).find('[data-lead-id]').each(function () {
@@ -607,11 +681,14 @@ Drupal.behaviors.acrocrm_leads = {
             });
             $('.priority-indicator').text('0');
             displayAlertMsg('success', Drupal.t('Leads created on HubSpot successfully.'));
-          } else if (returnObj.status === 'no_leads_to_commit') {
+          }
+          else if (returnObj.status === 'no_leads_to_commit') {
             displayAlertMsg('info', Drupal.t('There are no leads to send to HubSpot.'));
-          } else if (returnObj.status === 'get_oauth_token') {
+          }
+          else if (returnObj.status === 'get_oauth_token') {
             window.location.replace(returnObj.url);
-          } else {
+          }
+          else {
             if (returnObj.leads) {
               for (var i = 0; i < returnObj.leads.length; i++) {
                 $('.sales-rep-lead-list').find('[data-lead-id="' + returnObj.leads[i].id + '"]').remove();
@@ -659,48 +736,3 @@ Drupal.behaviors.acrocrm_leads = {
     }
   }
 }; // end Drupal.behaviors.acrocrm_leads
-
-// send the a lead to hubspot
-// url base path changes depending on whether or not the user has
-// clean urls turned on
-function createHubspotContact(lead_id, url_base_path) {
-  var imgTag = '<img id="loading-gif-' + lead_id + '" alt="loading" src="' + url_base_path + 'acrocrm/templates/assets/images/ajax-loader.gif">';
-  $(imgTag).insertBefore($('#' + lead_id).parent());
-  $('#' + lead_id).hide();
-  $.ajax({
-    url: url_base_path + 'acrocrm_hubspot_integration/create_contact/' + lead_id,
-    success: function (data) {
-      $('#loading-gif-' + lead_id).remove();
-      $('#' + lead_id).show();
-      var message = data.trim();
-      $('#message-container').remove();
-      if (message == 'success') {
-        var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-success">';
-        var suffix = '<br></div></div></div>';
-        $(prefix + 'The HubSpot contact was created successfully' + suffix).insertAfter('#header-row');
-        $('#lead_' + lead_id + '_container').remove();
-
-        if ($('.lead-container').length == 0) {
-          $('<div class="no-leads">There are no leads to display.</div>').insertAfter('#delete-lead-confirmation-modal');
-        }
-      } else {
-        var prefix = '<div id="message-container" class="row"><div class="col-lg-10 col-md-12"><div class="alert alert-danger">';
-        var suffix = '<br></div></div></div>';
-
-        if (message == 'contact_already_exists') {
-          $(prefix + Drupal.t('The contact you are trying to create on HubSpot already exists. ' +
-            'This could be due to a duplicate email address.') + suffix).insertAfter('#header-row');
-        } else if (message == 'email_invalid') {
-          $(prefix + Drupal.t('The email address of the contact you are trying to create on HubSpot is invalid. ' +
-            'HubSpot has stricter email validation than AcroCRM.') + suffix).insertAfter('#header-row');
-        } else if (message == 'email_invalid') {
-          $(prefix + Drupal.t('The the contact you are trying to create could not be found. ' +
-            'Refresh the page and try again') + suffix).insertAfter('#header-row');
-        } else {
-          $(prefix + message + suffix).insertAfter('#header-row');
-        }
-      }
-    },
-    dataType: 'text'
-  });
-}
