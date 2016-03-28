@@ -36,7 +36,7 @@ function acrocrm_leads_menu() {
     'title' => 'AcroCRM Leads Overview',
     'description' => 'AcroCRM Leads Overview',
     'page callback' => 'acrocrm_leads_overview_page',
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_admin_role',
     'file' => 'includes/acrocrm_leads.pages.inc'
   );
 
@@ -44,7 +44,7 @@ function acrocrm_leads_menu() {
     'title' => 'AcroCRM My Leads',
     'description' => 'AcroCRM My Leads',
     'page callback' => 'acrocrm_leads_my_leads_page',
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_sales_rep_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -54,7 +54,7 @@ function acrocrm_leads_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('acrocrm_leads_contact_form_settings_form'),
     'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array('administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_admin_role',
     'file' => 'includes/acrocrm_leads.forms.inc'
   );
 
@@ -62,81 +62,81 @@ function acrocrm_leads_menu() {
 
   $items['acrocrm_leads/new_lead'] = array(
     'page callback' => 'acrocrm_leads_new_lead_ajax',
-    'access callback' => TRUE,
+//    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_admin_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
   $items['acrocrm_leads/edit_lead'] = array(
     'page callback' => 'acrocrm_leads_edit_lead_ajax',
     'page arguments' => array(2, 3),
-    'access callback' => TRUE,
+//    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_crm_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
   $items['acrocrm_leads/filter_leads'] = array(
     'page callback' => 'acrocrm_leads_filter_leads_ajax',
     'page arguments' => array(2, 3, 4, 5),
-    'access callback' => TRUE,
+//    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_admin_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
   $items['acrocrm_leads/delete_lead'] = array(
     'page callback' => 'acrocrm_leads_delete_lead_ajax',
     'page arguments' => array(2),
-    'access callback' => TRUE,
+//    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_crm_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
   $items['acrocrm_leads/recover_lead'] = array(
     'page callback' => 'acrocrm_leads_recover_lead_ajax',
     'page arguments' => array(2),
-    'access callback' => TRUE,
+//    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_admin_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
   $items['acrocrm_leads/assign_lead'] = array(
     'page callback' => 'acrocrm_leads_assign_lead_ajax',
-    'access callback' => TRUE,
+//    'access callback' => TRUE,
     'page arguments' => array(2, 3),
     'type' => MENU_CALLBACK,
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_admin_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
   $items['acrocrm_leads/unassign_lead'] = array(
     'page callback' => 'acrocrm_leads_unassign_lead_ajax',
-    'access callback' => TRUE,
+//    'access callback' => TRUE,
     'page arguments' => array(2),
     'type' => MENU_CALLBACK,
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_crm_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
   $items['acrocrm_leads/get_lead_priority'] = array(
     'page callback' => 'acrocrm_leads_get_lead_priority_ajax',
-    'access callback' => TRUE,
+//    'access callback' => TRUE,
     'page arguments' => array(2),
     'type' => MENU_CALLBACK,
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_crm_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
   $items['acrocrm_leads/set_lead_priority'] = array(
     'page callback' => 'acrocrm_leads_set_lead_priority_ajax',
     'page arguments' => array(2, 3),
-    'access callback' => TRUE,
+//    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('sales rep', 'administer acrocrm'),
+    'access callback' => 'acrocrm_check_user_has_admin_role',
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
