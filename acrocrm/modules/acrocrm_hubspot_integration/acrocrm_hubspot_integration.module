@@ -45,19 +45,19 @@ function acrocrm_hubspot_integration_help($path, $arg) {
  */
 function acrocrm_hubspot_integration_menu() {
   $items = array();
-  
+
   $items['acrocrm_hubspot_integration/commit_assigned_leads'] = array(
     'access callback' => TRUE,
     'page callback' => 'acrocrm_hubspot_integration_commit_assigned_leads_ajax',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
   );
 
   $items['acrocrm_hubspot_integration/oauth_token'] = array(
     'access callback' => TRUE,
     'page callback' => 'acrocrm_hubspot_integration_oauth_token',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
   );
 
   $items['admin/config/acrocrm/acrocrm_hubspot_integration'] = array(
@@ -66,7 +66,7 @@ function acrocrm_hubspot_integration_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('acrocrm_hubspot_integration_settings_form'),
     'file' => 'includes/acrocrm_hubspot_integration.forms.inc',
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer acrocrm'),
     'type' => MENU_NORMAL_ITEM
   );
 

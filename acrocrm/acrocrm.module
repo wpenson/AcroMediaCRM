@@ -34,7 +34,7 @@ function acrocrm_menu() {
     'description' => 'Acro CRM',
     'weight' => -8,
     'page callback' => 'acrocrm_landing_page',
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm.pages.inc',
   );
   $items['acrocrm/default'] = array(
@@ -42,7 +42,7 @@ function acrocrm_menu() {
     'description' => 'Acro CRM',
     'weight' => -8,
     'page callback' => 'acrocrm_default',
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm.pages.inc',
   );
   $items['admin/structure/acrocrm'] = array(
@@ -59,7 +59,7 @@ function acrocrm_menu() {
     'position' => 'right',
     'weight' => -10,
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer acrocrm'),
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
   );
@@ -83,10 +83,6 @@ function acrocrm_permission() {
     'administer acrocrm' => array(
       'title' => t('Administer Acro CRM'),
       'description' => t('Perform administration tasks for my Acro CRM.'),
-    ),
-    'access acrocrm' => array(
-      'title' => t('Access Acro CRM'),
-      'description' => t('Access Acro CRM.'),
     ),
     'sales rep' => array(
       'title' => t('Sales Representative'),
@@ -148,7 +144,6 @@ function acrocrm_page(&$variables) {
       'path' => base_path() . 'acrocrm_dashboard',
       'title' => t('Dashboard'),
       'icon' => 'glyphicon-th',
-      'permission' => 'administer acrocrm'
     );
   }
 
@@ -169,7 +164,6 @@ function acrocrm_page(&$variables) {
         'path' => '#',
         'title' => t('Leads'),
         'icon' => 'glyphicon-user',
-        'permission' => 'administer acrocrm',
         'child_pages' => array(
           'overview' => array(
             'path' => 'acrocrm_leads/overview',
@@ -179,12 +173,13 @@ function acrocrm_page(&$variables) {
           'my_leads' => array(
             'path' => 'acrocrm_leads/my_leads',
             'title' => t('My Leads'),
-            'permission' => 'administer acrocrm',
+            'permission' => 'sales rep',
           ),
         ),
       );
     }
   }
+
   $items['settings'] = array(
     'path' => base_path() . 'admin/config/acrocrm',
     'title' => t('Settings'),
@@ -193,8 +188,38 @@ function acrocrm_page(&$variables) {
   );
   
   foreach ($items as $key => $item) {
-    if ((isset($item['module']) && !module_exists($item['module'])) || !user_access($item['permission'])) {
-      unset($items[$key]);
+    if (isset($item['permission'])) {
+      $role = user_role_load_by_name($item['permission']);
+      $role_id = $role ? $role->rid : NULL;
+
+      if ($role_id != NULL && !user_has_role($role_id)) {
+        unset($items[$key]);
+      }
+    }
+
+    if (isset($item['child_pages'])) {
+      $is_there_child = false;
+
+      foreach ($item['child_pages'] as $c_key => $c_item) {
+        if (isset($item['child_pages']['permission'])) {
+          $role = user_role_load_by_name($item['permission']);
+          $role_id = $role ? $role->rid : NULL;
+
+          if ($role_id != NULL && !user_has_role($role_id)) {
+            unset($items['child_pages'][$c_key]);
+          }
+          else {
+            $is_there_child = true;
+          }
+        }
+        else {
+          $is_there_child = true;
+        }
+      }
+
+      if (!$is_there_child) {
+        unset($items[$key]);
+      }
     }
   }
 

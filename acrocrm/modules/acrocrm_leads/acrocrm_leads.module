@@ -36,7 +36,7 @@ function acrocrm_leads_menu() {
     'title' => 'AcroCRM Leads Overview',
     'description' => 'AcroCRM Leads Overview',
     'page callback' => 'acrocrm_leads_overview_page',
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc'
   );
 
@@ -44,7 +44,7 @@ function acrocrm_leads_menu() {
     'title' => 'AcroCRM My Leads',
     'description' => 'AcroCRM My Leads',
     'page callback' => 'acrocrm_leads_my_leads_page',
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -54,7 +54,7 @@ function acrocrm_leads_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('acrocrm_leads_contact_form_settings_form'),
     'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer acrocrm'),
     'file' => 'includes/acrocrm_leads.forms.inc'
   );
 
@@ -64,7 +64,7 @@ function acrocrm_leads_menu() {
     'page callback' => 'acrocrm_leads_new_lead_ajax',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -73,7 +73,7 @@ function acrocrm_leads_menu() {
     'page arguments' => array(2, 3),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -82,7 +82,7 @@ function acrocrm_leads_menu() {
     'page arguments' => array(2, 3, 4, 5),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -91,7 +91,7 @@ function acrocrm_leads_menu() {
     'page arguments' => array(2),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -100,7 +100,7 @@ function acrocrm_leads_menu() {
     'page arguments' => array(2),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -109,7 +109,7 @@ function acrocrm_leads_menu() {
     'access callback' => TRUE,
     'page arguments' => array(2, 3),
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -118,7 +118,7 @@ function acrocrm_leads_menu() {
     'access callback' => TRUE,
     'page arguments' => array(2),
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -127,7 +127,7 @@ function acrocrm_leads_menu() {
     'access callback' => TRUE,
     'page arguments' => array(2),
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 
@@ -136,7 +136,7 @@ function acrocrm_leads_menu() {
     'page arguments' => array(2, 3),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-    'access arguments' => array('access acrocrm'),
+    'access arguments' => array('sales rep', 'administer acrocrm'),
     'file' => 'includes/acrocrm_leads.pages.inc',
   );
 

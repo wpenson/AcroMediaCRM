@@ -267,9 +267,7 @@ function acrocrm_leads_filter_leads_ajax($record_offset = 0, $record_limit = 4, 
   else {
     $leads_query->orderBy('l.' . $_SESSION['lead_sort_pref'], strtoupper($_SESSION['lead_sort_order_pref']));
   }
-
-  error_log($record_offset);
-  error_log($record_limit);
+  
   $leads_query->range($record_offset, $record_limit);
   $leads_query = $leads_query->execute();
   $leads = array();
