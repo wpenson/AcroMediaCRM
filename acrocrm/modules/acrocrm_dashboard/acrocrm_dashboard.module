@@ -223,8 +223,17 @@ function getSalesReps() {
   $users = entity_load('user');
   $sales_reps = '';
 
+  $role = user_role_load_by_name('sales rep');
+  $role_id = $role ? $role->rid : NULL;
+  $result = db_select('users_roles', 'ur')
+    ->fields('ur')
+    ->condition('uid', 1, '=')
+    ->condition('rid', $role_id, '=')
+    ->execute()
+    ->fetchAssoc();
+
   foreach ($users as $user) {
-    if (user_access('sales rep', $user) && $user->uid>1) {
+    if (($user->uid != 1 && user_access('sales rep', $user)) || ($user->uid == 1 && $result > 0)) {
       $sales_reps .= '<p><strong>' . $user->name . '</strong> ' . $user->mail . '</p>';
     }
   }
