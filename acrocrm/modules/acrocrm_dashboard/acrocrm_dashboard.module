@@ -13,559 +13,259 @@
  *  Ant HTML string
  */
 function acrocrm_dashboard_help($path, $arg) {
-    switch ($path) {
-        case "admin/help#acrocrm_dashboard":
-            return '<p>' . t("Dashboard module for AcroCRM") . '</p>';
-            break;
-    }
+  switch ($path) {
+    case "admin/help#acrocrm_dashboard":
+      return '<p>' . t("Dashboard module for AcroCRM") . '</p>';
+      break;
+  }
 }
 
 /**
  * Implements hook_menu
  */
 function acrocrm_dashboard_menu() {
-    $items = array();
+  $items = array();
 
-    $items['acrocrm_dashboard'] = array(
-        'title' => 'AcroCRM Dashboard',
-        'description' => 'AcroCRM Dashboard',
-        'page callback' => 'acrocrm_dashboard_main_page',
-        'access arguments' => array('access acrocrm'),
-    );
+  $items['acrocrm_dashboard'] = array(
+    'title' => 'AcroCRM Dashboard',
+    'description' => 'AcroCRM Dashboard',
+    'page callback' => 'acrocrm_dashboard_main_page',
+    'access arguments' => array('access acrocrm'),
+  );
 
-    return $items;
+  return $items;
 }
 
 function acrocrm_dashboard_theme() {
-    return array(
-        'page__acrocrm_dashboard' => array(
-            'variables' => array('page' => NULL),
-            'preprocess functions' => array('acrocrm_dashboard_page'),
-        ),
-        'acrocrm_dashboard_home' => array(
-            'base hook' => 'page__acrocrm_dashboard',
-            'path' => drupal_get_path('module', 'acrocrm') . '/templates',
-            'template' => 'main--acrocrm',
-        ),
-    );
+  return array(
+    'page__acrocrm_dashboard' => array(
+      'variables' => array('page' => NULL),
+      'preprocess functions' => array('acrocrm_dashboard_page'),
+    ),
+    'acrocrm_dashboard_home' => array(
+      'base hook' => 'page_acrocrm_dashboard',
+      'path' => drupal_get_path('module', 'acrocrm') . '/templates',
+      'template' => 'main--acrocrm',
+    ),
+  );
 }
 
 function acrocrm_dashboard_page(&$variables) {
-    acrocrm_page($variables);
-
+  acrocrm_page($variables);
+  $js_path = drupal_get_path('module', 'acrocrm') . '/templates/assets/js/';
+  drupal_add_js($js_path . 'jquery.flot.js', array('scope' => 'footer'));
+  drupal_add_js($js_path . 'jquery.flot.pie.js', array('scope' => 'footer'));
+  drupal_add_js($js_path . 'jquery.flot.resize.js', array('scope' => 'footer'));
+  drupal_add_js($js_path . 'jquery.flot.tooltip.min.js', array('scope' => 'footer'));
+  drupal_add_js($js_path . 'acrocrm_charts.js', array('scope' => 'footer'));
 }
 
 function acrocrm_dashboard_main_page() {
-    $page['content']['header'] = array(
-        '#markup' => '<div class="row">
+  $page['content']['header'] = array(
+    '#markup' => '<div class="row">
                     <div class="col-lg-12">
-                        <h1 class="page-header">Dashboard</h1>
+                        <h1 class="page-header">' . t('Dashboard') . '</h1>
                     </div>
                   </div>'
-    );
-
-    $page['content']['notifications'] = array(
-        '#markup' => '<div class="row">
-                <div class="col-lg-6 col-md-6">
-                    <div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <div class="row">
-                                <div class="col-xs-3">
-                                    <i class="fa fa-comments fa-5x"></i>
-                                </div>
-                                <div class="col-xs-9 text-right">
-                                    <div class="huge">26</div>
-                                    <div>New Comments!</div>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="#">
-                            <div class="panel-footer">
-                                <span class="pull-left">View Details</span>
-                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                                <div class="clearfix"></div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-6 col-md-6">
-                    <div class="panel panel-green">
-                        <div class="panel-heading">
-                            <div class="row">
-                                <div class="col-xs-3">
-                                    <i class="fa fa-tasks fa-5x"></i>
-                                </div>
-                                <div class="col-xs-9 text-right">
-                                    <div class="huge">12</div>
-                                    <div>New Tasks!!!!!!!!!!!!!!!!</div>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="#">
-                            <div class="panel-footer">
-                                <span class="pull-left">View Details</span>
-                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                                <div class="clearfix"></div>
-                            </div>
-                        </a>
-                    </div>
-                </div>');
-
-    $page['content']['widgets'] = array('#markup' => '<div class="row">
-                <div class="col-lg-8">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw"></i> Area Chart Example
-                            <div class="pull-right">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
-                                        Actions
-                                        <span class="caret"></span>
-                                    </button>
-                                    <ul class="dropdown-menu pull-right" role="menu">
-                                        <li><a href="#">Action</a>
-                                        </li>
-                                        <li><a href="#">Another action</a>
-                                        </li>
-                                        <li><a href="#">Something else here</a>
-                                        </li>
-                                        <li class="divider"></li>
-                                        <li><a href="#">Separated link</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-                            <div id="morris-area-chart" style="position: relative; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"><svg height="347" version="1.1" width="647" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="overflow: hidden; position: relative;"><desc style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">Created with Raphaël 2.1.2</desc><defs style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></defs><text x="49.203125" y="313" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">0</tspan></text><path fill="none" stroke="#aaaaaa" d="M61.703125,313H622" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="49.203125" y="241" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">7,500</tspan></text><path fill="none" stroke="#aaaaaa" d="M61.703125,241H622" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="49.203125" y="169" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">15,000</tspan></text><path fill="none" stroke="#aaaaaa" d="M61.703125,169H622" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="49.203125" y="97.00000000000003" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4.000000000000028" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">22,500</tspan></text><path fill="none" stroke="#aaaaaa" d="M61.703125,97.00000000000003H622" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="49.203125" y="25" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">30,000</tspan></text><path fill="none" stroke="#aaaaaa" d="M61.703125,25H622" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="518.5418103830186" y="325.5" text-anchor="middle" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: middle; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal" transform="matrix(1,0,0,1,0,7)"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">2012</tspan></text><text x="270.03790551744214" y="325.5" text-anchor="middle" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: middle; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal" transform="matrix(1,0,0,1,0,7)"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">2011</tspan></text><path fill="#7cb47c" stroke="none" d="M61.703125,261.9952C77.35518316319427,256.7152,108.6592994895828,245.75689404303512,124.31135765277708,240.8752C139.97050782238875,235.9912940430351,171.28880816161205,229.61560628272252,186.94795833122373,222.93280000000001C202.44399235323527,216.31960628272253,233.43606039725836,189.66448883774456,248.9320944192699,187.6912C264.2508282808465,185.74048883774455,294.8882960039998,205.80161428898558,310.20702986557643,207.23680000000002C325.8590880287707,208.70321428898558,357.1632043551592,198.32102124575314,372.8152625183535,199.29760000000002C388.4744126879652,200.27462124575314,419.7927130271885,232.3866890052356,435.45186319680016,215.0512C450.9478972188117,197.8962890052356,481.9399652628348,69.70431494621197,497.43599928484633,61.33600000000001C512.9249413004404,52.97151494621197,543.9028253316287,135.84980951947165,559.3917673472229,148.12C575.0438255104172,160.51940951947165,606.3479418368057,157.04080000000002,622,160.01440000000002L622,313L61.703125,313Z" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></path><path fill="none" stroke="#4da74d" d="M61.703125,261.9952C77.35518316319427,256.7152,108.6592994895828,245.75689404303512,124.31135765277708,240.8752C139.97050782238875,235.9912940430351,171.28880816161205,229.61560628272252,186.94795833122373,222.93280000000001C202.44399235323527,216.31960628272253,233.43606039725836,189.66448883774456,248.9320944192699,187.6912C264.2508282808465,185.74048883774455,294.8882960039998,205.80161428898558,310.20702986557643,207.23680000000002C325.8590880287707,208.70321428898558,357.1632043551592,198.32102124575314,372.8152625183535,199.29760000000002C388.4744126879652,200.27462124575314,419.7927130271885,232.3866890052356,435.45186319680016,215.0512C450.9478972188117,197.8962890052356,481.9399652628348,69.70431494621197,497.43599928484633,61.33600000000001C512.9249413004404,52.97151494621197,543.9028253316287,135.84980951947165,559.3917673472229,148.12C575.0438255104172,160.51940951947165,606.3479418368057,157.04080000000002,622,160.01440000000002" stroke-width="3" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><circle cx="61.703125" cy="261.9952" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="124.31135765277708" cy="240.8752" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="186.94795833122373" cy="222.93280000000001" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="248.9320944192699" cy="187.6912" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="310.20702986557643" cy="207.23680000000002" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="372.8152625183535" cy="199.29760000000002" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="435.45186319680016" cy="215.0512" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="497.43599928484633" cy="61.33600000000001" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="559.3917673472229" cy="148.12" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="622" cy="160.01440000000002" r="2" fill="#4da74d" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><path fill="#a7b3bc" stroke="none" d="M61.703125,287.4064C77.35518316319427,281.632,108.6592994895828,269.3656543601359,124.31135765277708,264.3088C139.97050782238875,259.24965436013593,171.28880816161205,249.70720000000003,186.94795833122373,246.94240000000002C202.44399235323527,244.20640000000003,233.43606039725836,244.52992497123134,248.9320944192699,242.30560000000003C264.2508282808465,240.10672497123133,294.8882960039998,232.33483379894662,310.20702986557643,229.2496C325.8590880287707,226.09723379894663,357.1632043551592,217.2244296262741,372.8152625183535,217.35520000000002C388.4744126879652,217.4860296262741,419.7927130271885,243.6579937172775,435.45186319680016,230.296C450.9478972188117,217.0731937172775,481.9399652628348,118.85619409475855,497.43599928484633,111.01600000000002C512.9249413004404,103.17939409475855,543.9028253316287,159.3581391027101,559.3917673472229,167.58880000000002C575.0438255104172,175.9061391027101,606.3479418368057,174.8032,622,177.208L622,313L61.703125,313Z" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></path><path fill="none" stroke="#7a92a3" d="M61.703125,287.4064C77.35518316319427,281.632,108.6592994895828,269.3656543601359,124.31135765277708,264.3088C139.97050782238875,259.24965436013593,171.28880816161205,249.70720000000003,186.94795833122373,246.94240000000002C202.44399235323527,244.20640000000003,233.43606039725836,244.52992497123134,248.9320944192699,242.30560000000003C264.2508282808465,240.10672497123133,294.8882960039998,232.33483379894662,310.20702986557643,229.2496C325.8590880287707,226.09723379894663,357.1632043551592,217.2244296262741,372.8152625183535,217.35520000000002C388.4744126879652,217.4860296262741,419.7927130271885,243.6579937172775,435.45186319680016,230.296C450.9478972188117,217.0731937172775,481.9399652628348,118.85619409475855,497.43599928484633,111.01600000000002C512.9249413004404,103.17939409475855,543.9028253316287,159.3581391027101,559.3917673472229,167.58880000000002C575.0438255104172,175.9061391027101,606.3479418368057,174.8032,622,177.208" stroke-width="3" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><circle cx="61.703125" cy="287.4064" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="124.31135765277708" cy="264.3088" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="186.94795833122373" cy="246.94240000000002" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="248.9320944192699" cy="242.30560000000003" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="310.20702986557643" cy="229.2496" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="372.8152625183535" cy="217.35520000000002" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="435.45186319680016" cy="230.296" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="497.43599928484633" cy="111.01600000000002" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="559.3917673472229" cy="167.58880000000002" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="622" cy="177.208" r="2" fill="#7a92a3" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><path fill="#2577b5" stroke="none" d="M61.703125,287.4064C77.35518316319427,287.1376,108.6592994895828,289.0257895356739,124.31135765277708,286.3312C139.97050782238875,283.6353895356739,171.28880816161205,267.03781361256546,186.94795833122373,265.8448C202.44399235323527,264.66421361256545,233.43606039725836,279.12750471806675,248.9320944192699,276.8368C264.2508282808465,274.57230471806673,294.8882960039998,249.8830226700252,310.20702986557643,247.62400000000002C325.8590880287707,245.31582267002523,357.1632043551592,256.1805408833522,372.8152625183535,258.568C388.4744126879652,260.9565408833522,419.7927130271885,278.0706764397906,435.45186319680016,266.728C450.9478972188117,255.50347643979057,481.9399652628348,175.34121144426643,497.43599928484633,168.2992C512.9249413004404,161.26041144426645,543.9028253316287,202.47734256433617,559.3917673472229,210.40480000000002C575.0438255104172,218.41574256433617,606.3479418368057,226.6408,622,232.0528L622,313L61.703125,313Z" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></path><path fill="none" stroke="#0b62a4" d="M61.703125,287.4064C77.35518316319427,287.1376,108.6592994895828,289.0257895356739,124.31135765277708,286.3312C139.97050782238875,283.6353895356739,171.28880816161205,267.03781361256546,186.94795833122373,265.8448C202.44399235323527,264.66421361256545,233.43606039725836,279.12750471806675,248.9320944192699,276.8368C264.2508282808465,274.57230471806673,294.8882960039998,249.8830226700252,310.20702986557643,247.62400000000002C325.8590880287707,245.31582267002523,357.1632043551592,256.1805408833522,372.8152625183535,258.568C388.4744126879652,260.9565408833522,419.7927130271885,278.0706764397906,435.45186319680016,266.728C450.9478972188117,255.50347643979057,481.9399652628348,175.34121144426643,497.43599928484633,168.2992C512.9249413004404,161.26041144426645,543.9028253316287,202.47734256433617,559.3917673472229,210.40480000000002C575.0438255104172,218.41574256433617,606.3479418368057,226.6408,622,232.0528" stroke-width="3" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><circle cx="61.703125" cy="287.4064" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="124.31135765277708" cy="286.3312" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="186.94795833122373" cy="265.8448" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="248.9320944192699" cy="276.8368" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="310.20702986557643" cy="247.62400000000002" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="372.8152625183535" cy="258.568" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="435.45186319680016" cy="266.728" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="497.43599928484633" cy="168.2992" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="559.3917673472229" cy="210.40480000000002" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle><circle cx="622" cy="232.0528" r="2" fill="#0b62a4" stroke="#ffffff" stroke-width="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></circle></svg><div class="morris-hover morris-default-style" style="left: 67.8114px; top: 182px; display: none;"><div class="morris-hover-row-label">2010 Q2</div><div class="morris-hover-point" style="color: #0b62a4">
-  iPhone:
-  2,778
-</div><div class="morris-hover-point" style="color: #7A92A3">
-  iPad:
-  2,294
-</div><div class="morris-hover-point" style="color: #4da74d">
-  iPod Touch:
-  2,441
-</div></div></div>
-                        </div>
-                        <!-- /.panel-body -->
-                    </div>
-                    <!-- /.panel -->
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw"></i> Bar Chart Example
-                            <div class="pull-right">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
-                                        Actions
-                                        <span class="caret"></span>
-                                    </button>
-                                    <ul class="dropdown-menu pull-right" role="menu">
-                                        <li><a href="#">Action</a>
-                                        </li>
-                                        <li><a href="#">Another action</a>
-                                        </li>
-                                        <li><a href="#">Something else here</a>
-                                        </li>
-                                        <li class="divider"></li>
-                                        <li><a href="#">Separated link</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-                            <div class="row">
-                                <div class="col-lg-4">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-hover table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Date</th>
-                                                    <th>Time</th>
-                                                    <th>Amount</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td>3326</td>
-                                                    <td>10/21/2013</td>
-                                                    <td>3:29 PM</td>
-                                                    <td>$321.33</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>3325</td>
-                                                    <td>10/21/2013</td>
-                                                    <td>3:20 PM</td>
-                                                    <td>$234.34</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>3324</td>
-                                                    <td>10/21/2013</td>
-                                                    <td>3:03 PM</td>
-                                                    <td>$724.17</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>3323</td>
-                                                    <td>10/21/2013</td>
-                                                    <td>3:00 PM</td>
-                                                    <td>$23.71</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>3322</td>
-                                                    <td>10/21/2013</td>
-                                                    <td>2:49 PM</td>
-                                                    <td>$8345.23</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>3321</td>
-                                                    <td>10/21/2013</td>
-                                                    <td>2:23 PM</td>
-                                                    <td>$245.12</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>3320</td>
-                                                    <td>10/21/2013</td>
-                                                    <td>2:15 PM</td>
-                                                    <td>$5663.54</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>3319</td>
-                                                    <td>10/21/2013</td>
-                                                    <td>2:13 PM</td>
-                                                    <td>$943.45</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <!-- /.table-responsive -->
-                                </div>
-                                <!-- /.col-lg-4 (nested) -->
-                                <div class="col-lg-8">
-                                    <div id="morris-bar-chart" style="position: relative; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"><svg height="347" version="1.1" width="422" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="overflow: hidden; position: relative; left: -0.765625px;"><desc style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">Created with Raphaël 2.1.2</desc><defs style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></defs><text x="32.515625" y="313" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">0</tspan></text><path fill="none" stroke="#aaaaaa" d="M45.015625,313H397" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="32.515625" y="241" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">25</tspan></text><path fill="none" stroke="#aaaaaa" d="M45.015625,241H397" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="32.515625" y="169" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">50</tspan></text><path fill="none" stroke="#aaaaaa" d="M45.015625,169H397" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="32.515625" y="97" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">75</tspan></text><path fill="none" stroke="#aaaaaa" d="M45.015625,97H397" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="32.515625" y="25" text-anchor="end" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: end; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">100</tspan></text><path fill="none" stroke="#aaaaaa" d="M45.015625,25H397" stroke-width="0.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="371.85825892857144" y="325.5" text-anchor="middle" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: middle; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal" transform="matrix(1,0,0,1,0,7)"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">2012</tspan></text><text x="271.2912946428571" y="325.5" text-anchor="middle" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: middle; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal" transform="matrix(1,0,0,1,0,7)"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">2010</tspan></text><text x="170.72433035714286" y="325.5" text-anchor="middle" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: middle; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal" transform="matrix(1,0,0,1,0,7)"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">2008</tspan></text><text x="70.15736607142857" y="325.5" text-anchor="middle" font-family="sans-serif" font-size="12px" stroke="none" fill="#888888" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: middle; font-family: sans-serif; font-size: 12px; font-weight: normal;" font-weight="normal" transform="matrix(1,0,0,1,0,7)"><tspan dy="4" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">2006</tspan></text><rect x="51.30106026785714" y="25" width="17.35630580357143" height="288" rx="0" ry="0" fill="#0b62a4" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="71.65736607142857" y="53.80000000000001" width="17.35630580357143" height="259.2" rx="0" ry="0" fill="#7a92a3" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="101.58454241071428" y="97" width="17.35630580357143" height="216" rx="0" ry="0" fill="#0b62a4" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="121.94084821428571" y="125.80000000000001" width="17.35630580357143" height="187.2" rx="0" ry="0" fill="#7a92a3" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="151.86802455357142" y="169" width="17.35630580357143" height="144" rx="0" ry="0" fill="#0b62a4" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="172.22433035714283" y="197.8" width="17.35630580357143" height="115.19999999999999" rx="0" ry="0" fill="#7a92a3" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="202.15150669642858" y="97" width="17.35630580357143" height="216" rx="0" ry="0" fill="#0b62a4" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="222.5078125" y="125.80000000000001" width="17.35630580357143" height="187.2" rx="0" ry="0" fill="#7a92a3" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="252.43498883928572" y="169" width="17.35630580357143" height="144" rx="0" ry="0" fill="#0b62a4" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="272.79129464285717" y="197.8" width="17.35630580357143" height="115.19999999999999" rx="0" ry="0" fill="#7a92a3" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="302.7184709821429" y="97" width="17.35630580357143" height="216" rx="0" ry="0" fill="#0b62a4" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="323.07477678571433" y="125.80000000000001" width="17.35630580357143" height="187.2" rx="0" ry="0" fill="#7a92a3" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="353.00195312500006" y="25" width="17.35630580357143" height="288" rx="0" ry="0" fill="#0b62a4" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect><rect x="373.3582589285715" y="53.80000000000001" width="17.35630580357143" height="259.2" rx="0" ry="0" fill="#7a92a3" stroke="none" fill-opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); fill-opacity: 1;"></rect></svg><div class="morris-hover morris-default-style" style="left: 26.1574px; top: 136px; display: none;"><div class="morris-hover-row-label">2006</div><div class="morris-hover-point" style="color: #0b62a4">
-  Series A:
-  100
-</div><div class="morris-hover-point" style="color: #7a92a3">
-  Series B:
-  90
-</div></div></div>
-                                </div>
-                                <!-- /.col-lg-8 (nested) -->
-                            </div>
-                            <!-- /.row -->
-                        </div>
-                        <!-- /.panel-body -->
-                    </div>
-                    <!-- /.panel -->
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <i class="fa fa-clock-o fa-fw"></i> Responsive Timeline
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-                            <ul class="timeline">
-                                <li>
-                                    <div class="timeline-badge"><i class="fa fa-check"></i>
-                                    </div>
-                                    <div class="timeline-panel">
-                                        <div class="timeline-heading">
-                                            <h4 class="timeline-title">Lorem ipsum dolor</h4>
-                                            <p><small class="text-muted"><i class="fa fa-clock-o"></i> 11 hours ago via Twitter</small>
-                                            </p>
-                                        </div>
-                                        <div class="timeline-body">
-                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Libero laboriosam dolor perspiciatis omnis exercitationem. Beatae, officia pariatur? Est cum veniam excepturi. Maiores praesentium, porro voluptas suscipit facere rem dicta, debitis.</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="timeline-inverted">
-                                    <div class="timeline-badge warning"><i class="fa fa-credit-card"></i>
-                                    </div>
-                                    <div class="timeline-panel">
-                                        <div class="timeline-heading">
-                                            <h4 class="timeline-title">Lorem ipsum dolor</h4>
-                                        </div>
-                                        <div class="timeline-body">
-                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Autem dolorem quibusdam, tenetur commodi provident cumque magni voluptatem libero, quis rerum. Fugiat esse debitis optio, tempore. Animi officiis alias, officia repellendus.</p>
-                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laudantium maiores odit qui est tempora eos, nostrum provident explicabo dignissimos debitis vel! Adipisci eius voluptates, ad aut recusandae minus eaque facere.</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="timeline-badge danger"><i class="fa fa-bomb"></i>
-                                    </div>
-                                    <div class="timeline-panel">
-                                        <div class="timeline-heading">
-                                            <h4 class="timeline-title">Lorem ipsum dolor</h4>
-                                        </div>
-                                        <div class="timeline-body">
-                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Repellendus numquam facilis enim eaque, tenetur nam id qui vel velit similique nihil iure molestias aliquam, voluptatem totam quaerat, magni commodi quisquam.</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="timeline-inverted">
-                                    <div class="timeline-panel">
-                                        <div class="timeline-heading">
-                                            <h4 class="timeline-title">Lorem ipsum dolor</h4>
-                                        </div>
-                                        <div class="timeline-body">
-                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptates est quaerat asperiores sapiente, eligendi, nihil. Itaque quos, alias sapiente rerum quas odit! Aperiam officiis quidem delectus libero, omnis ut debitis!</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="timeline-badge info"><i class="fa fa-save"></i>
-                                    </div>
-                                    <div class="timeline-panel">
-                                        <div class="timeline-heading">
-                                            <h4 class="timeline-title">Lorem ipsum dolor</h4>
-                                        </div>
-                                        <div class="timeline-body">
-                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nobis minus modi quam ipsum alias at est molestiae excepturi delectus nesciunt, quibusdam debitis amet, beatae consequuntur impedit nulla qui! Laborum, atque.</p>
-                                            <hr>
-                                            <div class="btn-group">
-                                                <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
-                                                    <i class="fa fa-gear"></i>  <span class="caret"></span>
-                                                </button>
-                                                <ul class="dropdown-menu" role="menu">
-                                                    <li><a href="#">Action</a>
-                                                    </li>
-                                                    <li><a href="#">Another action</a>
-                                                    </li>
-                                                    <li><a href="#">Something else here</a>
-                                                    </li>
-                                                    <li class="divider"></li>
-                                                    <li><a href="#">Separated link</a>
-                                                    </li>
-                                                </ul>
+  );
+  $lead_count = getLeadCounts(date('Y-m-d', strtotime('-7 days')), date('Y-m-d', strtotime('+1 days')));
+  $page['content']['notifications'] = array(
+    '#markup' => '<div class="row">
+                    <div class="col-lg-12">
+                      <div class="panel panel-info">
+                          <div class="panel-heading"><h4>' . t('Lead Conversion: ') . date('F j', strtotime('-7 days')) . ' - ' . date('F j') . '</h4></div>
+                          <div class="panel-body">
+                             <div class="col-lg-4">
+                                <div class="panel panel-grey">
+                                    <div class="panel-heading">
+                                        <div class="row">
+                                            <div class="col-xs-3">
+                                                <i class="fa fa-exclamation-circle fa-5x"></i>
+                                            </div>
+                                            <div class="col-xs-9 text-right">
+                                                <div class="huge">' . $lead_count['uncommitted'] . '</div>
+                                                <div>' . t('Uncommitted') . '</div>
                                             </div>
                                         </div>
                                     </div>
-                                </li>
-                                <li>
-                                    <div class="timeline-panel">
-                                        <div class="timeline-heading">
-                                            <h4 class="timeline-title">Lorem ipsum dolor</h4>
-                                        </div>
-                                        <div class="timeline-body">
-                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sequi fuga odio quibusdam. Iure expedita, incidunt unde quis nam! Quod, quisquam. Officia quam qui adipisci quas consequuntur nostrum sequi. Consequuntur, commodi.</p>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="timeline-inverted">
-                                    <div class="timeline-badge success"><i class="fa fa-graduation-cap"></i>
-                                    </div>
-                                    <div class="timeline-panel">
-                                        <div class="timeline-heading">
-                                            <h4 class="timeline-title">Lorem ipsum dolor</h4>
-                                        </div>
-                                        <div class="timeline-body">
-                                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Deserunt obcaecati, quaerat tempore officia voluptas debitis consectetur culpa amet, accusamus dolorum fugiat, animi dicta aperiam, enim incidunt quisquam maxime neque eaque.</p>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                        <!-- /.panel-body -->
-                    </div>
-                    <!-- /.panel -->
-                </div>
-                <!-- /.col-lg-8 -->
-                <div class="col-lg-4">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <i class="fa fa-bell fa-fw"></i> Notifications Panel
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-                            <div class="list-group">
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-comment fa-fw"></i> New Comment
-                                    <span class="pull-right text-muted small"><em>4 minutes ago</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-twitter fa-fw"></i> 3 New Followers
-                                    <span class="pull-right text-muted small"><em>12 minutes ago</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-envelope fa-fw"></i> Message Sent
-                                    <span class="pull-right text-muted small"><em>27 minutes ago</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-tasks fa-fw"></i> New Task
-                                    <span class="pull-right text-muted small"><em>43 minutes ago</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-upload fa-fw"></i> Server Rebooted
-                                    <span class="pull-right text-muted small"><em>11:32 AM</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-bolt fa-fw"></i> Server Crashed!
-                                    <span class="pull-right text-muted small"><em>11:13 AM</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-warning fa-fw"></i> Server Not Responding
-                                    <span class="pull-right text-muted small"><em>10:57 AM</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-shopping-cart fa-fw"></i> New Order Placed
-                                    <span class="pull-right text-muted small"><em>9:49 AM</em>
-                                    </span>
-                                </a>
-                                <a href="#" class="list-group-item">
-                                    <i class="fa fa-money fa-fw"></i> Payment Received
-                                    <span class="pull-right text-muted small"><em>Yesterday</em>
-                                    </span>
-                                </a>
-                            </div>
-                            <!-- /.list-group -->
-                            <a href="#" class="btn btn-default btn-block">View All Alerts</a>
-                        </div>
-                        <!-- /.panel-body -->
-                    </div>
-                    <!-- /.panel -->
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <i class="fa fa-bar-chart-o fa-fw"></i> Donut Chart Example
-                        </div>
-                        <div class="panel-body">
-                            <div id="morris-donut-chart"><svg height="347" version="1.1" width="293" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="overflow: hidden; position: relative; left: -0.328125px;"><desc style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">Created with Raphaël 2.1.2</desc><defs style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></defs><path fill="none" stroke="#0b62a4" d="M146.5,267A91,91,0,0,0,232.53914675239338,205.6355399161229" stroke-width="2" opacity="0" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); opacity: 0;"></path><path fill="#0b62a4" stroke="#ffffff" d="M146.5,270A94,94,0,0,0,235.37560213983494,206.61253573753353L270.8312944828542,218.82498350516659A131.5,131.5,0,0,1,146.5,307.5Z" stroke-width="3" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><path fill="none" stroke="#3980b5" d="M232.53914675239338,205.6355399161229A91,91,0,0,0,64.87950800751366,135.76201686336066" stroke-width="2" opacity="1" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); opacity: 1;"></path><path fill="#3980b5" stroke="#ffffff" d="M235.37560213983494,206.61253573753353A94,94,0,0,0,62.188722557211904,134.43548994676814L24.06926201127048,115.64302529504099A136.5,136.5,0,0,1,275.5587201285901,220.45330987418433Z" stroke-width="3" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><path fill="none" stroke="#679dc6" d="M64.87950800751366,135.76201686336066A91,91,0,0,0,146.47141150732253,266.99999550933" stroke-width="2" opacity="0" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); opacity: 0;"></path><path fill="#679dc6" stroke="#ffffff" d="M62.188722557211904,134.43548994676814A94,94,0,0,0,146.47046902954196,269.999995361286L146.45868805728475,307.4999935107352A131.5,131.5,0,0,1,28.553904428440063,117.85390348936181Z" stroke-width="3" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path><text x="146.5" y="166" text-anchor="middle" font-family="&quot;Arial&quot;" font-size="15px" stroke="none" fill="#000000" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: middle; font-family: Arial; font-size: 15px; font-weight: 800;" font-weight="800" transform="matrix(1.6375,0,0,1.6375,-93.3821,-111.2417)" stroke-width="0.6106913919413919"><tspan dy="5.5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">In-Store Sales</tspan></text><text x="146.5" y="186" text-anchor="middle" font-family="&quot;Arial&quot;" font-size="14px" stroke="none" fill="#000000" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0); text-anchor: middle; font-family: Arial; font-size: 14px;" transform="matrix(1.8958,0,0,1.8958,-131.2256,-159.4583)" stroke-width="0.5274725274725275"><tspan dy="5" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);">30</tspan></text></svg></div>
-                            <a href="#" class="btn btn-default btn-block">View Details</a>
-                        </div>
-                        <!-- /.panel-body -->
-                    </div>
-                    <!-- /.panel -->
-                    <div class="chat-panel panel panel-default">
-                        <div class="panel-heading">
-                            <i class="fa fa-comments fa-fw"></i>
-                            Chat
-                            <div class="btn-group pull-right">
-                                <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
-                                    <i class="fa fa-chevron-down"></i>
-                                </button>
-                                <ul class="dropdown-menu slidedown">
-                                    <li>
-                                        <a href="#">
-                                            <i class="fa fa-refresh fa-fw"></i> Refresh
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i class="fa fa-check-circle fa-fw"></i> Available
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i class="fa fa-times fa-fw"></i> Busy
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i class="fa fa-clock-o fa-fw"></i> Away
-                                        </a>
-                                    </li>
-                                    <li class="divider"></li>
-                                    <li>
-                                        <a href="#">
-                                            <i class="fa fa-sign-out fa-fw"></i> Sign Out
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-                            <ul class="chat">
-                                <li class="left clearfix">
-                                    <span class="chat-img pull-left">
-                                        <img src="http://placehold.it/50/55C1E7/fff" alt="User Avatar" class="img-circle">
-                                    </span>
-                                    <div class="chat-body clearfix">
-                                        <div class="header">
-                                            <strong class="primary-font">Jack Sparrow</strong>
-                                            <small class="pull-right text-muted">
-                                                <i class="fa fa-clock-o fa-fw"></i> 12 mins ago
-                                            </small>
-                                        </div>
-                                        <p>
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare dolor, quis ullamcorper ligula sodales.
-                                        </p>
-                                    </div>
-                                </li>
-                                <li class="right clearfix">
-                                    <span class="chat-img pull-right">
-                                        <img src="http://placehold.it/50/FA6F57/fff" alt="User Avatar" class="img-circle">
-                                    </span>
-                                    <div class="chat-body clearfix">
-                                        <div class="header">
-                                            <small class=" text-muted">
-                                                <i class="fa fa-clock-o fa-fw"></i> 13 mins ago</small>
-                                            <strong class="pull-right primary-font">Bhaumik Patel</strong>
-                                        </div>
-                                        <p>
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare dolor, quis ullamcorper ligula sodales.
-                                        </p>
-                                    </div>
-                                </li>
-                                <li class="left clearfix">
-                                    <span class="chat-img pull-left">
-                                        <img src="http://placehold.it/50/55C1E7/fff" alt="User Avatar" class="img-circle">
-                                    </span>
-                                    <div class="chat-body clearfix">
-                                        <div class="header">
-                                            <strong class="primary-font">Jack Sparrow</strong>
-                                            <small class="pull-right text-muted">
-                                                <i class="fa fa-clock-o fa-fw"></i> 14 mins ago</small>
-                                        </div>
-                                        <p>
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare dolor, quis ullamcorper ligula sodales.
-                                        </p>
-                                    </div>
-                                </li>
-                                <li class="right clearfix">
-                                    <span class="chat-img pull-right">
-                                        <img src="http://placehold.it/50/FA6F57/fff" alt="User Avatar" class="img-circle">
-                                    </span>
-                                    <div class="chat-body clearfix">
-                                        <div class="header">
-                                            <small class=" text-muted">
-                                                <i class="fa fa-clock-o fa-fw"></i> 15 mins ago</small>
-                                            <strong class="pull-right primary-font">Bhaumik Patel</strong>
-                                        </div>
-                                        <p>
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare dolor, quis ullamcorper ligula sodales.
-                                        </p>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                        <!-- /.panel-body -->
-                        <div class="panel-footer">
-                            <div class="input-group">
-                                <input id="btn-input" type="text" class="form-control input-sm" placeholder="Type your message here...">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-warning btn-sm" id="btn-chat">
-                                        Send
-                                    </button>
-                                </span>
-                            </div>
-                        </div>
-                        <!-- /.panel-footer -->
-                    </div>
-                    <!-- /.panel .chat-panel -->
-                </div>
-                <!-- /.col-lg-4 -->
-            </div>');
 
-    return theme('acrocrm_dashboard_home', array('page' => $page));
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="panel panel-green">
+                                    <div class="panel-heading">
+                                        <div class="row">
+                                            <div class="col-xs-3">
+                                                <i class="fa fa-check-circle fa-5x"></i>
+                                            </div>
+                                            <div class="col-xs-9 text-right">
+                                                <div class="huge">' . $lead_count['committed'] . '</div>
+                                                <div>' . t('Committed') . '</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="panel panel-red">
+                                    <div class="panel-heading">
+                                        <div class="row">
+                                            <div class="col-xs-3">
+                                                <i class="fa fa-times-circle fa-5x"></i>
+                                            </div>
+                                            <div class="col-xs-9 text-right">
+                                                <div class="huge">' . $lead_count['deleted'] . '</div>
+                                                <div>' . t('Deleted') . '</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                          </div>
+                          <a href="' . base_path() . 'acrocrm_leads/overview' . '">
+                              <div class="panel-footer">
+                                  <span class="pull-left">' . t('View Details') . '</span>
+                                  <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                  <div class="clearfix"></div>
+                              </div>
+                          </a>
+                      </div>
+                  </div>
+                </div> <!-- / .row --->
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="panel panel-warning">
+                        <div class="panel-heading"><h4>' . t('Sales Representatives') . '</h4></div>
+                        <div class="panel-body">'
+                            . getSalesReps() .
+                        '</div>
+                        <a href="' . base_path() . 'admin/people' . '">
+                            <div class="panel-footer">
+                                <span class="pull-left">' . t('View Details') . '</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="panel panel-warning">
+                        <div class="panel-heading"><h4>' . t('Lead Assignment: ') . date('F j', strtotime('-7 days')) . ' - ' . date('F j') . '</h4></div>
+                        <div class="panel-body">'
+                          . getLeadAssignment(date('Y-m-d', strtotime('-7 days')), date('Y-m-d', strtotime('+1 days'))) .
+                          '<div class="flot-chart">
+                            <div class="flot-chart-content" id="flot-pie-chart"></div>
+                          </div>
+                        </div>
+                        <a href="' . base_path() . 'acrocrm_leads/overview' . '">
+                            <div class="panel-footer">
+                                <span class="pull-left">' . t('View Details') . '</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>
+                    </div>
+                  </div>
+                </div> <!-- / .row -->'
+
+  );
+  return theme('acrocrm_dashboard_home', array('page' => $page));
+}
+
+/**
+ *
+ * Gets the counts for the number of uncommitted, deleted, and committed leads
+ *
+ * @param $start_date
+ *  Start date of range to search
+ * @param $end_date
+ *  End date of range to search
+ * @return array
+ *  Array mapping the counts of each lead type
+ */
+function getLeadCounts($start_date, $end_date) {
+  $query = db_select('leads', 'l');
+  $query->fields('l');
+  $query->condition('created_time', $start_date, '>=');
+  $query->condition('created_time', $end_date, '<=');
+  $query = $query->execute();
+
+  $lead_count = array(
+    'uncommitted' => 0,
+    'deleted' => 0,
+    'committed' => 0
+  );
+
+  if ($query->rowCount() > 0) {
+    while ($lead = $query->fetchAssoc()) {
+      if ($lead['status'] == 'UNCOMMITTED') {
+        $lead_count['uncommitted'] = $lead_count['uncommitted'] + 1;
+      }
+      else if ($lead['status'] == 'DELETED') {
+        $lead_count['deleted'] = $lead_count['deleted'] + 1;
+      }
+      else if ($lead['status'] == 'COMMITTED') {
+        $lead_count['committed'] = $lead_count['committed'] + 1;
+      }
+    }
+  }
+  return $lead_count;
+}
+
+/**
+ *
+ * Generate a list of sales reps names and email address
+ *
+ * @return String
+ *  List of leads to be printed in sales rep panel
+ */
+function getSalesReps() {
+  $users = entity_load('user');
+  $sales_reps = '';
+
+  foreach ($users as $user) {
+    if (user_access('sales rep', $user) && $user->uid>1) {
+      $sales_reps .= '<p><strong>' . $user->name . '</strong> ' . $user->mail . '</p>';
+    }
+  }
+  return $sales_reps;
+}
+
+/**
+ *
+ * Find the number of leads assigned to each sales rep over the last week
+ *
+ * @param $start_date
+ *  Start date of range to search
+ * @param $end_date
+ *  End date of range to search
+ * @return String
+ *  div with info about counts of each sales rep to be used by charts library
+ * to make sales rep count chart
+ */
+function getLeadAssignment($start_date, $end_date) {
+  $query = db_select('assigned_leads', 'al');
+  $query->fields('al');
+  $query->addExpression('COUNT(al.lead_id)', 'count');
+  $query->innerJoin('leads', 'l', 'al.lead_id = l.lead_id');
+  $query->innerJoin('users', 'u', 'al.uid = u.uid');
+  $query->fields('u');
+  $query->condition('created_time', $start_date, '>=');
+  $query->condition('created_time', $end_date, '<=');
+  $query->groupBy('al.uid');
+  $query = $query->execute();
+
+  $rep_counts = '<div id="rep-chart-info">';
+  $lead_sum = 0;
+  if ($query->rowCount() > 0) {
+    while ($result = $query->fetchAssoc()) {
+      $lead_sum += $result['count'];
+      $rep_counts .= '<span class="chart-data" data-repname="' . $result['name'] .'" data-repid="' . $result['uid'] . '" data-repcount="' . $result['count'] . '"></span>';
+    }
+  }
+
+  $rep_counts .= '<span id="leads-total" data-lead-total="' . $lead_sum .'"></span></div>';
+
+  return $rep_counts;
 }

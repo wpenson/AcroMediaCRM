@@ -370,3 +370,27 @@ label.c-input {
 #leads-list-pager {
     margin-top: 10px !important;
 }
+
+/* --- Dashboard Module --- */
+.activity-overview {
+    margin-bottom: 25px;
+}
+
+.panel-grey {
+    border-color: #737373;
+}
+
+.panel-grey .panel-heading {
+    border-color: #737373;
+    color: #fff;
+    background-color: #737373;
+}
+
+.panel-warning a {
+    color: #8a6d3b;
+}
+
+.flot-chart {
+    display: block;
+    height: 300px;
+}
