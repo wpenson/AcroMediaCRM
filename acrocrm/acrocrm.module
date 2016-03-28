@@ -37,6 +37,15 @@ function acrocrm_menu() {
     'access callback' => 'acrocrm_check_user_has_crm_role',
     'file' => 'includes/acrocrm.pages.inc',
   );
+  $items['acrocrm'] = array(
+    'title' => 'AcroCRM',
+    'description' => 'AcroCRM',
+    'weight' => -8,
+    'type' => MENU_CALLBACK,
+    'page callback' => 'acrocrm_landing_page',
+    'access callback' => 'acrocrm_check_user_has_crm_role',
+    'file' => 'includes/acrocrm.pages.inc',
+  );
   $items['acrocrm/default'] = array(
     'title' => 'AcroCRM',
     'description' => 'AcroCRM',
@@ -144,7 +153,7 @@ function acrocrm_page(&$variables) {
     $items['dashboard'] = array(
       'path' => base_path() . 'acrocrm_dashboard',
       'title' => t('Dashboard'),
-      'icon' => 'glyphicon-th',
+      'icon' => 'glyphicon-th'
     );
   }
 
@@ -156,34 +165,41 @@ function acrocrm_page(&$variables) {
       $items['leads'] = array(
         'path' => base_path() . 'acrocrm_leads/overview',
         'title' => t('Leads'),
-        'icon' => 'glyphicon-user',
+        'icon' => 'glyphicon-user'
       );
     }
-    else if (acrocrm_check_user_has_crm_role()) {
-      if (acrocrm_check_user_has_admin_role() || (acrocrm_check_user_has_sales_rep_role() && user_has_role($role_id))) {
+    else {
+      if (acrocrm_check_user_has_admin_role() && acrocrm_check_user_has_sales_rep_role()) {
         $items['leads'] = array(
           'title' => t('Leads'),
           'icon' => 'glyphicon-user',
+          'path' => '#',
+          'child_pages' => array()
+        );
+
+        $items['leads']['child_pages']['overview'] = array(
+          'path' => 'acrocrm_leads/overview',
+          'title' => t('Overview')
+        );
+
+        $items['leads']['child_pages']['my_leads'] = array(
+          'path' => 'acrocrm_leads/my_leads',
+          'title' => t('My Leads'),
         );
       }
-
-      if (acrocrm_check_user_has_admin_role()) {
-        $item['child_pages']['overview'] = array(
+      else if (acrocrm_check_user_has_admin_role()) {
+        $items['overview'] = array(
           'path' => base_path() . 'acrocrm_leads/overview',
           'title' => t('Overview'),
+          'icon' => 'glyphicon-user'
         );
-
-        $items['leads']['path'] = 'acrocrm_leads/overview';
       }
-
-      if (acrocrm_check_user_has_sales_rep_role()) {
-        $item['child_pages']['my_leads'] = array(
+      else if (acrocrm_check_user_has_sales_rep_role()) {
+        $items['my_leads'] = array(
           'path' => base_path() . 'acrocrm_leads/my_leads',
           'title' => t('My Leads'),
-          'permission' => 'sales rep',
+          'icon' => 'glyphicon-user'
         );
-
-        $items['leads']['path'] = 'acrocrm_leads/my_leads';
       }
     }
   }
@@ -193,7 +209,7 @@ function acrocrm_page(&$variables) {
       'path' => base_path() . 'admin/config/acrocrm',
       'title' => t('Settings'),
       'icon' => 'glyphicon-cog',
-      'permission' => 'administer acrocrm',
+      'permission' => 'administer acrocrm'
     );
   }
 

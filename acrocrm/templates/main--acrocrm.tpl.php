@@ -2,7 +2,7 @@
   <!-- Navigation -->
   <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
     <div class="navbar-header">
-      <a class="navbar-brand" href="?q=acrocrm">Acro CRM</a>
+      <a class="navbar-brand" href="<?php print base_path() . 'acrocrm'; ?>">Acro CRM</a>
     </div>
     <!-- /.navbar-header -->
     <div class="navbar-default sidebar" role="navigation">
