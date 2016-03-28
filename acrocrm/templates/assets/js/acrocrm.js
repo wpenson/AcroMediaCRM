@@ -585,7 +585,6 @@ Drupal.behaviors.acrocrm_leads = {
       lead_list.hide();
       lead_list.prev('.leads-list-spinner').show();
 
-      console.log(url + params);
       lead_list.load(url + params, function (response, status, xhr) {
         lead_list.prev('.leads-list-spinner').hide();
         lead_list.show();

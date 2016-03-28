@@ -35,7 +35,6 @@ function acrocrm_dashboard_menu() {
 
   return $items;
 }
-
 function acrocrm_dashboard_theme() {
   return array(
     'page__acrocrm_dashboard' => array(
@@ -43,7 +42,7 @@ function acrocrm_dashboard_theme() {
       'preprocess functions' => array('acrocrm_dashboard_page'),
     ),
     'acrocrm_dashboard_home' => array(
-      'base hook' => 'page_acrocrm_dashboard',
+      'base hook' => 'page__acrocrm_dashboard',
       'path' => drupal_get_path('module', 'acrocrm') . '/templates',
       'template' => 'main--acrocrm',
     ),
