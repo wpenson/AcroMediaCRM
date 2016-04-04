@@ -34,7 +34,7 @@ function acrocrm_menu() {
     'description' => 'AcroCRM',
     'weight' => -8,
     'page callback' => 'acrocrm_landing_page',
-    'access callback' => 'acrocrm_check_user_has_crm_role',
+    'access callback' => 'acrocrm_check_user_has_admin_role',
     'file' => 'includes/acrocrm.pages.inc',
   );
   $items['acrocrm'] = array(
@@ -149,7 +149,7 @@ function acrocrm_page(&$variables) {
   drupal_add_js($js_path . 'acrocrm.js', array('scope' => 'footer'));
 
   // Add items to sidebar
-  if (module_exists('acrocrm_dashboard') && acrocrm_check_user_has_crm_role()) {
+  if (module_exists('acrocrm_dashboard') && acrocrm_check_user_has_admin_role()) {
     $items['dashboard'] = array(
       'path' => base_path() . 'acrocrm_dashboard',
       'title' => t('Dashboard'),

@@ -30,7 +30,7 @@ function acrocrm_dashboard_menu() {
     'title' => 'AcroCRM Dashboard',
     'description' => 'AcroCRM Dashboard',
     'page callback' => 'acrocrm_dashboard_main_page',
-    'access callback' => 'acrocrm_check_user_has_crm_role',
+    'access callback' => 'acrocrm_check_user_has_admin_role',
   );
 
   return $items;
