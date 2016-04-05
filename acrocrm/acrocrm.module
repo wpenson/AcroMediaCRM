@@ -287,5 +287,5 @@ function acrocrm_check_user_has_sales_rep_role() {
 }
 
 function acrocrm_check_user_has_crm_role() {
-  user_access('sales rep') || user_access('administer acrocrm');
+  return user_access('sales rep') || user_access('administer acrocrm');
 }
