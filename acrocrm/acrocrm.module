@@ -279,31 +279,13 @@ function acrocrm_get_message_markup() {
 }
 
 function acrocrm_check_user_has_admin_role() {
-  global $user;
-
-  if (in_array('administer acrocrm', $user->roles)) {
-    return true;
-  }
-
-  return false;
+  return user_access('administer acrocrm');
 }
 
 function acrocrm_check_user_has_sales_rep_role() {
-  global $user;
-
-  if (in_array('sales rep', $user->roles)) {
-    return true;
-  }
-
-  return false;
+  return user_access('sales rep');
 }
 
 function acrocrm_check_user_has_crm_role() {
-  global $user;
-
-  if (in_array('sales rep', $user->roles) || in_array('administer acrocrm', $user->roles)) {
-    return true;
-  }
-
-  return false;
+  user_access('sales rep') || user_access('administer acrocrm');
 }
