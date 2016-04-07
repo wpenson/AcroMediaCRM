@@ -158,10 +158,7 @@ function acrocrm_page(&$variables) {
   }
 
   if (module_exists('acrocrm_leads')) {
-    $role = user_role_load_by_name('sales rep');
-    $role_id = $role ? $role->rid : NULL;
-
-    if ((module_exists('acrocrm_hubspot_integration') || !user_has_role($role_id)) && acrocrm_check_user_has_admin_role()) {
+    if ((module_exists('acrocrm_hubspot_integration') || !user_access('sales rep')) && acrocrm_check_user_has_admin_role()) {
       $items['leads'] = array(
         'path' => base_path() . 'acrocrm_leads/overview',
         'title' => t('Leads'),
@@ -283,7 +280,8 @@ function acrocrm_check_user_has_admin_role() {
 }
 
 function acrocrm_check_user_has_sales_rep_role() {
-  return user_access('sales rep');
+  global $user;
+  return user_access('sales rep') && $user->uid != 1;
 }
 
 function acrocrm_check_user_has_crm_role() {

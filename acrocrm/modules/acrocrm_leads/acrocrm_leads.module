@@ -202,26 +202,6 @@ function acrocrm_leads_block_view($delta = '') {
 }
 
 /**
- * Implements hook_update().
- *
- * When the role 'sales rep' for a user is unselected, this un-assigns leads for that user.
- */
-function acrocrm_user_update(&$edit, $account, $category) {
-  if (isset($edit['roles'])) {
-    $role = user_role_load_by_name('sales rep');
-    $role_id = $role ? $role->rid : NULL;
-
-    if ($role_id != NULL) {
-      if (!isset($edit['roles'][$role_id]) && isset($edit['original']->roles[$role_id])) {
-        // Un-assign uncommitted leads from user
-        db_query("DELETE al FROM assigned_leads al INNER JOIN leads l ON l.lead_id = al.lead_id WHERE l.status <> 'COMMITTED' AND al.uid = " . $edit['original']->uid)
-          ->execute();
-      }
-    }
-  }
-}
-
-/**
  * Implements hook_form_FORM_ID_alter().
  *
  * This is needed for form submit redirection.

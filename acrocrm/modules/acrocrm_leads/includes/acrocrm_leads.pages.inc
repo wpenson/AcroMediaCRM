@@ -764,17 +764,8 @@ function acrocrm_leads_get_sales_reps() {
   $users = entity_load('user');
   $rep_div = '';
 
-  $role = user_role_load_by_name('sales rep');
-  $role_id = $role ? $role->rid : NULL;
-  $result = db_select('users_roles', 'ur')
-    ->fields('ur')
-    ->condition('uid', 1, '=')
-    ->condition('rid', $role_id, '=')
-    ->execute()
-    ->fetchAssoc();
-
   foreach ($users as $user) {
-    if (($user->uid != 1 && user_access('sales rep', $user)) || ($user->uid == 1 && $result > 0)) {
+    if ($user->uid != 1 && user_access('sales rep', $user)) {
       $leads_list = '';
       $priorities = acrocrm_leads_generate_sales_rep_lead_list($user->uid, $leads_list);
 
@@ -794,6 +785,20 @@ function acrocrm_leads_get_sales_reps() {
       $rep_div .= '</ul>';
       $rep_div .= '</div>';
       $rep_div .= '</li>';
+    }
+    else {
+      // Remove un-commited assigned leads from users who aren't sales reps.
+      $query = db_select('assigned_leads', 'al');
+      $query->fields('al');
+      $query->innerJoin('leads', 'l', 'l.lead_id = al.lead_id');
+      $query->condition('l.status', 'COMMITTED', '<>');
+      $query->condition('al.uid', $user->uid, '=');
+      $result = $query->execute();
+
+      if ($result->rowCount() > 0) {
+        db_query("DELETE al FROM assigned_leads al INNER JOIN leads l ON l.lead_id = al.lead_id WHERE l.status <> 'COMMITTED' AND al.uid = " . $user->uid)
+          ->execute();
+      }
     }
   }
 
@@ -983,17 +988,8 @@ function generate_lead_form(&$form, &$form_state) {
   $users = entity_load('user');
   $sales_reps = array();
 
-  $role = user_role_load_by_name('sales rep');
-  $role_id = $role ? $role->rid : NULL;
-  $result = db_select('users_roles', 'ur')
-    ->fields('ur')
-    ->condition('uid', 1, '=')
-    ->condition('rid', $role_id, '=')
-    ->execute()
-    ->fetchAssoc();
-
   foreach ($users as $user) {
-    if (($user->uid != 1 && user_access('sales rep', $user)) || ($user->uid == 1 && $result > 0)) {
+    if ($user->uid != 1 && user_access('sales rep', $user)) {
       $sales_reps[$user->uid] = $user->name;
     }
   }
